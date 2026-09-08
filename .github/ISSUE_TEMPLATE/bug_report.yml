@@ -1,0 +1,63 @@
+# credits
+# https://github.com/trpc/trpc/blob/main/.github/ISSUE_TEMPLATE
+# https://github.com/t3-oss/create-t3-app/tree/next/.github/ISSUE_TEMPLATE
+
+name: 🐞 Bug Report
+description: create a bug report to help us improve
+title: 'bug: '
+labels: ['🐞 type: bug', '❔ flag: unconfirmed', '📝 flag: triage']
+body:
+  - type: dropdown
+    id: is-regression
+    attributes:
+      label: Is this a regression?
+      options:
+        - 'Yes'
+        - 'No'
+    validations:
+      required: true
+
+  - type: textarea
+    id: regress-description
+    attributes:
+      label: Description
+      description: if this is a regression, mention when the bug did not occur
+
+  - type: textarea
+    id: bug-description
+    attributes:
+      label: Describe the bug
+      description: A clear and concise description of the bug, as well as what you expected to happen when encountering it.
+    validations:
+      required: true
+
+  - type: textarea
+    id: reproduction-steps
+    attributes:
+      label: To reproduce
+      description: Describe how to reproduce your bug. Steps, the page you were on, screenshots or a recording.
+    validations:
+      required: true
+
+  - type: textarea
+    id: environment
+    attributes:
+      label: Provide environment information
+      description: |
+        The browser and its version, the operating system, and the device — a phone or a desktop, and its screen size if it matters.
+    validations:
+      required: true
+
+  - type: textarea
+    id: other
+    attributes:
+      label: Additional information
+      description: Add any other information related to the bug here, screenshots if applicable.
+
+  - type: checkboxes
+    id: contribution
+    attributes:
+      label: 👨‍👧‍👦 Contributing
+      description: Would you like to implement a fix for this bug?
+      options:
+        - label: 🙋‍♂️ Yes, I will create a pull request fixing this bug!

@@ -1,0 +1,39 @@
+# file-based labels.
+#
+# every name here must match a label that already exists on the repository,
+# byte for byte, EMOJI INCLUDED. the REST call behind actions/labeler creates a
+# label that does not exist rather than failing, so a typo does not break the
+# run, it silently makes a duplicate with a random colour. check against
+# `gh label list --limit 200` before adding a name here.
+#
+# this file owns the file-derived labels. the 'type:' labels that come from the
+# pull request title, and '💥 flag: breaking changes', are owned by the
+# pr-title-labeler job in .github/workflows/labeler.yml. the two owners must
+# stay disjoint: this job runs with `sync-labels: true`, which REMOVES a label
+# it manages once the diff stops matching, so a label written by both gets added
+# by one and stripped by the other, and which lands is a race.
+#
+# the repository has no source yet. add an 'area:' family here the first time
+# there is more than one place a diff can land.
+
+# types
+
+'📚 type: documentation':
+  - changed-files:
+      - any-glob-to-any-file: ['**/*.md', '**/*.mdx']
+
+'🔧 type: tools':
+  - changed-files:
+      - any-glob-to-any-file:
+          - '*.config.*'
+          - '.*rc.*'
+          - '.*rc'
+          - '.*ignore'
+          - '.*attributes'
+          - '.github/**/*'
+
+# flags
+
+'📦 flag: dependencies':
+  - changed-files:
+      - any-glob-to-any-file: ['package-lock.json', 'pnpm-lock.yaml', 'yarn.lock', 'bun.lock']

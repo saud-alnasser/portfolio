@@ -1,0 +1,53 @@
+name: '🔧 integration'
+
+# `edited` is deliberately absent. It fires on a title or body change, and the
+# only check that cares about either has its own workflow — see
+# pull-request-title.yml.
+on:
+  pull_request:
+    types: ['opened', 'reopened', 'synchronize']
+
+# A pull request only ever needs an answer about its newest commit. Without this,
+# pushing again while a run is in flight leaves both running, and the older one
+# spends a full run reporting on a commit nobody will merge.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  # A default-branch ruleset requiring a status check names this job. Renaming
+  # it, or moving it off a trigger that fires for every commit, makes every pull
+  # request unmergeable once that ruleset exists.
+  integration:
+    timeout-minutes: 10
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: '☁️ checkout repository'
+        uses: actions/checkout@v7
+
+      - name: '🔧 setup node'
+        uses: actions/setup-node@v7
+        with:
+          node-version: 24
+
+      # A generated index is never hand-edited, and this is what enforces it: the
+      # regeneration overwrites the index, so anything git still reports afterwards —
+      # a stale index, a hand edit, a drifted generator — fails the run, named. Needs
+      # node and nothing else, which is why it is the whole gate until there is
+      # source to build and test.
+      - name: '🗺️ verify generated indexes'
+        run: |
+          node .aep/scripts/index.mjs > /dev/null
+          stale=$(git status --porcelain -- .aep/index.md | cut -c4-)
+          if [ -n "$stale" ]; then
+            echo 'stale generated index — regenerate with: node .aep/scripts/index.mjs' >&2
+            printf '%s\n' "$stale"
+            exit 1
+          fi
+          node .aep/scripts/validate.mjs --quiet
+
+      # The site itself is not built here yet: the stack it is built with is not
+      # decided (.aep/contexts/repository.md). When it is, the install, check, test
+      # and build steps go below this line, and the deploy goes in its own workflow
+      # on `push` to `main`.

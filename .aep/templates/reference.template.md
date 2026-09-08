@@ -1,0 +1,53 @@
+---
+use-when: "recording how a tool is actually operated in this repository"
+---
+
+# Template — reference
+
+Copy to `.aep/references/<tool>.md`. Everything under `references/` is the
+repository's, and a reference describes *this* repository's usage rather than an
+ecosystem in the abstract.
+
+```markdown
+---
+use-when: "<when an agent needs this tool>"
+---
+
+# Reference — <tool>
+
+## Purpose
+What this tool does here, and when to reach for it.
+
+## Prerequisites
+What must be installed, authenticated, or running first.
+
+## Commands
+The real invocations — flags included — taken from this repository's scripts and
+CI, not from the tool's documentation.
+
+## Expected output
+What success looks like, so failure is recognisable.
+
+## Verification
+How to confirm the operation actually did what it claimed. A command that exits
+zero has not necessarily done anything.
+
+## Failure handling
+The failures that actually happen here, and what each one means.
+
+## Never run
+Anything that publishes, deletes, or is otherwise irreversible.
+```
+
+## The two rules
+
+**A reference is not governance.** It says how to do a thing; it never requires
+that the thing be done, and it never grants permission. A requirement is a rule.
+
+**Do not create a reference for an abstract practice.** `tdd.md` does not exist
+because TDD exists. If TDD is required here, that is a rule — and the rule may
+link to procedural material through `[[references]]`.
+
+**Record what this repository runs, not what the ecosystem defaults to.** A
+reference stating a plausible command is worse than no reference, because it will
+be trusted.
