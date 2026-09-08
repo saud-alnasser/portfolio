@@ -89,4 +89,21 @@ Start at [[protocol]].
 
 | Effort | Status | Spec | Research | Prototypes | Tickets |
 | --- | --- | --- | --- | --- | --- |
-| 1-portfolio-site | accepted | [[efforts/1-portfolio-site/spec]] | 5 | 0 | 0 |
+| 1-portfolio-site | accepted | [[efforts/1-portfolio-site/spec]] | 5 | 0 | 10 |
+
+## Tickets
+
+Every task of every effort. The tracker carries the effort, never its tasks.
+
+| Ticket | Effort | Status | Blocked by |
+| --- | --- | --- | --- |
+| [[efforts/1-portfolio-site/tickets/01-scaffold-and-deploy-workflow]] build(site): scaffold the Astro site and its deployment workflow | 1-portfolio-site | open | — |
+| [[efforts/1-portfolio-site/tickets/02-user-site-address]] chore(repo): point the repository at saud-alnasser.github.io | 1-portfolio-site | open | 01 |
+| [[efforts/1-portfolio-site/tickets/03-content-contract]] feat(content): define the content collections and their schemas | 1-portfolio-site | open | 01 |
+| [[efforts/1-portfolio-site/tickets/04-content-english]] feat(content): author the English content from the inventory | 1-portfolio-site | open | 03 |
+| [[efforts/1-portfolio-site/tickets/05-layout-pages-and-themes]] feat(site): build the layout, the pages, the themes, and the language switch | 1-portfolio-site | open | 03 |
+| [[efforts/1-portfolio-site/tickets/06-cv-page]] feat(cv): render the CV page per language with a print stylesheet and downloads | 1-portfolio-site | open | 05 |
+| [[efforts/1-portfolio-site/tickets/07-json-resume-endpoint]] feat(cv): emit a JSON Resume document per language | 1-portfolio-site | open | 03 |
+| [[efforts/1-portfolio-site/tickets/08-pdf-render]] build(cv): render the CV pages to PDF in CI and check the English text extracts | 1-portfolio-site | open | 06 |
+| [[efforts/1-portfolio-site/tickets/09-quality-gates]] test(site): add the build-output checks and the accessibility and performance gates | 1-portfolio-site | open | 05, 07, 08 |
+| [[efforts/1-portfolio-site/tickets/10-content-arabic]] feat(content): author the Arabic text for every entry and the UI strings | 1-portfolio-site | open | 04, 05 |
