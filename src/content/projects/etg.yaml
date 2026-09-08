@@ -4,8 +4,10 @@ period:
   end: "2026-08"
 role:
   en: "Sole developer"
+  ar: "المطور الوحيد"
 summary:
   en: "A monorepo for a FiveM roleplay ecosystem: Lua resources built on a shared core abstraction, their SolidJS in-game UI applications, the tooling that scaffolds and packs them, and a runnable server distribution."
+  ar: "مستودع أحادي لمنظومة لعب أدوار على FiveM: موارد Lua مبنية على تجريد أساسي مشترك، وتطبيقات واجهاتها داخل اللعبة المبنية بإطار SolidJS، والأدوات التي تنشئ هياكلها وتحزمها، وتوزيعة خادم جاهزة للتشغيل."
 technologies:
   - "Lua"
   - "FiveM"

@@ -149,7 +149,7 @@ const ar: Strings = {
   home: {
     contact: 'التواصل',
     email: 'البريد الإلكتروني',
-    location: 'الموقع',
+    location: 'الموقع الجغرافي',
     sections: 'في هذا الموقع',
     work: 'المشاريع والخبرات العملية.',
     education: 'الدراسة والشهادات.',
@@ -163,17 +163,17 @@ const ar: Strings = {
   },
   project: {
     repository: 'المستودع',
-    live: 'الموقع المباشر',
+    live: 'الموقع المنشور',
     technologies: 'التقنيات',
   },
   experience: {
     training: 'تدريب عملي',
-    highlights: 'أبرز الأعمال',
+    highlights: 'أبرز المهام',
   },
   education: {
     status: {
       completed: 'مكتمل',
-      'certificate-pending': 'اكتملت المقررات الدراسية، والشهادة قيد الإصدار',
+      'certificate-pending': 'اكتملت المقررات الدراسية، ولم تصدر الشهادة بعد',
       'in-progress': 'قيد الدراسة',
     },
     courses: 'المقررات',
@@ -184,7 +184,7 @@ const ar: Strings = {
   cv: {
     title: 'السيرة الذاتية',
     description:
-      'السيرة الذاتية لـ{name}: الخبرة العملية والتعليم والمهارات والشهادات في صفحة واحدة قابلة للطباعة، مع تنزيلها بصيغة PDF وبصيغة JSON Resume.',
+      'سيرة {name} الذاتية: الخبرة العملية والتعليم والمهارات والشهادات في صفحة واحدة قابلة للطباعة، مع تنزيلها بصيغة PDF وبصيغة JSON Resume.',
     downloads: 'التنزيلات',
     downloadPdf: 'تنزيل PDF',
     downloadJson: 'تنزيل JSON Resume',
@@ -192,7 +192,7 @@ const ar: Strings = {
     certifications: 'الشهادات',
   },
   period: {
-    present: 'حتى الآن',
+    present: 'الآن',
     to: 'إلى',
   },
 };

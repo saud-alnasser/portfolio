@@ -1,5 +1,6 @@
 name:
   en: "Programming languages"
+  ar: "لغات البرمجة"
 keywords:
   - "Rust"
   - "TypeScript"

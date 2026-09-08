@@ -4,8 +4,10 @@ period:
   end: "2025-07"
 role:
   en: "Sole developer"
+  ar: "المطور الوحيد"
 summary:
   en: "Solutions to Advent of Code puzzles, in Rust."
+  ar: "حلول لألغاز Advent of Code بلغة Rust."
 technologies:
   - "Rust"
 links:

@@ -4,8 +4,10 @@ period:
   end: "2026-08"
 role:
   en: "Sole developer"
+  ar: "المطور الوحيد"
 summary:
   en: "A modular Discord bot framework that speaks Discord's protocols directly. Bot code is TypeScript; the gateway session and the REST client live in a Rust host process beside it, so the bot's code can be replaced without the connection to Discord noticing."
+  ar: "إطار عمل معياري لبوتات Discord يتخاطب مع بروتوكولات Discord مباشرة. شيفرة البوت بلغة TypeScript؛ أما جلسة البوابة وعميل REST فيعملان في عملية مضيفة بلغة Rust إلى جانبها، بحيث يمكن استبدال شيفرة البوت دون أن يتأثر الاتصال مع Discord."
 technologies:
   - "Rust"
   - "TypeScript"

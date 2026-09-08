@@ -4,8 +4,10 @@ period:
   end: "2025-01"
 role:
   en: "Sole developer"
+  ar: "المطور الوحيد"
 summary:
   en: "Solutions to LeetCode problems, in Rust."
+  ar: "حلول لمسائل LeetCode بلغة Rust."
 technologies:
   - "Rust"
 links:

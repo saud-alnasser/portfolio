@@ -4,8 +4,10 @@ period:
   end: "2026-04"
 role:
   en: "Developer, in a senior project team of six"
+  ar: "مطور ضمن فريق مشروع تخرج من ستة أعضاء"
 summary:
   en: "A centralised e-ticketing and fan loyalty platform for Saudi football, built as the Saudi Electronic University senior project: match browsing and seat selection, QR-code tickets validated at the stadium, a points-based loyalty programme, and a bilingual English and Arabic interface, developed with Scrum."
+  ar: "منصة مركزية للتذاكر الإلكترونية وولاء المشجعين لكرة القدم السعودية، بُنيت مشروع تخرج في الجامعة السعودية الإلكترونية: تصفح المباريات واختيار المقاعد، وتذاكر برموز QR يُتحقق منها عند الملعب، وبرنامج ولاء قائم على النقاط، وواجهة ثنائية اللغة بالعربية والإنجليزية، طُورت وفق منهجية Scrum."
 technologies:
   - "Svelte"
   - "SvelteKit"

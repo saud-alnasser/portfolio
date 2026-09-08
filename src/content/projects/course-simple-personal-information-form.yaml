@@ -4,8 +4,10 @@ period:
   end: "2025-01"
 role:
   en: "Sole developer"
+  ar: "المطور الوحيد"
 summary:
   en: "A simple personal information form built for the web programming course."
+  ar: "نموذج بسيط للمعلومات الشخصية بُني لمقرر برمجة الويب."
 technologies:
   - "PHP"
   - "HTML"

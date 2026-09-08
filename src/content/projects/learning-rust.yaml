@@ -4,8 +4,10 @@ period:
   end: "2024-02"
 role:
   en: "Sole developer"
+  ar: "المطور الوحيد"
 summary:
   en: "The projects from working through the interactive Rust book at rust-book.cs.brown.edu."
+  ar: "مشاريع من العمل خلال كتاب Rust التفاعلي على rust-book.cs.brown.edu."
 technologies:
   - "Rust"
 links:

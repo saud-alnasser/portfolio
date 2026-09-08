@@ -1,5 +1,6 @@
 name:
   en: "Databases"
+  ar: "قواعد البيانات"
 keywords:
   - "PostgreSQL"
   - "Supabase"

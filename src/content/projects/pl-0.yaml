@@ -4,8 +4,10 @@ period:
   end: "2025-12"
 role:
   en: "Sole developer"
+  ar: "المطور الوحيد"
 summary:
   en: "A compiler for Niklaus Wirth's PL/0 language with a lexical analyser, a recursive descent parser, and a P-machine code generator, built for the compiler design course."
+  ar: "مترجم للغة PL/0 التي وضعها Niklaus Wirth، مع محلل معجمي ومحلل نحوي بالانحدار العودي ومولد شيفرة لآلة P، بُني لمقرر تصميم المترجمات."
 technologies:
   - "Rust"
 links:

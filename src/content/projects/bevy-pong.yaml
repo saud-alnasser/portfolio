@@ -4,8 +4,10 @@ period:
   end: "2024-11"
 role:
   en: "Sole developer"
+  ar: "المطور الوحيد"
 summary:
   en: "A Pong clone made in Rust with the Bevy game engine."
+  ar: "نسخة من لعبة Pong مبنية بلغة Rust باستخدام محرك الألعاب Bevy."
 technologies:
   - "Rust"
   - "Bevy"
