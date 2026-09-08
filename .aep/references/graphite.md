@@ -40,7 +40,7 @@ restacks together.
 
 ## Creating a stacked branch
 
-The branch name is still AEP's convention (`<effort>/<ticket-id>-<slug>`), not the one the
+The branch name is still this repository's convention (`tickets/<effort>/<ticket-id>-<slug>`), not the one the
 tool would generate — two tools must produce the same name for a task or the
 branch stops working as a claim.
 

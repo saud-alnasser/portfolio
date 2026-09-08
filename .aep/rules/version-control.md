@@ -40,8 +40,17 @@ no history to detect a convention from.
 ## Branches
 
 One branch per ticket, cut from the branch its effort is on and named
-`<effort>/<ticket-id>-<slug>`, where `<effort>` is the effort directory's own
-name: `51-branch-scope/03-execution-policy`.
+`tickets/<effort>/<ticket-id>-<slug>`, where `<effort>` is the effort directory's
+own name: `tickets/51-branch-scope/03-execution-policy`.
+
+**Corrected on 2026-09-08**, the day the first ticket was claimed. The form
+first written here, `<effort>/<ticket-id>-<slug>`, cannot exist in git while
+the effort branch is called `<effort>`: refs are files, so
+`refs/heads/1-portfolio-site` refuses to become a directory and git answers
+`cannot lock ref`. The `tickets/` prefix keeps the namespace and stays out
+from under the effort branch. The scope script does not read this shape: a
+ticket branch is cut from the effort branch, so its claim is computed from
+the commits it already carries, never from its name.
 
 **The namespace is what makes the name unique**, and uniqueness across efforts
 is required (`[[policies/execution]]`). Ticket ids restart at `01` in every
@@ -55,7 +64,8 @@ and that is the only signal a branch with nothing on it carries.
 **Existing branches keep the names they have.** The convention is forward-only:
 a branch already called `03-execution-policy` still resolves to its effort by
 what its commits touch, and renaming one breaks the claim whoever is on it
-holds.
+holds. The effort branch itself stays `<effort>`, as `[[skills/specify]]`
+creates it.
 
 **The branch is the claim** (`[[policies/execution]]`): create it before the first
 read of source, not after the first edit.
