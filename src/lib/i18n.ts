@@ -43,6 +43,7 @@ const en = {
     home: 'Home',
     work: 'Work',
     education: 'Education',
+    cv: 'CV',
   },
   theme: {
     switchTo: 'Switch to',
@@ -97,6 +98,18 @@ const en = {
   certificate: {
     view: 'View certificate',
   },
+  // The CV page. Its section headings are the ones resume parsers expect;
+  // the other sections reuse the site's headings above.
+  cv: {
+    title: 'Curriculum vitae',
+    description:
+      'The curriculum vitae of {name}: experience, education, skills, and certifications on one printable page, with PDF and JSON Resume downloads.',
+    downloads: 'Downloads',
+    downloadPdf: 'Download PDF',
+    downloadJson: 'Download JSON Resume',
+    summary: 'Summary',
+    certifications: 'Certifications',
+  },
   period: {
     present: 'Present',
     to: 'to',
@@ -114,6 +127,7 @@ const ar: Strings = {
     home: 'الرئيسية',
     work: 'الأعمال',
     education: 'التعليم',
+    cv: 'السيرة الذاتية',
   },
   theme: {
     switchTo: 'التبديل إلى',
@@ -166,6 +180,16 @@ const ar: Strings = {
   },
   certificate: {
     view: 'عرض الشهادة',
+  },
+  cv: {
+    title: 'السيرة الذاتية',
+    description:
+      'السيرة الذاتية لـ{name}: الخبرة العملية والتعليم والمهارات والشهادات في صفحة واحدة قابلة للطباعة، مع تنزيلها بصيغة PDF وبصيغة JSON Resume.',
+    downloads: 'التنزيلات',
+    downloadPdf: 'تنزيل PDF',
+    downloadJson: 'تنزيل JSON Resume',
+    summary: 'الملخص',
+    certifications: 'الشهادات',
   },
   period: {
     present: 'حتى الآن',

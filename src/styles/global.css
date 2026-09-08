@@ -115,3 +115,59 @@
 :root[data-theme="dark"] .theme-when-dark {
   display: inline;
 }
+
+/*
+ * The print stylesheet: the CV page on paper, and the PDF that ticket 08
+ * renders from it. The palette side is above with the theme rules, where print
+ * forces `color-scheme: light` whatever the visitor stored. No page size is
+ * set, so A4 and Letter both take these margins and the one column reflows.
+ */
+@page {
+  margin: 16mm 18mm;
+}
+
+@media print {
+  /* A print-friendly base size; every rem on the page scales from it. */
+  html {
+    font-size: 11pt;
+  }
+
+  /* The chrome around the document, which on paper would be noise or, for the
+     site footer, a footer carrying contact details: the navigation, the theme
+     control, the language switch, and the download links. */
+  body > header,
+  body > footer,
+  .cv-actions {
+    display: none;
+  }
+
+  /* The document takes the page's width, and nothing is mid-reveal. */
+  main {
+    max-width: none;
+    padding: 0;
+    animation: none;
+  }
+
+  /* Links print as their text. The contact addresses are already written
+     out, so nothing is appended. */
+  a {
+    color: inherit;
+    text-decoration: none;
+  }
+
+  h1,
+  h2,
+  h3 {
+    break-after: avoid;
+  }
+
+  .cv-entry {
+    break-inside: avoid;
+  }
+
+  p,
+  li {
+    orphans: 3;
+    widows: 3;
+  }
+}
