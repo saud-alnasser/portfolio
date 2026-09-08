@@ -87,4 +87,6 @@ Start at [[protocol]].
 
 ## Efforts
 
-_None._
+| Effort | Status | Spec | Research | Prototypes | Tickets |
+| --- | --- | --- | --- | --- | --- |
+| 1-portfolio-site | draft | [[efforts/1-portfolio-site/spec]] | 3 | 0 | 0 |
