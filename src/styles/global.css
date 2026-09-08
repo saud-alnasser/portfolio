@@ -1,1 +1,117 @@
 @import "tailwindcss";
+
+/*
+ * The palette, in shadcn's variable names so its components could be adopted
+ * later without restyling (.aep/efforts/1-portfolio-site/plan.md, "Styling,
+ * motion, and components").
+ *
+ * Each token is written once, as light-dark(light, dark). Which side applies
+ * follows `color-scheme`: the system preference by default, and a data-theme
+ * attribute on <html> when the visitor has chosen. Print is always light.
+ * The ratios each pair reaches are recorded in the ticket's change record.
+ */
+:root {
+  color-scheme: light;
+
+  --background: light-dark(#ffffff, #12161c);
+  --foreground: light-dark(#1c2128, #e4e7eb);
+  --muted: light-dark(#f1f3f5, #1b2129);
+  --muted-foreground: light-dark(#596270, #9aa4b1);
+  --border: light-dark(#d8dde3, #2a3340);
+  --primary: light-dark(#155e75, #7dd3e0);
+  --primary-foreground: light-dark(#ffffff, #12161c);
+  --ring: var(--primary);
+  --radius: 0.375rem;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+  }
+}
+
+:root[data-theme="dark"] {
+  color-scheme: dark;
+}
+
+@media print {
+  :root,
+  :root[data-theme="dark"] {
+    color-scheme: light;
+  }
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-border: var(--border);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-ring: var(--ring);
+
+  --radius-sm: calc(var(--radius) - 2px);
+  --radius-md: var(--radius);
+  --radius-lg: calc(var(--radius) + 2px);
+
+  /* One family: the system stack, which needs no request and shapes Arabic
+     with whatever the platform ships. */
+  --font-sans:
+    system-ui, -apple-system, "Segoe UI", Roboto, "Noto Sans", "Noto Sans Arabic", sans-serif;
+
+  /* The one reveal on the site: the page's content settling into place on load.
+     Used only under motion-safe:, so reduced motion never sees it. */
+  --animate-reveal: reveal 500ms cubic-bezier(0.2, 0.7, 0.2, 1) both;
+
+  @keyframes reveal {
+    from {
+      opacity: 0;
+      transform: translateY(0.5rem);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+}
+
+@layer base {
+  html {
+    font-family: var(--font-sans);
+    background-color: var(--background);
+    color: var(--foreground);
+  }
+
+  /* Keyboard focus is always visible, in the accent, on every control. */
+  :focus-visible {
+    outline: 2px solid var(--ring);
+    outline-offset: 2px;
+  }
+}
+
+/*
+ * The theme control shows the theme it would switch to. Which of its two
+ * labels is visible follows the same conditions as the palette, in CSS, so no
+ * script has to rewrite the button.
+ */
+.theme-when-dark {
+  display: none;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .theme-when-light {
+    display: none;
+  }
+  :root:not([data-theme="light"]) .theme-when-dark {
+    display: inline;
+  }
+}
+
+:root[data-theme="dark"] .theme-when-light {
+  display: none;
+}
+
+:root[data-theme="dark"] .theme-when-dark {
+  display: inline;
+}

@@ -1,11 +1,12 @@
 import type { APIRoute } from 'astro';
-import { locales, resumeFor, type Locale } from '../../lib/resume';
+import { locales, type Locale } from '../../lib/i18n';
+import { resumeFor } from '../../lib/resume';
 
 // The machine-readable CV, one document per language, at /en/resume.json and
 // /ar/resume.json. Written once at build time; there is no server.
 
 export function getStaticPaths() {
-  return locales.map((locale) => ({ params: { locale } }));
+  return locales.map(({ code }) => ({ params: { locale: code } }));
 }
 
 export const GET: APIRoute = async ({ params, site }) => {

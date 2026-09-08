@@ -2,6 +2,19 @@
 import { defineConfig } from 'astro/config';
 import sitemap from '@astrojs/sitemap';
 import tailwindcss from '@tailwindcss/vite';
+import { gapReport } from './src/lib/localized.ts';
+
+// Prints the language gap report once the pages are built: every field whose
+// Arabic was missing and rendered its English instead. The pages record the
+// gaps as they render; this only reads them.
+const localizedGaps = {
+  name: 'localized',
+  hooks: {
+    'astro:build:done': () => {
+      console.log(gapReport());
+    },
+  },
+};
 
 // https://astro.build/config
 export default defineConfig({
@@ -27,7 +40,7 @@ export default defineConfig({
     '/': '/en/',
   },
 
-  integrations: [sitemap()],
+  integrations: [sitemap(), localizedGaps],
 
   vite: {
     plugins: [tailwindcss()],

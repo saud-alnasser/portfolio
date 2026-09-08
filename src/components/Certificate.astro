@@ -1,0 +1,32 @@
+---
+import type { CollectionEntry } from 'astro:content';
+import { formatDate, strings, type Locale } from '../lib/i18n';
+import { localized } from '../lib/localized';
+
+interface Props {
+  locale: Locale;
+  entry: CollectionEntry<'certificates'>;
+}
+
+const { locale, entry } = Astro.props;
+const { data } = entry;
+const t = strings[locale];
+const text = localized(locale, 'certificates', entry.id);
+---
+
+<article class="py-5">
+  <div class="flex flex-wrap items-baseline justify-between gap-x-6 gap-y-1">
+    <h3 class="font-semibold tracking-tight">{text('name', data.name)}</h3>
+    {data.date && <p class="text-sm text-muted-foreground tabular-nums">{formatDate(locale, data.date)}</p>}
+  </div>
+  <p class="mt-1 flex flex-wrap gap-x-5 text-sm text-muted-foreground">
+    <span>{data.issuer}</span>
+    {
+      data.url && (
+        <a href={data.url} class="text-primary underline underline-offset-4 hover:decoration-2">
+          {t.certificate.view}
+        </a>
+      )
+    }
+  </p>
+</article>

@@ -1,17 +1,25 @@
 import { getCollection, getEntry, type CollectionEntry } from 'astro:content';
+import type { Locale } from './i18n';
+import { localized, type Localized } from './localized';
+import {
+  byDateAscending,
+  byOrderThenName,
+  byOrderThenStartDescending,
+  byStartAscending,
+  byStartDescending,
+} from './order';
 
 // The mapper from the content collections to a JSON Resume document for one
-// language. The pages and the CV page read the same collections, so a value
-// changed in one content file changes here without a second edit.
+// language. The pages and the CV page read the same collections through the
+// same fallback and the same ordering, so a value changed in one content file
+// changes here without a second edit, and a missing Arabic text shows up in
+// the build's gap report whichever output rendered it first.
 //
 // Custom keys (`type` on a work entry, `status` on an education entry,
 // `language` under `meta`) live inside section entries or inside `meta`, never
 // at the top level: every 1.x schema permits them there, and the v1.0.0
 // document that the project's own samples still cite forbids them at the root.
 // See .aep/efforts/1-portfolio-site/evidence/research/json-resume-schema.md.
-
-export const locales = ['en', 'ar'] as const;
-export type Locale = (typeof locales)[number];
 
 // The schema this document is written against. The property set is 1.3.1's,
 // published from the monorepo; the archived repository's v1.0.0 URL, which the
@@ -23,41 +31,10 @@ const schemaVersion = 'v1.3.1';
 // Read once per build, so both language documents carry the same time.
 const buildTime = new Date();
 
-type Localized = { en: string; ar?: string };
-
-// Per-language text with a fallback to English. Ticket 05 is writing a shared
-// `src/lib/localized.ts` in parallel; this local copy is reconciled with it at
-// integration and exists only so this module builds on its own.
-function pick(text: Localized, locale: Locale): string {
-  return text[locale] ?? text.en;
-}
-
-function pickAll(texts: Localized[] | undefined, locale: Locale): string[] | undefined {
-  if (!texts || texts.length === 0) return undefined;
-  return texts.map((text) => pick(text, locale));
-}
-
 // A key with an undefined value is dropped by JSON.stringify, so the emitted
 // document omits absent optional fields rather than carrying null or "".
 function compact<T extends Record<string, unknown>>(record: T): T {
   return Object.fromEntries(Object.entries(record).filter(([, value]) => value !== undefined)) as T;
-}
-
-// A date in the content is YYYY, YYYY-MM, or YYYY-MM-DD; padded to one width
-// the three forms compare correctly as strings.
-function dateKey(date: string | undefined): string {
-  return (date ?? '').padEnd(10, '0');
-}
-
-function byStartAscending<T extends { id: string; data: { period: { start: string } } }>(a: T, b: T): number {
-  return dateKey(a.data.period.start).localeCompare(dateKey(b.data.period.start)) || a.id.localeCompare(b.id);
-}
-
-function byOrder<T extends { id: string; data: { order?: number } }>(a: T, b: T): number {
-  const orderA = a.data.order ?? Number.POSITIVE_INFINITY;
-  const orderB = b.data.order ?? Number.POSITIVE_INFINITY;
-  if (orderA !== orderB) return orderA - orderB;
-  return 0;
 }
 
 type Project = CollectionEntry<'projects'>;
@@ -76,10 +53,11 @@ function projectUrl(project: Project): string | undefined {
 
 function mapProject(project: Project, locale: Locale) {
   const { data } = project;
+  const text = localized(locale, 'projects', project.id);
   return compact({
     name: data.name,
-    description: pick(data.summary, locale),
-    roles: [pick(data.role, locale)],
+    description: text('summary', data.summary),
+    roles: [text('role', data.role)],
     keywords: data.technologies,
     startDate: data.period.start,
     endDate: data.period.end,
@@ -89,14 +67,15 @@ function mapProject(project: Project, locale: Locale) {
 
 function mapWork(entry: Experience, locale: Locale) {
   const { data } = entry;
+  const text = localized(locale, 'experience', entry.id);
   return compact({
-    name: pick(data.organisation, locale),
-    position: pick(data.position, locale),
-    location: pick(data.location, locale),
+    name: text('organisation', data.organisation),
+    position: text('position', data.position),
+    location: text('location', data.location),
     startDate: data.period.start,
     endDate: data.period.end,
-    summary: pick(data.summary, locale),
-    highlights: data.highlights.map((highlight) => pick(highlight, locale)),
+    summary: text('summary', data.summary),
+    highlights: data.highlights.map((highlight: Localized, i: number) => text(`highlights[${i}]`, highlight)),
     // Custom key: `employment` or `training`. The schema has no field for the
     // nature of a placement, so it is carried here beside `position`.
     type: data.kind,
@@ -105,15 +84,18 @@ function mapWork(entry: Experience, locale: Locale) {
 
 function mapEducation(entry: Education, locale: Locale) {
   const { data } = entry;
+  const text = localized(locale, 'education', entry.id);
   return compact({
-    institution: pick(data.institution, locale),
-    area: pick(data.area, locale),
-    studyType: pick(data.studyType, locale),
+    institution: text('institution', data.institution),
+    area: text('area', data.area),
+    studyType: text('studyType', data.studyType),
     startDate: data.period.start,
     // For a pending certificate this is the completion term of the course work,
     // and `status` below says the certificate is not yet issued.
     endDate: data.period.end,
-    courses: pickAll(data.courses, locale),
+    courses: data.courses?.length
+      ? data.courses.map((course: Localized, i: number) => text(`courses[${i}]`, course))
+      : undefined,
     // Custom key: the academic status as authored, never reworded.
     status: data.status,
   });
@@ -121,8 +103,9 @@ function mapEducation(entry: Education, locale: Locale) {
 
 function mapCertificate(entry: Certificate, locale: Locale) {
   const { data } = entry;
+  const text = localized(locale, 'certificates', entry.id);
   return compact({
-    name: pick(data.name, locale),
+    name: text('name', data.name),
     issuer: data.issuer,
     date: data.date,
     url: data.url,
@@ -131,9 +114,10 @@ function mapCertificate(entry: Certificate, locale: Locale) {
 
 function mapSkill(entry: Skill, locale: Locale) {
   const { data } = entry;
+  const text = localized(locale, 'skills', entry.id);
   return compact({
-    name: pick(data.name, locale),
-    level: data.level ? pick(data.level, locale) : undefined,
+    name: text('name', data.name),
+    level: data.level ? text('level', data.level) : undefined,
     keywords: data.keywords,
   });
 }
@@ -152,30 +136,29 @@ export async function resumeFor(locale: Locale, site: URL) {
     getCollection('skills'),
   ]);
 
-  // Work newest first; education oldest first, so high school precedes
-  // university; certificates by date with undated ones last; projects and
-  // skills by their authored order, then projects newest first.
-  experience.sort((a, b) => byStartAscending(b, a));
-  education.sort(byStartAscending);
-  certificates.sort(
-    (a, b) => dateKey(a.data.date ?? '9999').localeCompare(dateKey(b.data.date ?? '9999')) || a.id.localeCompare(b.id),
-  );
-  projects.sort((a, b) => byOrder(a, b) || byStartAscending(b, a));
-  skills.sort((a, b) => byOrder(a, b) || a.id.localeCompare(b.id));
+  // The same orders the pages use (src/lib/order.ts): work newest first,
+  // education oldest first so high school precedes university, certificates
+  // by date with undated ones last, projects and skills by authored order.
+  experience.sort((a, b) => byStartDescending(a.data, b.data));
+  education.sort((a, b) => byStartAscending(a.data, b.data));
+  certificates.sort((a, b) => byDateAscending(a.data, b.data));
+  projects.sort((a, b) => byOrderThenStartDescending(a.data, b.data));
+  skills.sort((a, b) => byOrderThenName(a.data, b.data));
 
   const { data: person } = profile;
+  const text = localized(locale, 'profile', profile.id);
 
   return {
     $schema: schemaUrl,
     basics: {
-      name: pick(person.name, locale),
-      label: pick(person.label, locale),
+      name: text('name', person.name),
+      label: text('label', person.label),
       email: person.email,
       url: site.href,
-      summary: pick(person.summary, locale),
+      summary: text('summary', person.summary),
       // The content source carries one localized location text, so it goes in
       // `city` as written; there is no separate region or country code to map.
-      location: { city: pick(person.location, locale) },
+      location: { city: text('location', person.location) },
       profiles: person.profiles.map(({ network, username, url }) => ({ network, username, url })),
     },
     work: experience.map((entry) => mapWork(entry, locale)),
