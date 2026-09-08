@@ -5,8 +5,9 @@ use-when: "committing, branching, or preparing work to land"
 # Rule — version control
 
 **This file is yours.** Reviewed at install on 2026-09-08 against an empty
-repository: `main` with no commits, no remote, and no forge. Where something
-below was a choice rather than a detection, it says so.
+repository: `main` with no commits, no remote, and no forge. Corrected the
+same day when the first effort opened and found the remote in place. Where
+something below was a choice rather than a detection, it says so.
 
 ## The line an agent does not cross
 
@@ -75,13 +76,18 @@ read here rather than assume:
 | how a commit references its task | the commit **carries the closing keyword**. It reaches `main` only through its own branch's pull request, so the cherry-pick hazard that bans the keyword on plain-merge repositories cannot arise. A stack merges bottom-first, so the keyword goes on the change that merges **last** and everything under it carries a plain reference |
 | what publishes | `gt submit` opens pull requests. It is the human's call, never an agent's |
 
-**There is no remote yet.** Graphite submits to GitHub, so the forge will be
-GitHub when one is added; until then stacks are built and restacked locally and
-nothing is submitted. Adding the remote is the moment to run `gt init`, seed a GitHub reference
-under `references/`, and create the label vocabulary on the repository. The
-merge-time job and the labelers are already written under `.github/workflows/`,
-and every label they name must exist there first — the REST call behind them
-creates a missing label with a random colour rather than failing.
+**The remote is GitHub.** `origin` is `https://github.com/saud-alnasser/portfolio.git`,
+public, and the label vocabulary the workflows under `.github/workflows/` name
+already exists there (`[[references/github]]` has the list and the mapping).
+`gt init` has been run with `main` as trunk. Every label the labelers name must
+exist before it is used — the REST call behind them creates a missing label
+with a random colour rather than failing.
+
+**How an effort opens here.** The effort branch is pushed and its draft pull
+request opened with `gh` (`[[references/github]]`), because the body has to be
+the spec's projection with the tickets' criteria as checkboxes, which `gt submit`
+does not write. Ticket branches stacked on the effort branch go through
+`gt submit`. Both publish, so both wait for the human.
 
 ## Pull request descriptions
 

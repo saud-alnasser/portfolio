@@ -19,9 +19,12 @@ Decided so far:
   infrastructure**. Which service, and how deployment runs, is deferred until
   there is something to deploy
 - work lands as **stacked changes through Graphite** (`[[rules/version-control]]`)
+- the remote is GitHub: `saud-alnasser/portfolio`, public
+  (`[[references/github]]`)
+- what it shows is specified in `[[efforts/1-portfolio-site/spec]]`
 
-Not decided: the stack it is built with, what it shows, and the remote. Nothing
-below should be read as claiming otherwise.
+Not decided: the stack it is built with. Nothing below should be read as
+claiming otherwise.
 
 ## Shape
 

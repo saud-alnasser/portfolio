@@ -4,9 +4,9 @@ use-when: "running any git operation — reading state, branching, staging, comm
 
 # Reference — git
 
-**This file is yours.** Reviewed at install on 2026-09-08. This repository has
-no remote yet, so the remote-side checks below are inert until one is added;
-the local commands are standard git and apply as written.
+**This file is yours.** Reviewed at install on 2026-09-08, and corrected the
+same day when the remote `origin` was found on the repository: the remote-side
+checks below apply. The local commands are standard git and apply as written.
 
 ## Reading state
 
@@ -41,7 +41,7 @@ landed on the base branch since this work started from being attributed to it.
 
 ```sh
 git branch --list <name>                       # claimed here?
-git ls-remote --heads origin <name>            # claimed elsewhere? no remote yet — skip until one exists
+git ls-remote --heads origin <name>            # claimed elsewhere?
 git switch -c <effort>/<ticket-id>-<slug>      # claim it
 ```
 

@@ -34,6 +34,7 @@ Start at [[protocol]].
 | Artifact | Load when | Owner |
 | --- | --- | --- |
 | [[references/git]] | running any git operation — reading state, branching, staging, committing, or working with worktrees | — |
+| [[references/github]] | reading or writing anything on the GitHub repository: issues, pull requests, labels, or the Pages deployment | — |
 | [[references/graphite]] | this repository uses stacked changes and a branch must be created, restacked, or submitted | — |
 
 ## Skills
