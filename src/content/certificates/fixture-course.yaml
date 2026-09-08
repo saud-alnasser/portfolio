@@ -1,0 +1,8 @@
+# fixture: a fictional course certificate. Replaced by the real entries in
+# ticket 04.
+name:
+  en: The Complete Fixture Course
+  ar: دورة فيكستشر الكاملة
+issuer: Fixture Academy
+date: 2021-12-03
+url: https://example.com/certificates/fixture

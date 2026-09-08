@@ -1,0 +1,20 @@
+# fixture: fictional placeholder so the build exercises the profile schema.
+# Replaced by the real profile in ticket 04. The top-level key is the entry id.
+profile:
+  name:
+    en: Fixture Person
+    ar: شخص تجريبي
+  label:
+    en: Software developer
+    ar: مطور برمجيات
+  summary:
+    en: A fictional profile that exists so the build has something to validate.
+    ar: ملف تعريفي وهمي موجود ليتحقق البناء من صحته.
+  email: fixture@example.com
+  location:
+    en: Riyadh, Saudi Arabia
+    ar: الرياض، المملكة العربية السعودية
+  profiles:
+    - network: GitHub
+      username: fixture
+      url: https://github.com/fixture

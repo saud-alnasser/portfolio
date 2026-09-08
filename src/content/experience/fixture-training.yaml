@@ -1,0 +1,21 @@
+# fixture: a fictional training placement. Replaced by the real entry in
+# ticket 04.
+organisation:
+  en: Fixture Retail Group
+  ar: مجموعة فيكستشر للتجزئة
+position:
+  en: IT trainee
+  ar: متدرب تقنية معلومات
+location:
+  en: Riyadh, Saudi Arabia
+  ar: الرياض، المملكة العربية السعودية
+period:
+  start: 2026-06
+  end: 2026-08
+summary:
+  en: A fictional summer placement in an IT department.
+  ar: تدريب صيفي وهمي في إدارة تقنية المعلومات.
+highlights:
+  - en: Wrote a script that exists only in this fixture.
+    ar: كتب نصاً برمجياً موجوداً فقط في هذا المثال.
+kind: training

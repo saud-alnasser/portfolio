@@ -1,0 +1,12 @@
+# fixture: a fictional skill group. Replaced by the real entries in ticket 04.
+name:
+  en: Web development
+  ar: تطوير الويب
+keywords:
+  - TypeScript
+  - Svelte
+  - Astro
+level:
+  en: Working knowledge
+  ar: معرفة عملية
+order: 1

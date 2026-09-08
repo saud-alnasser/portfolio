@@ -1,0 +1,20 @@
+# fixture: a fictional degree whose certificate is pending. Replaced by the
+# real entries in ticket 04.
+institution:
+  en: Fixture University
+  ar: جامعة فيكستشر
+area:
+  en: Computer science
+  ar: علوم الحاسب
+studyType:
+  en: Bachelor of Science
+  ar: بكالوريوس علوم
+period:
+  start: 2022
+  end: 2026-08
+status: certificate-pending
+courses:
+  - en: Data structures
+    ar: هياكل البيانات
+  - en: Operating systems
+    ar: أنظمة التشغيل
