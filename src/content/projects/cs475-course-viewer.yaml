@@ -1,0 +1,13 @@
+name: "CourseViewer"
+period:
+  start: "2026-05"
+  end: "2026-05"
+role:
+  en: "Sole developer"
+summary:
+  en: "A course viewer built for the mobile computing course (CS475)."
+technologies:
+  - "Java"
+links:
+  repository: https://github.com/saud-alnasser/CS475-CourseViewer
+visibility: public

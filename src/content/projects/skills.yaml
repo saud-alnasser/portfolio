@@ -1,0 +1,16 @@
+name: "AEP, the Agentic Engineering Protocol"
+period:
+  start: "2026-07"
+  end: "2026-08"
+role:
+  en: "Sole developer"
+summary:
+  en: "An agent-agnostic, filesystem-first engineering protocol for AI-assisted software work. All of its state is plain Markdown under a single directory, with no runtime, database, or resident process, and it ships as a Claude Code plugin from the repository."
+technologies:
+  - "JavaScript"
+  - "Node.js"
+  - "Markdown"
+links:
+  repository: https://github.com/saud-alnasser/skills
+visibility: public
+order: 5

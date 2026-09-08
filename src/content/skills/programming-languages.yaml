@@ -1,0 +1,14 @@
+name:
+  en: "Programming languages"
+keywords:
+  - "Rust"
+  - "TypeScript"
+  - "JavaScript"
+  - "Java"
+  - "Python"
+  - "C#"
+  - "PHP"
+  - "Lua"
+  - "GDScript"
+  - "SQL"
+order: 1

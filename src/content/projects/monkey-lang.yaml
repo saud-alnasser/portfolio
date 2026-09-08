@@ -1,0 +1,13 @@
+name: "monkey-lang"
+period:
+  start: "2024-02"
+  end: "2025-12"
+role:
+  en: "Sole developer"
+summary:
+  en: "An interpreter for Monkey, a dynamically typed language with first-class functions, closures, arrays, and hash objects, written in Rust while following the book \"Writing an Interpreter in Go\" by Thorsten Ball."
+technologies:
+  - "Rust"
+links:
+  repository: https://github.com/saud-alnasser/monkey-lang
+visibility: public

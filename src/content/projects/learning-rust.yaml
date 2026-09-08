@@ -1,0 +1,13 @@
+name: "learning-rust"
+period:
+  start: "2024-01"
+  end: "2024-02"
+role:
+  en: "Sole developer"
+summary:
+  en: "The projects from working through the interactive Rust book at rust-book.cs.brown.edu."
+technologies:
+  - "Rust"
+links:
+  repository: https://github.com/saud-alnasser/learning-rust
+visibility: public

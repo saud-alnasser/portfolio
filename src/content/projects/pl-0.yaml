@@ -1,0 +1,13 @@
+name: "PL/0 compiler"
+period:
+  start: "2025-12"
+  end: "2025-12"
+role:
+  en: "Sole developer"
+summary:
+  en: "A compiler for Niklaus Wirth's PL/0 language with a lexical analyser, a recursive descent parser, and a P-machine code generator, built for the compiler design course."
+technologies:
+  - "Rust"
+links:
+  repository: https://github.com/saud-alnasser/pl-0
+visibility: public

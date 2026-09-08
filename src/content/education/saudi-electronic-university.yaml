@@ -1,0 +1,34 @@
+# Course work complete as of the 2025-2026 summer term; the certificate has not
+# been issued. The status field says so, and the site renders it as it is.
+institution:
+  en: Saudi Electronic University
+area:
+  en: Computer Science
+studyType:
+  en: Bachelor of Science
+period:
+  start: "2023-09"
+  end: "2026-09"
+status: certificate-pending
+courses:
+  - en: Digital Logic Design
+  - en: Introduction to Database
+  - en: System Analysis and Design
+  - en: Computer Architecture and Organization
+  - en: Theory of Computing
+  - en: Operating Systems
+  - en: Design and Analysis of Algorithms
+  - en: Web Programming
+  - en: Computer Networks
+  - en: Artificial Intelligence
+  - en: Principles of Programming Languages
+  - en: Human Computer Interaction
+  - en: Computer Security
+  - en: Compiler Design
+  - en: Computer Graphics
+  - en: Project Management
+  - en: Professional Ethics
+  - en: Mobile Computing
+  - en: Parallel and Distributed Computing
+  - en: Senior Project
+  - en: Practical Training

@@ -1,20 +1,20 @@
-# fixture: fictional placeholder so the build exercises the profile schema.
-# Replaced by the real profile in ticket 04. The top-level key is the entry id.
+# The person. The top-level key is the entry id.
 profile:
   name:
-    en: Fixture Person
-    ar: شخص تجريبي
+    en: Saud Alnasser
   label:
     en: Software developer
-    ar: مطور برمجيات
   summary:
-    en: A fictional profile that exists so the build has something to validate.
-    ar: ملف تعريفي وهمي موجود ليتحقق البناء من صحته.
-  email: fixture@example.com
+    en: >-
+      Software developer in Riyadh, working mostly in Rust and TypeScript: an
+      offline-first desktop rent tracker, a Discord bot framework, a statically
+      typed programming language, and an engineering protocol for AI-assisted
+      software work. Course work for a Bachelor of Science in Computer Science
+      at Saudi Electronic University is complete, with the certificate pending.
+  email: saud4services@gmail.com
   location:
     en: Riyadh, Saudi Arabia
-    ar: الرياض، المملكة العربية السعودية
   profiles:
     - network: GitHub
-      username: fixture
-      url: https://github.com/fixture
+      username: saud-alnasser
+      url: https://github.com/saud-alnasser

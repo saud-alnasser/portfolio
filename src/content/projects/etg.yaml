@@ -1,0 +1,14 @@
+name: "ETG"
+period:
+  start: "2026-08"
+  end: "2026-08"
+role:
+  en: "Sole developer"
+summary:
+  en: "A monorepo for a FiveM roleplay ecosystem: Lua resources built on a shared core abstraction, their SolidJS in-game UI applications, the tooling that scaffolds and packs them, and a runnable server distribution."
+technologies:
+  - "Lua"
+  - "FiveM"
+  - "SolidJS"
+  - "TypeScript"
+visibility: described

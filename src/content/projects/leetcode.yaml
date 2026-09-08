@@ -1,0 +1,13 @@
+name: "leetcode"
+period:
+  start: "2024-12"
+  end: "2025-01"
+role:
+  en: "Sole developer"
+summary:
+  en: "Solutions to LeetCode problems, in Rust."
+technologies:
+  - "Rust"
+links:
+  repository: https://github.com/saud-alnasser/leetcode
+visibility: public

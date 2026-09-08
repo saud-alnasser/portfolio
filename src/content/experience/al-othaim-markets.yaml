@@ -1,0 +1,23 @@
+# Practical training (CS499, cooperative training), 2025-2026 summer term. The
+# report does not state the placement's start and end dates, so the period is
+# written at the precision the evidence supports: the year.
+organisation:
+  en: Al Othaim Markets
+position:
+  en: IT support trainee
+location:
+  en: Riyadh, Saudi Arabia
+period:
+  start: "2026"
+  end: "2026"
+summary:
+  en: >-
+    Practical training placement in the IT Department at the company's
+    headquarters, supporting employees and branches with hardware, software,
+    and ticketed service requests.
+highlights:
+  - en: Replaced and deployed hardware across the headquarters offices, and collected, prepared, and installed equipment for joiners and leavers.
+  - en: Maintained printers and other office equipment, and documented damaged equipment in condition reports.
+  - en: Troubleshot software problems, including an HR application whose libraries were blocked by Microsoft Edge SmartScreen.
+  - en: Handled incidents and service requests as custom SDB tickets in Microsoft Dynamics 365, and used Configuration Manager and Nexthink for remote support and diagnostics.
+kind: training

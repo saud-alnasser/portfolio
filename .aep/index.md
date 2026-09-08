@@ -100,7 +100,7 @@ Every task of every effort. The tracker carries the effort, never its tasks.
 | [[efforts/1-portfolio-site/tickets/01-scaffold-and-deploy-workflow]] build(site): scaffold the Astro site and its deployment workflow | 1-portfolio-site | resolved | — |
 | [[efforts/1-portfolio-site/tickets/02-user-site-address]] chore(repo): point the repository at saud-alnasser.github.io | 1-portfolio-site | open | 01 |
 | [[efforts/1-portfolio-site/tickets/03-content-contract]] feat(content): define the content collections and their schemas | 1-portfolio-site | resolved | 01 |
-| [[efforts/1-portfolio-site/tickets/04-content-english]] feat(content): author the English content from the inventory | 1-portfolio-site | open | 03 |
+| [[efforts/1-portfolio-site/tickets/04-content-english]] feat(content): author the English content from the inventory | 1-portfolio-site | resolved | 03 |
 | [[efforts/1-portfolio-site/tickets/05-layout-pages-and-themes]] feat(site): build the layout, the pages, the themes, and the language switch | 1-portfolio-site | open | 03 |
 | [[efforts/1-portfolio-site/tickets/06-cv-page]] feat(cv): render the CV page per language with a print stylesheet and downloads | 1-portfolio-site | open | 05 |
 | [[efforts/1-portfolio-site/tickets/07-json-resume-endpoint]] feat(cv): emit a JSON Resume document per language | 1-portfolio-site | resolved | 03 |

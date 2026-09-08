@@ -1,0 +1,14 @@
+name: "Personal information form"
+period:
+  start: "2024-12"
+  end: "2025-01"
+role:
+  en: "Sole developer"
+summary:
+  en: "A simple personal information form built for the web programming course."
+technologies:
+  - "PHP"
+  - "HTML"
+  - "CSS"
+  - "JavaScript"
+visibility: described
