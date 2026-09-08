@@ -1,6 +1,32 @@
 @import "tailwindcss";
 
 /*
+ * The one web font: Noto Naskh Arabic, bundled under public/fonts/ with its
+ * licence beside it, so the Arabic CV shapes the same in the PDF that CI
+ * renders (.aep/efforts/1-portfolio-site/plan.md, "Technical Risks") as on a
+ * visitor's screen. The unicode-range keeps it to the Arabic blocks: Latin
+ * letters and digits stay in the system stack, and a page with no Arabic
+ * text never requests the files.
+ */
+@font-face {
+  font-family: "Noto Naskh Arabic";
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("/fonts/NotoNaskhArabic-Regular.ttf") format("truetype");
+  unicode-range: U+0600-06FF, U+0750-077F, U+08A0-08FF, U+FB50-FDFF, U+FE70-FEFF;
+}
+
+@font-face {
+  font-family: "Noto Naskh Arabic";
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url("/fonts/NotoNaskhArabic-Bold.ttf") format("truetype");
+  unicode-range: U+0600-06FF, U+0750-077F, U+08A0-08FF, U+FB50-FDFF, U+FE70-FEFF;
+}
+
+/*
  * The palette, in shadcn's variable names so its components could be adopted
  * later without restyling (.aep/efforts/1-portfolio-site/plan.md, "Styling,
  * motion, and components").
@@ -81,6 +107,12 @@
     font-family: var(--font-sans);
     background-color: var(--background);
     color: var(--foreground);
+  }
+
+  /* An Arabic document takes the bundled face for its Arabic text; the
+     unicode-range above leaves everything else to the stack. */
+  html:lang(ar) {
+    font-family: "Noto Naskh Arabic", var(--font-sans);
   }
 
   /* Keyboard focus is always visible, in the accent, on every control. */

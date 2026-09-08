@@ -104,6 +104,6 @@ Every task of every effort. The tracker carries the effort, never its tasks.
 | [[efforts/1-portfolio-site/tickets/05-layout-pages-and-themes]] feat(site): build the layout, the pages, the themes, and the language switch | 1-portfolio-site | resolved | 03 |
 | [[efforts/1-portfolio-site/tickets/06-cv-page]] feat(cv): render the CV page per language with a print stylesheet and downloads | 1-portfolio-site | resolved | 05 |
 | [[efforts/1-portfolio-site/tickets/07-json-resume-endpoint]] feat(cv): emit a JSON Resume document per language | 1-portfolio-site | resolved | 03 |
-| [[efforts/1-portfolio-site/tickets/08-pdf-render]] build(cv): render the CV pages to PDF in CI and check the English text extracts | 1-portfolio-site | open | 06 |
+| [[efforts/1-portfolio-site/tickets/08-pdf-render]] build(cv): render the CV pages to PDF in CI and check the English text extracts | 1-portfolio-site | resolved | 06 |
 | [[efforts/1-portfolio-site/tickets/09-quality-gates]] test(site): add the build-output checks and the accessibility and performance gates | 1-portfolio-site | open | 05, 07, 08 |
 | [[efforts/1-portfolio-site/tickets/10-content-arabic]] feat(content): author the Arabic text for every entry and the UI strings | 1-portfolio-site | open | 04, 05 |

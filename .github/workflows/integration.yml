@@ -47,8 +47,8 @@ jobs:
           node .aep/scripts/validate.mjs --quiet
 
       # The site. The pnpm version comes from the `packageManager` field in
-      # package.json. Tests over the built output join these steps once they
-      # exist; the deploy is its own workflow, deploy.yml, on `push` to `main`.
+      # package.json. The checks over the built output follow the build below;
+      # the deploy is its own workflow, deploy.yml, on `push` to `main`.
       - name: '🔧 setup pnpm'
         uses: pnpm/action-setup@v6
 
@@ -60,3 +60,32 @@ jobs:
 
       - name: '🏗️ build the site'
         run: pnpm build
+
+      # The CV PDFs need a browser, and Playwright downloads its own Chromium.
+      # The download is cached by the Playwright version, which is what decides
+      # the build it fetches; the OS packages it needs are installed every run,
+      # because apt is not cached and a cache hit skips only the download.
+      - name: '🔎 read the playwright version'
+        id: playwright
+        run: echo "version=$(node -p "require('playwright/package.json').version")" >> "$GITHUB_OUTPUT"
+
+      - name: '💾 cache playwright browsers'
+        uses: actions/cache@v6
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-${{ steps.playwright.outputs.version }}
+
+      - name: '🌐 install chromium'
+        run: pnpm exec playwright install --with-deps chromium
+
+      # pdftotext, which the dist check runs over the English PDF. Without it
+      # the check prints a notice and skips the extraction, so CI installs it
+      # to make the assertion real.
+      - name: '📄 install poppler'
+        run: sudo apt-get update && sudo apt-get install -y --no-install-recommends poppler-utils
+
+      - name: '📄 render the cv pdfs'
+        run: pnpm render:pdf
+
+      - name: '🔍 check the built site'
+        run: pnpm check:dist

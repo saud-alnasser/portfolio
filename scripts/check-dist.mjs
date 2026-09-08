@@ -8,10 +8,17 @@
 // first failure. The reader is a person watching CI, so failures name what was
 // expected and what was found.
 
-import { readdir, readFile } from 'node:fs/promises';
+import { execFile } from 'node:child_process';
+import { readdir, readFile, stat } from 'node:fs/promises';
 import { createRequire } from 'node:module';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { promisify } from 'node:util';
+import { parse as parseYaml } from 'yaml';
+// The site's own date wording and orders, so the expectation reads exactly
+// what the CV page printed. Node strips the types on import.
+import { formatPeriod, strings } from '../src/lib/i18n.ts';
+import { byStartAscending, byStartDescending } from '../src/lib/order.ts';
 
 const require = createRequire(import.meta.url);
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
@@ -121,7 +128,97 @@ async function jsonResume() {
   return lines;
 }
 
-const checks = [jsonResume];
+// One line of text with its whitespace normalised, so a run of spaces that
+// `pdftotext -layout` inserts between two columns of a line reads as one.
+function squash(text) {
+  return text.replace(/\s+/g, ' ').trim();
+}
+
+// The text of a PDF as `pdftotext -layout` lays it out, or null when the tool
+// is not on the PATH. UTF-8 is asked for explicitly because xpdf's build
+// writes Latin-1 by default and drops everything outside it.
+async function extractText(file) {
+  try {
+    const { stdout } = await promisify(execFile)('pdftotext', ['-enc', 'UTF-8', '-layout', file, '-'], {
+      maxBuffer: 16 * 1024 * 1024,
+    });
+    return stdout;
+  } catch (error) {
+    if (error.code === 'ENOENT') return null;
+    throw error;
+  }
+}
+
+// The PDFs the render step writes: one per language, present, small enough to
+// attach to an application, and the English one yielding the lines criterion 5
+// names, in reading order (.aep/efforts/1-portfolio-site/spec.md). The Arabic
+// PDF is checked by eye, because right-to-left extraction is not reliable
+// enough to assert on.
+async function cvPdf() {
+  const name = 'cv pdf';
+  const limit = 1_000_000;
+  const lines = [];
+
+  const sizes = {};
+  for (const locale of context.locales) {
+    const file = path.join(context.dist, `cv.${locale}.pdf`);
+    try {
+      sizes[locale] = (await stat(file)).size;
+    } catch {
+      throw new CheckFailure(name, `${path.relative(root, file)} does not exist; run \`pnpm render:pdf\` after the build`);
+    }
+    if (sizes[locale] >= limit) {
+      throw new CheckFailure(name, `${path.relative(root, file)} is ${sizes[locale]} bytes, expected under ${limit}`);
+    }
+  }
+
+  // What the English CV page prints, from the content it prints it from: the
+  // name, the email, then each experience entry's organisation, position, and
+  // period, then each education entry's institution, degree, and period, in
+  // the page's own order (src/pages/[locale]/cv.astro).
+  const locale = 'en';
+  const t = strings[locale];
+  const profile = parseYaml(await readFile(path.join(context.content, 'profile.yaml'), 'utf8')).profile;
+  const experience = (await visibleEntries('experience')).map((entry) => parseYaml(entry.text)).sort(byStartDescending);
+  const education = (await visibleEntries('education')).map((entry) => parseYaml(entry.text)).sort(byStartAscending);
+  const expected = [profile.name[locale], profile.email];
+  for (const entry of experience) {
+    expected.push(entry.organisation[locale], entry.position[locale], formatPeriod(locale, entry.period));
+  }
+  for (const entry of education) {
+    expected.push(
+      entry.institution[locale],
+      `${entry.studyType[locale]}${t.listSeparator}${entry.area[locale]}`,
+      formatPeriod(locale, entry.period),
+    );
+  }
+
+  const file = path.join(context.dist, `cv.${locale}.pdf`);
+  const text = await extractText(file);
+  if (text === null) {
+    lines.push(`cv.${locale}.pdf: ${sizes[locale]} bytes; pdftotext is not on the PATH, so the text was not checked`);
+  } else {
+    const found = text.split(/\r?\n/).map(squash);
+    let cursor = 0;
+    for (const item of expected) {
+      const index = found.findIndex((line, i) => i >= cursor && line.includes(squash(item)));
+      if (index === -1) {
+        throw new CheckFailure(
+          name,
+          `cv.${locale}.pdf: "${item}" is not on its own line after line ${cursor} of the extracted text`,
+        );
+      }
+      cursor = index + 1;
+    }
+    lines.push(`cv.${locale}.pdf: ${sizes[locale]} bytes, ${expected.length} expected lines found in reading order`);
+  }
+  for (const other of context.locales.filter((l) => l !== locale)) {
+    lines.push(`cv.${other}.pdf: ${sizes[other]} bytes`);
+  }
+  return lines;
+}
+
+const checks = [jsonResume, cvPdf];
 
 for (const check of checks) {
   try {
