@@ -89,4 +89,4 @@ Start at [[protocol]].
 
 | Effort | Status | Spec | Research | Prototypes | Tickets |
 | --- | --- | --- | --- | --- | --- |
-| 1-portfolio-site | draft | [[efforts/1-portfolio-site/spec]] | 3 | 0 | 0 |
+| 1-portfolio-site | accepted | [[efforts/1-portfolio-site/spec]] | 5 | 0 | 0 |

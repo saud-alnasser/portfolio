@@ -1,5 +1,5 @@
 ---
-status: draft
+status: accepted
 priority: high
 ---
 
@@ -25,14 +25,16 @@ One website, at a GitHub-hosted address that costs nothing, is the record of Sau
 2. **The sections.** The site presents, at minimum: who Saud is, work (projects and experience), education, certifications and courses, skills, and contact. Education is ordered in time: high school, then online courses, then university.
 3. **Projects.** A project entry carries a name, a period, Saud's role, a short summary, the technologies used, and optionally links. A project can be shown without a public link, so private work can be described without being exposed.
 4. **Truthful academic status.** An education entry carries a status, and the site shows it as it is. The Saudi Electronic University degree reads as course work completed with the certificate pending until the certificate exists; nothing on the site claims an awarded degree before then.
-5. **A CV a person reads.** A CV is generated from the content source, laid out so that resume parsers handle it: one column, standard section headings, real text rather than images, no tables carrying content. It prints cleanly to A4 and Letter, and can be saved as a PDF from the site.
-6. **A CV a machine reads.** The same content is published at a stable address in an open, documented resume schema, so that tools that accept structured input can consume it without scraping the pages. [[efforts/1-portfolio-site/evidence/research/ats-parsing-and-resume-schemas]] found that no applicant tracking system documents accepting such a schema from a candidate, so the screening path is the PDF from requirement 5 and this output serves everything else: resume renderers, converters, and whoever wants the data.
-7. **Minimal and professional.** The visual design is content-first: a restrained palette, one typeface family or the system stack, no decorative imagery, generous whitespace. It is legible on a phone, a desktop, and on paper. It meets basic accessibility: sufficient contrast, semantic headings, keyboard-reachable navigation, images with alternative text.
+5. **A CV a person reads.** A CV is generated from the content source in each language, laid out so that resume parsers handle it: one column, standard section headings, real text rather than images, no tables carrying content. It prints cleanly to A4 and Letter, and the CV page offers it as a PDF download in the language the visitor is reading.
+6. **A CV a machine reads.** The same content is published at a stable address in an open, documented resume schema, so that tools that accept structured input can consume it without scraping the pages. The CV page offers it as a download beside the PDF, in the language the visitor is reading. [[efforts/1-portfolio-site/evidence/research/ats-parsing-and-resume-schemas]] found that no applicant tracking system documents accepting such a schema from a candidate, so the screening path is the PDF from requirement 5 and this output serves everything else: resume renderers, converters, and whoever wants the data.
+7. **Minimal, professional, fast.** The visual design is content-first: a restrained palette, one typeface family or the system stack, no decorative imagery, generous whitespace. Motion is subtle, used for transitions and reveals rather than decoration, and switched off for visitors who ask for reduced motion. It is legible and responsive on a phone, a tablet, a desktop, and on paper, and it loads fast on a mobile connection. It meets basic accessibility: sufficient contrast, semantic headings, keyboard-reachable navigation, images with alternative text.
 8. **Free hosting from this repository.** The site is served from GitHub's free hosting for a public repository, deployed automatically when a change lands on `main`. No paid service is in the path, and nothing runs on a server.
 9. **Maintainable for years.** Adding a project, a course, or a job means adding to the content source and nothing else. The content format is documented in the repository so that Saud, or an agent working for him, can extend it without reading the site's code.
 10. **Findable.** Every page carries a title, a description, and social preview metadata; the site publishes a sitemap and permits indexing.
 11. **First content.** The site launches with the inventoried material: the projects Saud chooses to show, the practical training at Al Othaim Markets, the Saudi Electronic University degree with its status, the online course certificates, and high school once its details are supplied.
 12. **Privacy.** No national identifier, student identifier, or phone number appears in the repository or on the site. Public contact is an email address and the GitHub profile, plus any profile Saud chooses to add.
+13. **Two languages.** The site is published in English and Arabic. Every page exists in both, Arabic renders right to left, and a switch on every page leads to the same page in the other language. Both CV outputs exist per language. Text is authored per language; every other fact (a date, a link, a technology, a status) is authored once.
+14. **Light and dark.** The site has a light and a dark theme. It follows the visitor's system preference by default, a control on every page overrides it, and the choice persists in that browser. The printed CV is always light.
 
 # Acceptance Criteria
 
@@ -40,14 +42,16 @@ One website, at a GitHub-hosted address that costs nothing, is the record of Sau
 2. Each named section exists and is reachable from the site's navigation. The education section lists entries in chronological order with high school first and university last.
 3. A project entry with no link renders without a broken or empty link, and a project with a repository link renders it. Each project shows its name, period, role, summary, and technologies.
 4. The education entry for Saudi Electronic University renders with its status visible, and changing the status value in the content source changes the rendered wording. No page contains the words "graduated" or "awarded" for an entry whose status is pending.
-5. The CV page renders as a single column with the standard headings (summary, experience, education, skills, certifications) and none of the hazards the evidence lists: no images, no tables, no text boxes, no header or footer carrying contact details, no columns. Printing it from a browser to A4 and to Letter produces a document with no clipped text. Extracting the text of a PDF saved from it (with `pdftotext` or equivalent) yields the name, the email, every employer with its title and dates, and every institution with its degree and dates, each on its own line and in reading order.
+5. The CV page, in each language, renders as a single column with the standard headings (summary, experience, education, skills, certifications) and none of the hazards the evidence lists: no images, no tables, no text boxes, no header or footer carrying contact details, no columns. Printing it from a browser to A4 and to Letter produces a document with no clipped text. Extracting the text of a PDF saved from it (with `pdftotext` or equivalent) yields the name, the email, every employer with its title and dates, and every institution with its degree and dates, each on its own line and in reading order. The extraction check applies to the English PDF; the Arabic PDF is checked by eye on the printed page, because right-to-left text extraction is not reliable enough to assert on.
 6. A request to the machine-readable address returns a document that validates against the schema the plan names (the evidence points at JSON Resume 1.3.1 as the only open, maintained candidate), and it contains every entry the human CV shows.
-7. The site scores at least 90 on Lighthouse accessibility and best practices for the home page and the CV page; every text and background pair meets WCAG AA contrast; navigation works with the keyboard alone; the layout has no horizontal scrolling at 360 pixels wide.
+7. The site scores at least 90 on Lighthouse performance, accessibility, and best practices for the home page and the CV page, on the mobile profile; every text and background pair meets WCAG AA contrast; navigation works with the keyboard alone; the layout has no horizontal scrolling at 360 pixels wide and no wasted width at 1440; with `prefers-reduced-motion: reduce` no element animates.
 8. Merging a change to `main` publishes the site at its GitHub Pages address without any manual step, and the repository shows no paid dependency or hosted service. The site works with no server-side code.
 9. Adding a new project to the content source and merging it results in the project appearing on the site and in both CV outputs, with no change to any file outside the content source. A README in the repository documents the content format and the fields each entry type accepts.
 10. Every page has a unique title and a description; the home page carries Open Graph metadata; `/sitemap.xml` lists every page; `robots.txt` does not disallow indexing.
 11. The published site shows the entries listed under requirement 11, and each is consistent with the inventory evidence.
 12. A search of the repository history and the published site for the patterns of a Saudi national ID, an SEU student ID, and a phone number finds nothing.
+13. Every route has an English and an Arabic counterpart. The Arabic pages carry `lang="ar"` and `dir="rtl"` on the root element, and the English pages `lang="en"`. The language switch on any page links to the same page in the other language. The machine-readable CV exists at one address per language. An entry whose Arabic text is missing renders its English text rather than a blank, and a build-time report lists every such gap.
+14. With the system preference set to dark and no override stored, the page renders the dark palette; the control switches it and a reload keeps the choice; both palettes meet the contrast criterion in 7; printing the CV yields the light palette whatever the screen shows.
 
 # Constraints
 
@@ -55,7 +59,7 @@ One website, at a GitHub-hosted address that costs nothing, is the record of Sau
 - **Static output is portable.** Whatever builds the site must produce plain files that could be served from any static host, so a change in GitHub's free tier does not take the record with it.
 - **Truthful.** The site never states more than the evidence supports (requirement 4). This constraint exists because an overstated academic claim on a hiring document is a reason for dismissal, not a typo.
 - **Stacked changes through Graphite** land the work, as [[rules/version-control]] states.
-- **English first.** Content is written in English. The content source must not preclude a second language later, but nothing in this effort builds one.
+- **Two languages, one set of facts.** Arabic and English are both first-class (requirement 13). Any text a visitor reads is authored per language; anything else is authored once, so a date can never disagree between the two versions.
 - **No tracking.** No analytics or third-party scripts that profile visitors, because the site is a record, and because free-tier analytics change terms.
 
 # Out of Scope
@@ -63,16 +67,17 @@ One website, at a GitHub-hosted address that costs nothing, is the record of Sau
 - **The King Saud University period.** Saud asked for it to be left out. The education timeline runs high school, online courses, Saudi Electronic University.
 - **Qiyas test results.** The GAT and SAAT printouts sit beside the studies but are pre-university admissions scores and carry the national ID. They are not portfolio material.
 - **A blog or writing section.** The site is a record of work and study; writing is a separate product with its own upkeep.
-- **Arabic localisation.** Deferred, not declined; see the open question.
 - **Live data from GitHub at page load.** Project content is committed, not fetched from the GitHub API when the page loads. A fetch at load depends on rate limits and a token and makes the page's content something the repository does not hold, which breaks requirement 1.
 - **A contact form.** Needs a backend or a paid form service; an email address does the job.
 - **A content management interface.** Editing is through the repository. A web editor is a second write path to the content source.
+- **A DOCX output.** PDF is accepted by every applicant tracking system and parser the evidence covers, and JSON Resume tooling can convert the structured output if a DOCX is ever demanded.
 - **A custom domain.** The GitHub Pages address is enough for the first version, and a domain is a paid, renewing dependency. The site must not break if one is added later.
 - **Populating every repository.** Which projects appear is Saud's editorial choice, not an export of the account.
 
 # Assumptions
 
-- "Hosted for free based on my GitHub" means GitHub Pages serving this repository. The address will be the user site `saud-alnasser.github.io`, which requires the repository to carry that name, or the project address `saud-alnasser.github.io/portfolio`. Which one is a plan decision; [[efforts/1-portfolio-site/evidence/research/github-pages-free-hosting]] establishes that both are free for a public repository and that any static site generator can build it through GitHub Actions.
+- "Hosted for free based on my GitHub" means GitHub Pages serving this repository at the user-site address `saud-alnasser.github.io`, chosen on 2026-09-08. That address requires the repository to be renamed `saud-alnasser.github.io`; GitHub redirects the old name. [[efforts/1-portfolio-site/evidence/research/github-pages-free-hosting]] establishes that this is free for a public repository and that any static site generator can build it through GitHub Actions.
+- Saud writes or reviews every Arabic text. An agent may draft a translation, but nothing Arabic is published without his reading it, because the CV is a hiring document in both languages.
 - Private repositories may be described publicly by name and summary, without a link. The evidence marks which are private; Saud decides per project when the content is authored.
 - The public contact is an email address chosen for this purpose, and the phone number stays off the site.
 - Saudi Electronic University course work is complete as of the 2025-2026 summer term, per the study folder and Saud's statement, and the certificate has not been issued.
@@ -86,8 +91,6 @@ One website, at a GitHub-hosted address that costs nothing, is the record of Sau
 - **Practical training dates.** The report is dated 2026-09-08 and names the summer term, but not the start and end dates.
 - **Other profiles.** Whether a LinkedIn or other profile should appear beside GitHub in contact.
 - **A photograph.** Whether the site and the CV carry a portrait. The CV layout for parsers is better without one; the site is a separate decision.
-- **Arabic.** Whether a second language is wanted, and when. It affects how the content source is shaped even though it is not built here.
-- **Whether to also publish a DOCX.** The evidence shows PDF and DOCX are the two universal parser inputs. A DOCX generated from the same content is a second output to maintain; the plan decides whether it is worth it.
 
 # Risks
 
