@@ -1,0 +1,32 @@
+---
+import Base from '../../layouts/Base.astro';
+
+export function getStaticPaths() {
+  return [{ params: { locale: 'en' } }, { params: { locale: 'ar' } }];
+}
+
+const locale = Astro.params.locale as 'en' | 'ar';
+
+// Placeholder text until the content source exists. Every string here is
+// replaced by the layout and content tickets, and the Arabic is not published
+// before Saud has read it.
+const text = {
+  en: {
+    title: 'Saud Alnasser',
+    description: 'The work and studies of Saud Alnasser.',
+    note: 'This site is being built.',
+  },
+  ar: {
+    title: 'سعود الناصر',
+    description: 'أعمال ودراسات سعود الناصر.',
+    note: 'هذا الموقع قيد الإنشاء.',
+  },
+}[locale];
+---
+
+<Base locale={locale} title={text.title} description={text.description}>
+  <main class="mx-auto max-w-2xl px-6 py-16">
+    <h1 class="text-2xl font-semibold tracking-tight">{text.title}</h1>
+    <p class="mt-4 text-neutral-600">{text.note}</p>
+  </main>
+</Base>

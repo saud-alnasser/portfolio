@@ -34,8 +34,7 @@ jobs:
       # A generated index is never hand-edited, and this is what enforces it: the
       # regeneration overwrites the index, so anything git still reports afterwards —
       # a stale index, a hand edit, a drifted generator — fails the run, named. Needs
-      # node and nothing else, which is why it is the whole gate until there is
-      # source to build and test.
+      # node and nothing else, which is why it runs before anything is installed.
       - name: '🗺️ verify generated indexes'
         run: |
           node .aep/scripts/index.mjs > /dev/null
@@ -47,7 +46,17 @@ jobs:
           fi
           node .aep/scripts/validate.mjs --quiet
 
-      # The site itself is not built here yet: the stack it is built with is not
-      # decided (.aep/contexts/repository.md). When it is, the install, check, test
-      # and build steps go below this line, and the deploy goes in its own workflow
-      # on `push` to `main`.
+      # The site. The pnpm version comes from the `packageManager` field in
+      # package.json. Tests over the built output join these steps once they
+      # exist; the deploy is its own workflow, deploy.yml, on `push` to `main`.
+      - name: '🔧 setup pnpm'
+        uses: pnpm/action-setup@v6
+
+      - name: '📦 install dependencies'
+        run: pnpm install --frozen-lockfile
+
+      - name: '🔍 check the site'
+        run: pnpm check
+
+      - name: '🏗️ build the site'
+        run: pnpm build

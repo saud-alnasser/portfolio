@@ -97,7 +97,7 @@ Every task of every effort. The tracker carries the effort, never its tasks.
 
 | Ticket | Effort | Status | Blocked by |
 | --- | --- | --- | --- |
-| [[efforts/1-portfolio-site/tickets/01-scaffold-and-deploy-workflow]] build(site): scaffold the Astro site and its deployment workflow | 1-portfolio-site | open | — |
+| [[efforts/1-portfolio-site/tickets/01-scaffold-and-deploy-workflow]] build(site): scaffold the Astro site and its deployment workflow | 1-portfolio-site | resolved | — |
 | [[efforts/1-portfolio-site/tickets/02-user-site-address]] chore(repo): point the repository at saud-alnasser.github.io | 1-portfolio-site | open | 01 |
 | [[efforts/1-portfolio-site/tickets/03-content-contract]] feat(content): define the content collections and their schemas | 1-portfolio-site | open | 01 |
 | [[efforts/1-portfolio-site/tickets/04-content-english]] feat(content): author the English content from the inventory | 1-portfolio-site | open | 03 |

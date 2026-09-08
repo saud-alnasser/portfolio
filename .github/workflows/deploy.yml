@@ -1,0 +1,70 @@
+name: '🚀 deploy'
+
+# The site publishes from `main` and nowhere else. `workflow_dispatch` is here so
+# the first deploy after the repository is renamed can be run by hand without
+# waiting for a merge.
+on:
+  push:
+    branches: ['main']
+  workflow_dispatch:
+
+# One deploy at a time, and a running one finishes: cancelling a deploy
+# mid-flight can leave the site between two versions.
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    timeout-minutes: 10
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: read
+
+    steps:
+      - name: '☁️ checkout repository'
+        uses: actions/checkout@v7
+
+      # pnpm before node, so setup-node can cache the pnpm store. The pnpm
+      # version comes from the `packageManager` field in package.json.
+      - name: '🔧 setup pnpm'
+        uses: pnpm/action-setup@v6
+
+      - name: '🔧 setup node'
+        uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: pnpm
+
+      - name: '📦 install dependencies'
+        run: pnpm install --frozen-lockfile
+
+      - name: '🏗️ build the site'
+        run: pnpm build
+
+      - name: '📤 upload the pages artifact'
+        uses: actions/upload-pages-artifact@v5
+        with:
+          path: dist
+
+  deploy:
+    needs: build
+    timeout-minutes: 10
+    runs-on: ubuntu-latest
+
+    # The two permissions Pages requires from a custom workflow, and the
+    # environment it deploys into. The repository's Pages source must be set to
+    # GitHub Actions once, by hand, or this job fails.
+    permissions:
+      pages: write
+      id-token: write
+
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+
+    steps:
+      - name: '🚀 deploy to github pages'
+        id: deployment
+        uses: actions/deploy-pages@v5

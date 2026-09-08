@@ -1,0 +1,30 @@
+---
+import '../styles/global.css';
+
+interface Props {
+  locale: 'en' | 'ar';
+  title: string;
+  description: string;
+}
+
+const { locale, title, description } = Astro.props;
+
+// Arabic reads right to left. The direction comes from the locale so that no
+// page has to say it twice.
+const dir = locale === 'ar' ? 'rtl' : 'ltr';
+---
+
+<!doctype html>
+<html lang={locale} dir={dir}>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width" />
+    <meta name="generator" content={Astro.generator} />
+    <title>{title}</title>
+    <meta name="description" content={description} />
+    <link rel="sitemap" href="/sitemap-index.xml" />
+  </head>
+  <body class="min-h-dvh bg-white text-neutral-900 antialiased">
+    <slot />
+  </body>
+</html>
