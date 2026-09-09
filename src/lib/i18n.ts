@@ -9,8 +9,13 @@
 //   strings[locale]         the UI strings for one locale
 //   formatDate(locale, iso) a YYYY, YYYY-MM, or YYYY-MM-DD date for display
 //   formatPeriod(locale, p) "start to end", or "start to present"
+//   plural(locale, n, forms) the form of a noun that goes with a count
 
 export type Locale = 'en' | 'ar';
+
+// A noun that takes a count, in the forms the language distinguishes. Arabic
+// has six; English needs two. `other` is the fallback every language ends in.
+export type PluralForms = { other: string } & Partial<Record<Intl.LDMLPluralRule, string>>;
 
 export const locales: ReadonlyArray<{
   code: Locale;
@@ -44,11 +49,24 @@ const en = {
     work: 'Work',
     education: 'Education',
     cv: 'CV',
+    // The language menu's accessible name.
+    language: 'Language',
   },
   theme: {
     switchTo: 'Switch to',
     dark: 'Dark theme',
     light: 'Light theme',
+  },
+  // A card's fold: the control that shows or hides a list too long for the
+  // card. {count} is the number and {noun} the form of the list's noun that
+  // goes with it, from `nouns`.
+  fold: {
+    show: 'Show {count} {noun}',
+    hide: 'Hide {count} {noun}',
+    nouns: {
+      courses: { one: 'course', other: 'courses' } as PluralForms,
+      highlights: { one: 'highlight', other: 'highlights' } as PluralForms,
+    },
   },
   titleSeparator: ' - ',
   // Between items of an inline list: technologies, courses, keywords.
@@ -70,6 +88,20 @@ const en = {
     sections: 'On this site',
     work: 'Projects and experience.',
     education: 'Studies and certificates.',
+    cv: 'Experience, education, skills, and certifications on one page.',
+    // What a section card says it holds: "19 projects", "27 certificates".
+    // The count comes from the collection the section renders, never from
+    // this file. {count} is the number and {noun} the form of the section's
+    // noun that goes with it, from `nouns`.
+    counts: {
+      line: '{count} {noun}',
+      nouns: {
+        projects: { one: 'project', other: 'projects' } as PluralForms,
+        experience: { one: 'position', other: 'positions' } as PluralForms,
+        education: { one: 'institution', other: 'institutions' } as PluralForms,
+        certificates: { one: 'certificate', other: 'certificates' } as PluralForms,
+      },
+    },
   },
   sections: {
     projects: 'Projects',
@@ -94,9 +126,25 @@ const en = {
       'in-progress': 'In progress',
     },
     courses: 'Courses',
+    // The one node on the timeline that is not an institution: the phase of
+    // online courses between school and university. It stands for every
+    // certificate, so `count` says how many, with `noun` in the form the
+    // number takes, and `link` leads to the certificates themselves.
+    onlineCourses: {
+      name: 'Online courses',
+      count: '{count} {noun}',
+      noun: { one: 'certificate', other: 'certificates' } as PluralForms,
+      link: 'View the certificates',
+    },
   },
+  // A certificate card and the dialog it opens. `open` is what the card says
+  // it does, so the link is named by what happens rather than by its address;
+  // `document` names the PDF behind the preview, and `close` the control that
+  // dismisses the dialog.
   certificate: {
-    view: 'View certificate',
+    open: 'View certificate',
+    document: 'Open the PDF',
+    close: 'Close',
   },
   // The CV page. Its section headings are the ones resume parsers expect;
   // the other sections reuse the site's headings above.
@@ -108,6 +156,10 @@ const en = {
     downloadPdf: 'Download PDF',
     downloadJson: 'Download JSON Resume',
     summary: 'Summary',
+    // The template names these two sections; the other headings on the page
+    // are the site's own, above.
+    experience: 'Work experience',
+    skills: 'Key skills',
     certifications: 'Certifications',
   },
   period: {
@@ -128,11 +180,22 @@ const ar: Strings = {
     work: 'الأعمال',
     education: 'التعليم',
     cv: 'السيرة الذاتية',
+    language: 'اللغة',
   },
   theme: {
     switchTo: 'التبديل إلى',
     dark: 'الوضع الداكن',
     light: 'الوضع الفاتح',
+  },
+  fold: {
+    show: 'عرض {count} {noun}',
+    hide: 'إخفاء {count} {noun}',
+    // The counted noun in the form Arabic gives each range: one, two, three
+    // to ten, eleven to ninety-nine, and the rest.
+    nouns: {
+      courses: { one: 'مقرر', two: 'مقرران', few: 'مقررات', many: 'مقرراً', other: 'مقرر' },
+      highlights: { one: 'مهمة', two: 'مهمتان', few: 'مهام', many: 'مهمة', other: 'مهمة' },
+    },
   },
   titleSeparator: ' - ',
   listSeparator: '، ',
@@ -153,6 +216,18 @@ const ar: Strings = {
     sections: 'في هذا الموقع',
     work: 'المشاريع والخبرات العملية.',
     education: 'الدراسة والشهادات.',
+    cv: 'الخبرة العملية والتعليم والمهارات والشهادات في صفحة واحدة.',
+    counts: {
+      line: '{count} {noun}',
+      // The counted noun of each section, in the forms Arabic gives each
+      // range: one, two, three to ten, eleven to ninety-nine, and the rest.
+      nouns: {
+        projects: { one: 'مشروع', two: 'مشروعان', few: 'مشاريع', many: 'مشروعاً', other: 'مشروع' },
+        experience: { one: 'وظيفة', two: 'وظيفتان', few: 'وظائف', many: 'وظيفة', other: 'وظيفة' },
+        education: { one: 'جهة تعليمية', two: 'جهتان تعليميتان', few: 'جهات تعليمية', many: 'جهة تعليمية', other: 'جهة تعليمية' },
+        certificates: { one: 'شهادة', two: 'شهادتان', few: 'شهادات', many: 'شهادة', other: 'شهادة' },
+      },
+    },
   },
   sections: {
     projects: 'المشاريع',
@@ -177,9 +252,18 @@ const ar: Strings = {
       'in-progress': 'قيد الدراسة',
     },
     courses: 'المقررات',
+    onlineCourses: {
+      name: 'الدورات الإلكترونية',
+      count: '{count} {noun}',
+      // The counted noun in the form Arabic gives each range, as `fold` above.
+      noun: { one: 'شهادة', two: 'شهادتان', few: 'شهادات', many: 'شهادةً', other: 'شهادة' },
+      link: 'عرض الشهادات',
+    },
   },
   certificate: {
-    view: 'عرض الشهادة',
+    open: 'عرض الشهادة',
+    document: 'فتح ملف PDF',
+    close: 'إغلاق',
   },
   cv: {
     title: 'السيرة الذاتية',
@@ -189,6 +273,8 @@ const ar: Strings = {
     downloadPdf: 'تنزيل PDF',
     downloadJson: 'تنزيل JSON Resume',
     summary: 'الملخص',
+    experience: 'الخبرة العملية',
+    skills: 'المهارات الأساسية',
     certifications: 'الشهادات',
   },
   period: {
@@ -225,6 +311,12 @@ export function formatDate(locale: Locale, iso: string | number): string {
         ? { year: 'numeric', month: 'short' }
         : { year: 'numeric' };
   return new Intl.DateTimeFormat(dateLocale[locale], { ...options, timeZone: 'UTC' }).format(date);
+}
+
+// The form of a noun that goes with a count, by the language's own rules:
+// plural('ar', 21, nouns.courses) is the form for eleven to ninety-nine.
+export function plural(locale: Locale, count: number, forms: PluralForms): string {
+  return forms[new Intl.PluralRules(locale).select(count)] ?? forms.other;
 }
 
 export function formatPeriod(locale: Locale, period: { start: string; end?: string }): string {

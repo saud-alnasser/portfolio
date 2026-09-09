@@ -1,0 +1,35 @@
+---
+// The theme control: a button showing the theme it would switch to, a moon
+// under the light palette and a sun under the dark one. Which icon is visible
+// follows the palette in CSS, through the theme-when-* rules in the global
+// stylesheet, so the inline script in the base layout only stores the choice
+// and sets data-theme. The labels are text for a screen reader; the hidden
+// icon's label is hidden with it, so the button's name is always the theme it
+// switches to.
+
+import Icon from './Icon.astro';
+import { strings, type Locale } from '../lib/i18n';
+
+interface Props {
+  locale: Locale;
+}
+
+const { locale } = Astro.props;
+const t = strings[locale];
+---
+
+<button
+  type="button"
+  data-theme-toggle
+  class="flex cursor-pointer items-center rounded-md px-2 py-1.5 text-muted-foreground hover:text-primary motion-safe:transition-colors"
+>
+  <span class="sr-only">{t.theme.switchTo} </span>
+  <span class="theme-when-light">
+    <Icon name="moon" class="size-4" />
+    <span class="sr-only">{t.theme.dark}</span>
+  </span>
+  <span class="theme-when-dark">
+    <Icon name="sun" class="size-4" />
+    <span class="sr-only">{t.theme.light}</span>
+  </span>
+</button>

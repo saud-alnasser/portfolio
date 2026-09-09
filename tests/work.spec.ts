@@ -1,0 +1,254 @@
+import { readdirSync, readFileSync } from 'node:fs';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
+import { expect, test, type Locator, type Page } from '@playwright/test';
+import { parse as parseYaml } from 'yaml';
+import { fill, formatPeriod, plural, strings } from '../src/lib/i18n';
+import { byOrderThenStartDescending, byStartDescending } from '../src/lib/order';
+import { at, locales, type Locale } from './pages';
+
+// The work page as a pair of card grids: every project and every placement
+// inside a card, one column on a phone and two on a desktop, the placement's
+// highlights folded behind a control that opens in place and needs no
+// script. What the cards must show is read from src/content/, the way
+// scripts/check-dist.mjs reads it, so a card that drifts from the content
+// source fails here rather than passing against a copy of itself.
+
+interface Localized {
+  en: string;
+  ar: string;
+}
+
+interface Project {
+  name: string;
+  period: { start: string; end?: string };
+  order?: number;
+  visibility: 'public' | 'described' | 'hidden';
+  links?: { repository?: string; live?: string };
+}
+
+interface Experience {
+  position: Localized;
+  organisation: Localized;
+  location: Localized;
+  period: { start: string; end?: string };
+  highlights: Localized[];
+}
+
+const content = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', 'src', 'content');
+
+// Every YAML file of one collection, parsed, in file-name order as the build
+// loads them.
+function collection<T>(name: string): T[] {
+  const dir = path.join(content, name);
+  return readdirSync(dir)
+    .filter((file) => file.endsWith('.yaml'))
+    .sort()
+    .map((file) => parseYaml(readFileSync(path.join(dir, file), 'utf8')) as T);
+}
+
+// A hidden project stays in the source and out of every output, so the page
+// shows one card fewer than the directory holds.
+const projects = collection<Project>('projects')
+  .filter((entry) => entry.visibility !== 'hidden')
+  .sort(byOrderThenStartDescending);
+
+const experience = collection<Experience>('experience').sort(byStartDescending);
+
+const placement = experience[0]!;
+
+// The number of tracks a grid lays its cards in, as the browser computes it:
+// "496px 496px" is two.
+const columnsOf = (page: Page, grid: string) =>
+  page
+    .locator(`[data-grid="${grid}"]`)
+    .evaluate((node) => getComputedStyle(node).gridTemplateColumns.split(/\s+/).filter(Boolean).length);
+
+// The label the fold's summary shows in each state, counted and declined in
+// the page's own language.
+const foldLabel = (locale: Locale, state: 'show' | 'hide', count: number) =>
+  fill(strings[locale].fold[state], {
+    count: String(count),
+    noun: plural(locale, count, strings[locale].fold.nouns.highlights),
+  });
+
+const fold = (card: Locator) => card.locator('details');
+
+test.describe('the work page', () => {
+  for (const locale of locales) {
+    const url = at(`/${locale}/work/`);
+
+    test(`${url} puts every entry inside a card`, async ({ page }) => {
+      await page.goto(url);
+      await expect(page.locator('[data-grid="projects"] > li')).toHaveCount(projects.length);
+      await expect(page.locator('[data-grid="experience"] > li')).toHaveCount(experience.length);
+      await expect(page.locator('[data-entry="project"]')).toHaveCount(projects.length);
+      await expect(page.locator('[data-entry="experience"]')).toHaveCount(experience.length);
+
+      // A card is a bounded surface: its own colour, a border, and a radius.
+      const background = await page.evaluate(() => getComputedStyle(document.body).backgroundColor);
+      const surfaces = await page.locator('[data-entry]').evaluateAll((nodes) =>
+        nodes.map((node) => {
+          const style = getComputedStyle(node);
+          return {
+            background: style.backgroundColor,
+            border: parseFloat(style.borderTopWidth),
+            radius: parseFloat(style.borderTopLeftRadius),
+          };
+        }),
+      );
+      expect(surfaces.length).toBe(projects.length + experience.length);
+      for (const [index, surface] of surfaces.entries()) {
+        expect(surface.border, `border of card ${index} on ${url}`).toBeGreaterThan(0);
+        expect(surface.radius, `radius of card ${index} on ${url}`).toBeGreaterThan(0);
+        expect(surface.background, `surface of card ${index} on ${url}`).not.toBe(background);
+      }
+    });
+
+    test(`${url} shows each card's name, period, and meta line`, async ({ page }) => {
+      await page.goto(url);
+      const card = page.locator('[data-entry="experience"]').first();
+      await expect(card.locator('h3')).toHaveText(placement.position[locale]);
+      await expect(card).toContainText(formatPeriod(locale, placement.period));
+      await expect(card).toContainText(placement.organisation[locale]);
+      await expect(card).toContainText(placement.location[locale]);
+      await expect(card).toContainText(strings[locale].experience.training);
+
+      const entry = projects[0]!;
+      const project = page.locator('[data-entry="project"]').first();
+      await expect(project.locator('h3')).toHaveText(entry.name);
+      await expect(project).toContainText(formatPeriod(locale, entry.period));
+      await expect(project.locator(`[aria-label="${strings[locale].project.technologies}"] li`)).not.toHaveCount(0);
+    });
+
+    test(`${url} links a public project and leaves a described one unlinked`, async ({ page }) => {
+      await page.goto(url);
+      const found = await page.locator('[data-entry="project"]').evaluateAll((nodes) =>
+        nodes.map((node) => ({
+          name: node.querySelector('h3')?.textContent?.trim() ?? '',
+          links: [...node.querySelectorAll('a[href]')].map((link) => link.getAttribute('href')),
+        })),
+      );
+
+      // The cards in the order the collection was sorted into, each with the
+      // destinations its entry allows: a described project is private work
+      // and points at nothing.
+      const expected = projects.map((entry) => ({
+        name: entry.name,
+        links:
+          entry.visibility === 'public'
+            ? [entry.links?.repository, entry.links?.live].filter((href): href is string => Boolean(href))
+            : [],
+      }));
+      expect(found).toEqual(expected);
+      expect(expected.some((entry) => entry.links.length > 0)).toBe(true);
+      expect(expected.some((entry) => entry.links.length === 0)).toBe(true);
+    });
+
+    test(`${url} folds the highlights and opens them in place`, async ({ page }) => {
+      await page.goto(url);
+      const card = page.locator('[data-entry="experience"]').first();
+      const details = fold(card);
+      const list = details.locator('ul');
+
+      await expect(details).not.toHaveAttribute('open');
+      await expect(list).toBeHidden();
+      await expect(details.locator('summary .fold-when-closed')).toHaveText(
+        foldLabel(locale, 'show', placement.highlights.length),
+      );
+
+      await details.locator('summary').click();
+      await expect(details).toHaveAttribute('open', '');
+      await expect(list).toBeVisible();
+      await expect(list.locator('li')).toHaveCount(placement.highlights.length);
+      await expect(list.locator('li').first()).toHaveText(placement.highlights[0]![locale]);
+      await expect(details.locator('summary .fold-when-open')).toHaveText(
+        foldLabel(locale, 'hide', placement.highlights.length),
+      );
+    });
+  }
+});
+
+test.describe('at 360 pixels wide', () => {
+  test.use({ viewport: { width: 360, height: 780 } });
+
+  for (const locale of locales) {
+    const url = at(`/${locale}/work/`);
+
+    test(`${url} lays one column and does not scroll sideways`, async ({ page }) => {
+      await page.goto(url);
+      await page.evaluate(() => document.fonts.ready);
+      for (const grid of ['projects', 'experience']) {
+        expect(await columnsOf(page, grid), `columns of the ${grid} grid on ${url}`).toBe(1);
+      }
+      const width = await page.evaluate(() => document.documentElement.scrollWidth);
+      expect(width, `scrollWidth of ${url}`).toBeLessThanOrEqual(360);
+    });
+  }
+});
+
+test.describe('at 1440 pixels wide', () => {
+  test.use({ viewport: { width: 1440, height: 900 } });
+
+  for (const locale of locales) {
+    const url = at(`/${locale}/work/`);
+
+    test(`${url} lays two or more columns, none wider than its track`, async ({ page }) => {
+      await page.goto(url);
+      for (const grid of ['projects', 'experience']) {
+        expect(await columnsOf(page, grid), `columns of the ${grid} grid on ${url}`).toBeGreaterThanOrEqual(2);
+      }
+
+      const box = (await page.locator('[data-grid="projects"]').boundingBox())!;
+      const cards = await page.locator('[data-entry="project"]').all();
+      for (const [index, card] of cards.entries()) {
+        const bounds = (await card.boundingBox())!;
+        expect(bounds.x, `card ${index} starts inside the grid on ${url}`).toBeGreaterThanOrEqual(box.x - 1);
+        expect(bounds.x + bounds.width, `card ${index} ends inside the grid on ${url}`).toBeLessThanOrEqual(
+          box.x + box.width + 1,
+        );
+      }
+    });
+  }
+
+  test('the Arabic grid fills from the right and the English from the left', async ({ page }) => {
+    const firstTwo = async (path: string) => {
+      await page.goto(path);
+      const cards = page.locator('[data-entry="project"]');
+      const first = (await cards.nth(0).boundingBox())!;
+      const second = (await cards.nth(1).boundingBox())!;
+      return { first, second };
+    };
+
+    const arabic = await firstTwo(at('/ar/work/'));
+    expect(arabic.first.x, 'the first Arabic card sits right of the second').toBeGreaterThan(arabic.second.x);
+
+    const english = await firstTwo(at('/en/work/'));
+    expect(english.first.x, 'the first English card sits left of the second').toBeLessThan(english.second.x);
+  });
+});
+
+// Reduced motion is asked for beside it because the page's reveal is a 500ms
+// animation on `main` and this context cannot evaluate in the page, so there
+// is no `document.getAnimations()` to await as the other tests do and the
+// click never finds the summary stable. The fold behaves the same either
+// way; what is under test is that it needs no script.
+test.describe('with JavaScript disabled', () => {
+  test.use({ javaScriptEnabled: false, reducedMotion: 'reduce' });
+
+  for (const locale of locales) {
+    const url = at(`/${locale}/work/`);
+
+    test(`${url} still opens the fold`, async ({ page }) => {
+      // The fold is a native <details>, so nothing about it waits on a
+      // script; this is the assertion that would catch it being rebuilt as
+      // one.
+      await page.goto(url);
+      const details = fold(page.locator('[data-entry="experience"]').first());
+      await expect(details.locator('ul')).toBeHidden();
+      await details.locator('summary').click();
+      await expect(details).toHaveAttribute('open', '');
+      await expect(details.locator('ul li')).toHaveCount(placement.highlights.length);
+    });
+  }
+});

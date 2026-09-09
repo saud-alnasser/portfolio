@@ -1,0 +1,39 @@
+---
+// One section of the site as a card on the home page: its name, the one line
+// saying what it holds, and how many entries it holds. The whole card is the
+// link to the section, which `Card` handles.
+//
+// The counts arrive already worded by the page, because they are computed
+// from the collections the section renders (src/pages/[locale]/index.astro).
+// A section that is one document rather than a list of entries, the CV,
+// passes none and shows none.
+
+import Card from './Card.astro';
+import { strings, type Locale } from '../lib/i18n';
+
+interface Props {
+  locale: Locale;
+  href: string;
+  // The section's name, as the navigation says it.
+  name: string;
+  // One line saying what the section holds.
+  description: string;
+  // The counted lines, already worded: "19 projects", "27 certificates".
+  counts?: string[];
+  // Which section this is, for the tests: "work", "education", "cv".
+  section: string;
+}
+
+const { locale, href, name, description, counts = [], section } = Astro.props;
+const t = strings[locale];
+---
+
+<Card href={href} data-section-card={section} class="h-full">
+  <h3 class="font-semibold tracking-tight">{name}</h3>
+  <p class="mt-2 text-sm leading-6 text-muted-foreground">{description}</p>
+  {
+    counts.length > 0 && (
+      <p data-counts class="mt-4 text-sm text-muted-foreground tabular-nums">{counts.join(t.listSeparator)}</p>
+    )
+  }
+</Card>

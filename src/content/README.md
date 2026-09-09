@@ -86,11 +86,13 @@ One file per job or placement.
 ## `education/`
 
 One file per institution attended. The education page is one timeline in
-order of time: institutions by `period.start` and certificates by `date`,
-together, so high school comes first, the online courses next, and university
-last. A certificate with no `date` is placed just before the most recent
-institution, in the online-courses phase; give it a `date` to place it
-exactly. The CV page keeps separate Education and Certifications sections.
+order of time: the institutions by `period.start`, with one node for the
+online-courses phase placed just before the most recent institution, so high
+school comes first, the online courses next, and university last. That node
+stands for every certificate, dated or not: it counts them, runs from the
+earliest dated one to the latest, and leads to the certificates, which are
+listed under their own heading below the timeline. The CV page keeps separate
+Education and Certifications sections.
 
 | Field | Type | Per language | Meaning |
 | --- | --- | --- | --- |
@@ -111,6 +113,28 @@ One file per certificate, including online course completions.
 | `issuer` | text | no | who issued it, such as "Code with Mosh" |
 | `date` | date | no | optional. When it was issued |
 | `url` | URL | no | optional. Where it can be verified |
+| `document` | file path | no | optional. The certificate's PDF, relative to this folder, as `files/code-with-mosh-react.pdf`. The build refuses an entry whose PDF or preview does not exist, naming the file |
+
+### The certificate documents
+
+A certificate's PDF lives in `certificates/files/`, named after its entry:
+the entry `code-with-mosh-react.yaml` names `files/code-with-mosh-react.pdf`.
+Beside every PDF sits its preview, `files/code-with-mosh-react.webp`, the
+first page rendered 1600 pixels wide; the site shows the preview and links
+to the PDF. The previews are generated, and committed with the PDFs:
+
+```sh
+pnpm certificates:previews   # renders files/<name>.webp for every files/<name>.pdf
+```
+
+Run it after adding or replacing a PDF, and commit what it wrote. The build
+checks that both files exist for every entry that names a `document`, so a
+PDF added without its preview fails the build until the command has run. A
+document is scanned for identifiers before it is published, the same way the
+CV PDF is; one that carries a national or student identifier is not added
+until it is redacted. A scanned certificate has no text layer for that scan to
+read, so such a document is read by eye for identifiers before it is added,
+and the dist check reports how many documents it could read.
 
 ## `skills/`
 

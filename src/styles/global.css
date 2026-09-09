@@ -43,6 +43,13 @@
   --muted: light-dark(#f1f3f5, #1b2129);
   --muted-foreground: light-dark(#596270, #9aa4b1);
   --border: light-dark(#d8dde3, #2a3340);
+  /* A card's surface: a step off the page in both palettes, bounded by the
+     border. Every text token above keeps AA on it: the muted text reaches
+     5.89:1 and 6.63:1, the accent 6.95:1 and 9.78:1. */
+  --card: light-dark(#f8fafc, #181e27);
+  /* The CV's heading band, the one tint the template has. The foreground
+     reaches 13.0:1 and 11.6:1 on it, the muted text 4.95:1 and 5.69:1. */
+  --band: light-dark(#dde8f0, #1f2b38);
   --primary: light-dark(#155e75, #7dd3e0);
   --primary-foreground: light-dark(#ffffff, #12161c);
   --ring: var(--primary);
@@ -72,6 +79,8 @@
   --color-muted: var(--muted);
   --color-muted-foreground: var(--muted-foreground);
   --color-border: var(--border);
+  --color-card: var(--card);
+  --color-band: var(--band);
   --color-primary: var(--primary);
   --color-primary-foreground: var(--primary-foreground);
   --color-ring: var(--ring);
@@ -148,6 +157,57 @@
 }
 
 /*
+ * The two disclosures, the language menu and a card's fold, are native
+ * <details> elements: they open and close with no script. The rules here are
+ * what utilities cannot express, keyed on the element's own open state.
+ */
+details > summary::-webkit-details-marker {
+  display: none;
+}
+
+/* A summary shows one of two labels, "Show 21 courses" or "Hide 21 courses",
+   the way the theme control shows one of two icons. */
+.fold-when-open {
+  display: none;
+}
+
+details[open] > summary .fold-when-closed {
+  display: none;
+}
+
+details[open] > summary .fold-when-open {
+  display: inline;
+}
+
+/* The chevron on a summary points down closed and up open. A quarter turn
+   is symmetric, so it needs no mirroring for Arabic. */
+details[open] > summary .fold-chevron {
+  transform: rotate(180deg);
+}
+
+/*
+ * The CV page, after the white and blue minimalist corporate template: black
+ * text on white, one column of real text, and the heading bands as the only
+ * tint. Everything else the page needs is a utility on the page itself; what
+ * is here is what a utility cannot say.
+ */
+
+/* A long address in the contact line or a project's links wraps rather than
+   pushing the column past the paper. */
+.cv {
+  overflow-wrap: break-word;
+}
+
+/* A section heading's band. `print-color-adjust: exact` is what carries it
+   onto paper: a browser drops background colours when printing unless the
+   page insists, and the PDF the render step writes is a print. */
+.cv-band {
+  background-color: var(--band);
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
+}
+
+/*
  * The print stylesheet: the CV page on paper, and the PDF the render step
  * writes from it. The palette side is above with the theme rules, where print
  * forces `color-scheme: light` whatever the visitor stored. No page size is
@@ -193,6 +253,12 @@
   }
 
   .cv-entry {
+    break-inside: avoid;
+  }
+
+  /* The keyword columns balance across the whole block, so a page break
+     through them reads as two half-filled sets rather than one list. */
+  .cv-skills {
     break-inside: avoid;
   }
 
