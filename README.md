@@ -1,20 +1,39 @@
-# Portfolio
+# saud-alnasser.github.io
 
-Saud Alnasser's portfolio: the record of his work and studies, published in
-English and Arabic at `https://saud-alnasser.github.io`, with a CV derived from
-the same content for people (PDF) and for machines (JSON Resume).
+The GitHub user site of [saud-alnasser](https://github.com/saud-alnasser):
+Saud Alnasser's portfolio, the record of his work and studies, published in
+English and Arabic at <https://saud-alnasser.github.io>, with a CV derived from
+the same content for people and for machines.
+
+| Address | What |
+| --- | --- |
+| `/en/`, `/ar/` | the site, in each language |
+| `/en/cv/`, `/ar/cv/` | the CV page, printable |
+| `/cv.en.pdf`, `/cv.ar.pdf` | the CV as a PDF, rendered at build time |
+| `/en/resume.json`, `/ar/resume.json` | the CV as a [JSON Resume](https://jsonresume.org) document |
 
 ## Development
 
 ```sh
 pnpm install
-pnpm dev        # local server
-pnpm check      # type and template checks
-pnpm build      # writes dist/
+pnpm dev          # local server
+pnpm check        # type and template checks
+pnpm build        # writes dist/
+pnpm render:pdf   # writes dist/cv.en.pdf and dist/cv.ar.pdf (needs Playwright's Chromium)
+pnpm check:dist   # the checks CI runs over dist/
 ```
 
-Node 24 and pnpm 12. The site is static files only; a push to `main` deploys
-it through GitHub Actions.
+Node 24 and pnpm 12. The site is static files only.
+
+## Deployment
+
+This repository is named `saud-alnasser.github.io`, so GitHub Pages serves it
+at the root of that address with no base path. A push to `main` runs
+`.github/workflows/deploy.yml`, which builds the site, renders the PDFs, runs
+the checks, and deploys `dist/` through the Pages actions. The repository's
+Pages source is set to GitHub Actions, once, in the repository settings.
+Nothing else is configured anywhere: no custom domain, no server, no paid
+service.
 
 ## Content
 
