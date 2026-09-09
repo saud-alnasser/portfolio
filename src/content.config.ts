@@ -1,3 +1,6 @@
+import { existsSync } from 'node:fs';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { defineCollection, z } from 'astro:content';
 import { file, glob } from 'astro/loaders';
 
@@ -118,6 +121,25 @@ const education = defineCollection({
     .strict(),
 });
 
+// A certificate's document: the path of its PDF relative to the certificates
+// directory, as `files/code-with-mosh-react.pdf`, with its preview,
+// `files/code-with-mosh-react.webp`, rendered beside it by
+// `pnpm certificates:previews`. Both must exist, so an entry naming a file
+// that is not there fails the build naming the file rather than shipping a
+// dead link or a blank card, and a PDF added without its preview fails the
+// same way until the command has run.
+const certificatesDirectory = fileURLToPath(new URL('./content/certificates/', import.meta.url));
+const certificateDocument = z
+  .string()
+  .regex(/^files\/[^/\\]+\.pdf$/, 'a document is written files/<name>.pdf')
+  .superRefine((value, context) => {
+    for (const relative of [value, value.replace(/\.pdf$/, '.webp')]) {
+      if (!existsSync(path.join(certificatesDirectory, relative))) {
+        context.addIssue({ code: 'custom', message: `${relative} does not exist under src/content/certificates/` });
+      }
+    }
+  });
+
 const certificates = defineCollection({
   loader: glob({ pattern: '*.yaml', base: './src/content/certificates' }),
   schema: z
@@ -126,6 +148,7 @@ const certificates = defineCollection({
       issuer: z.string().min(1),
       date: iso8601.optional(),
       url: url.optional(),
+      document: certificateDocument.optional(),
     })
     .strict(),
 });

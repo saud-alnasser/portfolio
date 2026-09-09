@@ -117,7 +117,7 @@ Every task of every effort. The tracker carries the effort, never its tasks.
 | [[efforts/3-site-redesign/tickets/02-home-page]] feat(site): lay the home page out as a hero, contact actions, skill cards, and section cards | 3-site-redesign | open | 01 |
 | [[efforts/3-site-redesign/tickets/03-work-page]] feat(site): render projects and experience as card grids with folded highlights | 3-site-redesign | open | 01 |
 | [[efforts/3-site-redesign/tickets/04-education-timeline]] feat(site): render the studies timeline as institution cards with one node for the online courses | 3-site-redesign | open | 01 |
-| [[efforts/3-site-redesign/tickets/05-certificate-documents]] feat(content): add the certificate documents to the content source with their previews and the script that renders them | 3-site-redesign | open | — |
+| [[efforts/3-site-redesign/tickets/05-certificate-documents]] feat(content): add the certificate documents to the content source with their previews and the script that renders them | 3-site-redesign | resolved | — |
 | [[efforts/3-site-redesign/tickets/06-certificate-grid-and-dialog]] feat(site): show the certificates as a card grid whose cards open the document in a dialog | 3-site-redesign | open | 04, 05 |
 | [[efforts/3-site-redesign/tickets/07-cv-template]] feat(cv): lay the CV page out after the white and blue ATS template and print its bands | 3-site-redesign | open | 01 |
 | [[efforts/3-site-redesign/tickets/08-profile-summary]] feat(content): drop the degree sentence from the profile summary so the README stops repeating it | 3-site-redesign | resolved | — |

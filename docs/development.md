@@ -32,9 +32,16 @@ pnpm lighthouse   # Lighthouse on the home and CV pages, mobile profile
 pnpm check:live <address>  # asks a served site for its pages and downloads; the deploy job runs it last
 pnpm readme       # rewrites the profile block of README.md from src/content/ and the config
 pnpm scan:history # the identifier scan over the whole git history
+pnpm certificates:previews # renders the preview image beside every certificate PDF under src/content/certificates/files/
 ```
 
 Node 22.12 or later (CI uses 24) and pnpm 12. The site is static files only.
+
+The certificate previews are committed with their PDFs, so `pnpm
+certificates:previews` runs on a developer's machine after a PDF is added or
+replaced, never in CI; the build only checks that the preview each entry
+needs exists. The content format, including the `document` field, is in
+[src/content/README.md](../src/content/README.md).
 
 ## Deployment
 
