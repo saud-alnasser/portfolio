@@ -17,6 +17,7 @@
     "test": "playwright test",
     "test:content": "node scripts/test-content-mechanism.mjs",
     "lighthouse": "node scripts/lighthouse.mjs",
+    "check:live": "bash scripts/check-live.sh",
     "scan:history": "node scripts/scan-history.mjs",
     "astro": "astro"
   },

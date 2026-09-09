@@ -362,7 +362,7 @@ async function basePaths() {
     const text = await readFile(path.join(context.dist, file), 'utf8');
     const found = [
       ...[...text.matchAll(/\b(?:href|src)=["'](\/[^"']*)["']/g)].map((match) => match[1]),
-      ...[...text.matchAll(/url\((\/[^)]*)\)/g)].map((match) => match[1]),
+      ...[...text.matchAll(/url\(\s*["']?(\/[^"')]*)["']?\s*\)/g)].map((match) => match[1]),
       ...[...text.matchAll(/content=["']\d+;url=(\/[^"']*)["']/g)].map((match) => match[1]),
     ];
     for (const value of found) {

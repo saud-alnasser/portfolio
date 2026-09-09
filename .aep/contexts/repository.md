@@ -36,14 +36,14 @@ Decided so far:
 | Directory | Holds |
 | --- | --- |
 | `.aep/` | the protocol tree: policies, skills, rules, references, efforts |
-| `.github/` | the forge's side of how work lands: issue and pull request templates, the label configuration, Renovate, and the workflows: a title lint, the labeler with its merge-time status job, the integration gate (AEP index, check, build, PDF render, dist checks, Playwright tests, Lighthouse, the content mechanism test, the history scan), and the Pages deploy |
+| `.github/` | the forge's side of how work lands: issue and pull request templates, the label configuration, Renovate, and the workflows: a title lint, the labeler with its merge-time status job, the integration gate (AEP index, check, build, PDF render, dist checks, Playwright tests, Lighthouse, the content mechanism test, the history scan), and the Pages deploy, which ends by checking the live site |
 | `src/content/` | **the content source**: one YAML file per entry under `projects/`, `experience/`, `education/`, `certificates/`, `skills/`, and `profile.yaml`. Every fact the site or the CV shows lives here and nowhere else; `README.md` documents the format |
 | `src/content.config.ts` | the content contract: the Zod schema of each collection, which the build enforces |
 | `src/pages/`, `src/layouts/`, `src/components/` | the Astro templates: pages under `[locale]/` for `en` and `ar`, the `resume.json` and `robots.txt` endpoints, one base layout, one component per entry type |
 | `src/lib/` | UI strings per locale (`i18n.ts`), the language fallback and its gap report (`localized.ts`), the entry ordering (`order.ts`), the JSON Resume mapper (`resume.ts`), the base-path join every published path goes through (`paths.ts`) |
 | `src/styles/` | the one global stylesheet: Tailwind, the palette tokens for both themes, the print rules, the Arabic font faces |
 | `public/` | files served as they are: the bundled Arabic font and its licence |
-| `scripts/` | what runs after the build: the PDF render, the dist checks, the content mechanism test, the history scan, the Lighthouse runner, and the static server the tests, the PDF render, and Lighthouse use, which serves `dist/` under the base path as Pages does |
+| `scripts/` | what runs after the build: the PDF render, the dist checks, the content mechanism test, the history scan, the Lighthouse runner, the static server the tests, the PDF render, and Lighthouse use, which serves `dist/` under the base path as Pages does, and the live check the deploy job runs last |
 | `tests/` | the Playwright tests over the built site |
 | `AGENTS.md` | the entrypoint |
 | `README.md` | the profile page GitHub shows for the account, then how the site is built and how content is added |

@@ -3,18 +3,27 @@
 # ends green only when the site actually answers. Run with the site's root,
 # trailing slash included:
 #
-#   bash scripts/check-live.sh https://saud-alnasser.github.io/saud-alnasser/
+#   pnpm check:live https://saud-alnasser.github.io/saud-alnasser/
+#
+# It is the one shell script beside the Node ones because the deploy job
+# has curl and nothing else installed, and installing Node there to ask ten
+# addresses for a status code would be the heavier dependency.
 #
 # The root must serve the redirect page, each language its home, and the CV
 # page its two downloads. Pages can take a moment to serve a fresh deployment,
 # so each address is retried for up to two minutes before the script fails
-# naming the address and the status it got. Against the local server
+# naming the address and the status it got. A green run says the addresses
+# answer; on a deploy after the first, the CDN may still be answering from
+# the previous deployment for a short while, so it does not say this build
+# is what answered. Against the local server
 # (scripts/serve-dist.mjs) the same addresses are checked, which is how the
 # script is exercised before it runs on a deploy.
 
 set -eu
 
-site="${1:?the root address of the site, with its trailing slash}"
+# The root address, with exactly one trailing slash whatever was passed.
+site="${1:?the root address of the site}"
+site="${site%/}/"
 
 # Twelve attempts ten seconds apart on a deploy; a local run sets both lower.
 attempts="${CHECK_LIVE_ATTEMPTS:-12}"

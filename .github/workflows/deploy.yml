@@ -1,8 +1,8 @@
 name: '🚀 deploy'
 
 # The site publishes from `main` and nowhere else. `workflow_dispatch` is here so
-# the first deploy after the repository is renamed can be run by hand without
-# waiting for a merge.
+# a deploy can be run by hand from `main` without waiting for a change to land,
+# such as after the Pages source is changed.
 on:
   push:
     branches: ['main']
