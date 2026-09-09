@@ -3,6 +3,7 @@ import { getCollection, getEntry, type CollectionEntry } from 'astro:content';
 import Base from '../../../layouts/Base.astro';
 import Card from '../../../components/Card.astro';
 import Certificate from '../../../components/Certificate.astro';
+import CertificateDialog from '../../../components/CertificateDialog.astro';
 import Education from '../../../components/Education.astro';
 import Icon from '../../../components/Icon.astro';
 import { fill, formatPeriod, locales, plural, strings, type Locale } from '../../../lib/i18n';
@@ -88,9 +89,14 @@ const count = fill(t.education.onlineCourses.count, {
     </ol>
   </section>
 
+  {/*
+    The certificates as a grid of cards, in the same order the timeline node
+    counts them: one column on a phone, two from 48rem up. The anchor stays on
+    the heading, so an inbound link to #certificates still lands here.
+  */}
   <section aria-labelledby="certificates" class="mt-16">
     <h2 id="certificates" class="text-xl font-semibold tracking-tight">{t.sections.certificates}</h2>
-    <ul class="mt-4 divide-y divide-border">
+    <ul data-grid="certificates" class="mt-6 grid grid-cols-1 gap-4 md:grid-cols-2 md:gap-5">
       {
         certificates.map((entry) => (
           <li>
@@ -100,4 +106,7 @@ const count = fill(t.education.onlineCourses.count, {
       }
     </ul>
   </section>
+
+  {/* The one dialog every certificate card opens, outside main. */}
+  <CertificateDialog locale={locale} slot="dialog" />
 </Base>

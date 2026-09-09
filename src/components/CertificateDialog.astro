@@ -1,0 +1,66 @@
+---
+// The one dialog a page of certificates holds. It is empty until a card is
+// clicked: the inline script in the base layout fills the image, the caption,
+// and the link from the card's data attributes and opens it with
+// showModal(), so none of the 27 previews is requested with the page.
+//
+// It is a native <dialog>, which gives Escape, the focus trap, and the
+// backdrop for nothing, and it renders outside <main> because a transform on
+// an ancestor breaks a dialog's place in the top layer.
+
+import Icon from './Icon.astro';
+import { strings, type Locale } from '../lib/i18n';
+
+interface Props {
+  locale: Locale;
+}
+
+const { locale } = Astro.props;
+const t = strings[locale];
+---
+
+<dialog
+  data-certificate-dialog
+  aria-labelledby="certificate-caption"
+  class="m-auto w-[calc(100vw-2rem)] max-w-3xl rounded-lg border border-border bg-card p-0 text-foreground backdrop:bg-black/60"
+>
+  <div class="flex max-h-[calc(100dvh-4rem)] flex-col">
+    <div class="flex items-start justify-between gap-4 border-b border-border p-4 sm:p-5">
+      <p id="certificate-caption" data-certificate-caption class="font-semibold tracking-tight"></p>
+      <button
+        type="button"
+        data-certificate-close
+        class="flex cursor-pointer items-center rounded-md p-1 text-muted-foreground hover:text-primary motion-safe:transition-colors"
+      >
+        <Icon name="x" class="size-5" />
+        <span class="sr-only">{t.certificate.close}</span>
+      </button>
+    </div>
+
+    <!--
+      No src and no dimensions until the script sets them from the card, so a
+      closed dialog holds no image at all and the page loads none. The preview
+      is scaled to fit rather than scrolled, so the dialog never becomes a
+      scrolling region a keyboard cannot reach.
+    -->
+    <div class="p-4 sm:p-5">
+      <img
+        data-certificate-image
+        alt=""
+        class="mx-auto max-h-[60dvh] w-auto max-w-full rounded-md border border-border bg-background object-contain"
+      />
+    </div>
+
+    <p class="border-t border-border p-4 text-sm sm:p-5">
+      <a
+        data-certificate-link
+        target="_blank"
+        rel="noopener"
+        class="inline-flex items-center gap-1.5 text-primary underline underline-offset-4 hover:decoration-2"
+      >
+        {t.certificate.document}
+        <Icon name="external-link" class="size-4" />
+      </a>
+    </p>
+  </div>
+</dialog>

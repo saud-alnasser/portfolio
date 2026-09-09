@@ -137,8 +137,14 @@ const en = {
       link: 'View the certificates',
     },
   },
+  // A certificate card and the dialog it opens. `open` is what the card says
+  // it does, so the link is named by what happens rather than by its address;
+  // `document` names the PDF behind the preview, and `close` the control that
+  // dismisses the dialog.
   certificate: {
-    view: 'View certificate',
+    open: 'View certificate',
+    document: 'Open the PDF',
+    close: 'Close',
   },
   // The CV page. Its section headings are the ones resume parsers expect;
   // the other sections reuse the site's headings above.
@@ -255,7 +261,9 @@ const ar: Strings = {
     },
   },
   certificate: {
-    view: 'عرض الشهادة',
+    open: 'عرض الشهادة',
+    document: 'فتح ملف PDF',
+    close: 'إغلاق',
   },
   cv: {
     title: 'السيرة الذاتية',
