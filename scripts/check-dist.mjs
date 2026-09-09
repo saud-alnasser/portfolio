@@ -16,6 +16,7 @@ import { fileURLToPath } from 'node:url';
 import { promisify } from 'node:util';
 import { parse as parseYaml } from 'yaml';
 import { identifiersIn } from './identifiers.mjs';
+import { readmeWithProfile } from './readme-profile.mjs';
 // The site's own date wording and orders, so the expectation reads exactly
 // what the CV page printed. Node strips the types on import.
 import { formatPeriod, localeInfo, strings } from '../src/lib/i18n.ts';
@@ -586,7 +587,19 @@ async function cvHazards() {
   return lines;
 }
 
-const checks = [jsonResume, cvPdf, localeTwins, hrefs, basePaths, metadata, sitemap, robots, identifiers, gaps, noOverclaim, cvHazards];
+// The README's opening paragraph is written from the profile entry
+// (scripts/readme-profile.mjs), so who Saud is stays authored once; a README
+// behind the profile fails here rather than drifting on the profile page.
+async function readmeProfile() {
+  const name = 'readme profile';
+  const { current, next } = await readmeWithProfile();
+  if (current !== next) {
+    throw new CheckFailure(name, 'README.md is behind src/content/profile.yaml; run `pnpm readme` and commit the result');
+  }
+  return ['readme profile: README.md carries the profile as src/content/profile.yaml states it'];
+}
+
+const checks = [jsonResume, cvPdf, localeTwins, hrefs, basePaths, metadata, sitemap, robots, identifiers, gaps, noOverclaim, cvHazards, readmeProfile];
 
 for (const check of checks) {
   try {

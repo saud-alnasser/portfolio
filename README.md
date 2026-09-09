@@ -1,8 +1,15 @@
 # Saud Alnasser
 
-Software developer in Riyadh, working mostly in Rust and TypeScript. This
-repository is my portfolio: the record of my work and studies, in English
-and Arabic, with a CV derived from the same content for people and
+<!-- profile -->
+Software developer in Riyadh, working mostly in Rust and TypeScript: an
+offline-first desktop rent tracker, a Discord bot framework, a statically
+typed programming language, and an engineering protocol for AI-assisted
+software work. Course work for a Bachelor of Science in Computer Science at
+Saudi Electronic University is complete, with the certificate pending.
+<!-- /profile -->
+
+This repository is my portfolio: the record of my work and studies, in
+English and Arabic, with a CV derived from the same content for people and
 for machines. GitHub shows this file on my profile because the repository
 carries my username, so the profile, the site, and its source are one place.
 
@@ -40,6 +47,7 @@ pnpm test         # the Playwright tests, against a static server of dist/
 pnpm test:content # adds a temporary project, rebuilds, and checks it shows everywhere
 pnpm lighthouse   # Lighthouse on the home and CV pages, mobile profile
 pnpm check:live <address>  # asks a served site for its pages and downloads; the deploy job runs it last
+pnpm readme       # rewrites the opening paragraph of this file from src/content/profile.yaml
 pnpm scan:history # the identifier scan over the whole git history
 ```
 
@@ -54,10 +62,11 @@ to it through `src/lib/paths.ts`; the dist checks fail a page that links
 outside it. A push to `main` runs `.github/workflows/deploy.yml`, which
 builds the site, renders the PDFs, runs the checks, deploys `dist/` through
 the Pages actions, and then asks the live address for every page and
-download, failing by address when one is missing. The repository's Pages source is set to GitHub
-Actions, once, in the repository settings. Nothing else is configured
-anywhere: no custom domain, no server, no paid service. A custom domain, if
-one is ever added, sets `base` to `/` and changes nothing else.
+download, failing by address when one is missing. The repository's Pages
+source is set to GitHub Actions, once, in the repository settings. Nothing
+else is configured anywhere: no custom domain, no server, no paid service. A
+custom domain, if one is ever added, sets `base` to `/` and changes nothing
+else.
 
 ## Content
 
@@ -101,7 +110,10 @@ people; where the two disagree, the code is right and this section is corrected.
 ### `profile.yaml`
 
 One file, `src/content/profile.yaml`, with a single top-level key `profile:`
-holding the person.
+holding the person. The opening paragraph of this README, between the
+`<!-- profile -->` markers, is written from `summary` by `pnpm readme`, so
+who Saud is stays authored here; the dist check fails when the README is
+behind.
 
 | Field | Type | Per language | Meaning |
 | --- | --- | --- | --- |

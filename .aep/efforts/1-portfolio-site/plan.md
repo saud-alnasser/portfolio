@@ -76,7 +76,7 @@ A wins because it is the shape Saud asked for and the only one that adds nothing
 - `robots.txt` is the endpoint `src/pages/robots.txt.ts` rather than a static file, so its `Sitemap:` line is derived from `site` and `base` like every other address, and the dist check asserts it. A static file was the first design; it needed a second edit whenever `base` changed, which the custom-domain condition forbids.
 - `scripts/serve-dist.mjs` serves `dist/` under the base, as Pages will, and answers 404 outside it, so a link written without the base fails locally as it would live. The PDF render, the Playwright tests, and Lighthouse open pages under the base; Lighthouse is run by `scripts/lighthouse.mjs`, which starts that server itself and hands the four addresses to `lhci`, because its `staticDistDir` mode can only serve at the root. The tests and the scripts read `site` and `base` from `astro.config.mjs` itself, so the address has one source.
 - `scripts/check-dist.mjs` expects every sitemap entry, every internal link, the `robots.txt` sitemap line, and the JSON Resume addresses under the base, and fails by name when one lacks it.
-- The deploy job ends by asking the live address for its pages and downloads (`scripts/check-live.sh`), which is the testing strategy's check for criterion 8, run by the deploy itself. It is a shell script because the deploy job has `curl` and nothing else installed.
+- The deploy job ends by asking the live address for its pages and downloads (`scripts/check-live.sh`), which is the testing strategy's check for criterion 8, run by the deploy itself. It is a shell script because the deploy job runs no setup step, and a shell script with `curl` needs none.
 
 # Components
 
@@ -96,7 +96,8 @@ A wins because it is the shape Saud asked for and the only one that adds nothing
 | `scripts/lighthouse.mjs` | starts that server and runs `lhci` against the home and CV pages under the base |
 | `scripts/check-live.sh` | asks the live site for its pages and downloads; the deploy job's last step |
 | `.github/workflows/deploy.yml` | build, render PDFs, run checks, upload the artifact, deploy to Pages on push to `main`, then check the live site |
-| `README.md` | the profile page GitHub shows for the account, opening with who Saud is and where the site is, then the content format, one section per collection, with every field and its meaning |
+| `README.md` | the profile page GitHub shows for the account: its opening paragraph is written from the profile entry by `scripts/readme-profile.mjs`, so who Saud is stays authored once (requirement 1 and requirement 15 both hold), then where the site is and the content format, one section per collection, with every field and its meaning |
+| `scripts/readme-profile.mjs` | writes the README's opening paragraph from `profile.yaml`, and the dist check fails when the README is behind |
 
 # Interfaces
 

@@ -6,8 +6,7 @@
 #   pnpm check:live https://saud-alnasser.github.io/saud-alnasser/
 #
 # It is the one shell script beside the Node ones because the deploy job
-# has curl and nothing else installed, and installing Node there to ask ten
-# addresses for a status code would be the heavier dependency.
+# runs no setup step, and a shell script with curl needs none.
 #
 # The root must serve the redirect page, each language its home, and the CV
 # page its two downloads. Pages can take a moment to serve a fresh deployment,
@@ -23,7 +22,8 @@ set -eu
 
 # The root address, with exactly one trailing slash whatever was passed.
 site="${1:?the root address of the site}"
-site="${site%/}/"
+while [ "${site%/}" != "$site" ]; do site="${site%/}"; done
+site="$site/"
 
 # Twelve attempts ten seconds apart on a deploy; a local run sets both lower.
 attempts="${CHECK_LIVE_ATTEMPTS:-12}"

@@ -29,4 +29,6 @@ Appended on 2026-09-09 by the return to plan. Takes over the third criterion of 
 
 Built by the orchestrator on 2026-09-09 as a wave of one. The README's opening is written in the first person, as a profile page reads; the "Content" section below it keeps its third-person wording, which is documentation rather than the profile. Recorded, not acted on: the two em dashes in `AGENTS.md` predate the effort and were left, as the standards review already noted.
 
+Changed at the close on 2026-09-09: the review asked that the opening say who Saud is (requirement 15) and, once it did, that it not copy the profile's facts out of the content source (requirement 1, criterion 1). Both hold now because the opening paragraph is written from `profile.summary.en` by `scripts/readme-profile.mjs` between `<!-- profile -->` markers, and the dist check fails when the README is behind the profile: the fact is authored once and the profile page still states it.
+
 Corrected on 2026-09-09, after the push that followed: `origin` also carried a push-only URL (`remote.origin.pushurl`) still naming `portfolio`, which `git remote get-url origin` does not show, so the third criterion's check was incomplete; the push went through GitHub's redirect. The push URL was set to the new name as well, and `git remote -v` now prints it for fetch and for push.

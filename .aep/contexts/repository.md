@@ -46,7 +46,7 @@ Decided so far:
 | `scripts/` | what runs after the build: the PDF render, the dist checks, the content mechanism test, the history scan, the Lighthouse runner, the static server the tests, the PDF render, and Lighthouse use, which serves `dist/` under the base path as Pages does, and the live check the deploy job runs last |
 | `tests/` | the Playwright tests over the built site |
 | `AGENTS.md` | the entrypoint |
-| `README.md` | the profile page GitHub shows for the account, then how the site is built and how content is added |
+| `README.md` | the profile page GitHub shows for the account: an opening paragraph written from `profile.yaml` by `pnpm readme`, then how the site is built and how content is added |
 
 ## Vocabulary
 
