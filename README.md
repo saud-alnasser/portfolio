@@ -4,8 +4,7 @@
 Software developer in Riyadh, working mostly in Rust and TypeScript: an
 offline-first desktop rent tracker, a Discord bot framework, a statically
 typed programming language, and an engineering protocol for AI-assisted
-software work. Course work for a Bachelor of Science in Computer Science at
-Saudi Electronic University is complete, with the certificate pending.
+software work.
 
 - 🌐 Portfolio: [saud-alnasser.github.io/saud-alnasser/](https://saud-alnasser.github.io/saud-alnasser/en/) · [بالعربية](https://saud-alnasser.github.io/saud-alnasser/ar/)
 - 📄 CV: [read it](https://saud-alnasser.github.io/saud-alnasser/en/cv/) · [PDF](https://saud-alnasser.github.io/saud-alnasser/cv.en.pdf) · [JSON Resume](https://saud-alnasser.github.io/saud-alnasser/en/resume.json)
