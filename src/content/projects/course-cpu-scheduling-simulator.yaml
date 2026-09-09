@@ -1,0 +1,13 @@
+name: "CPU scheduling simulator"
+period:
+  start: "2024-11"
+  end: "2025-01"
+role:
+  en: "Sole developer"
+  ar: "المطور الوحيد"
+summary:
+  en: "A CPU scheduling simulator built for the operating systems course (CS351)."
+  ar: "محاكي لجدولة المعالج بُني لمقرر أنظمة التشغيل (CS351)."
+technologies:
+  - "Java"
+visibility: described

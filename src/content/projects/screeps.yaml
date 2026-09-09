@@ -1,0 +1,14 @@
+name: "screeps"
+period:
+  start: "2024-05"
+  end: "2026-07"
+role:
+  en: "Sole developer"
+  ar: "المطور الوحيد"
+summary:
+  en: "A colony for the programming game Screeps, written in Rust."
+  ar: "مستعمرة للعبة البرمجة Screeps، مكتوبة بلغة Rust."
+technologies:
+  - "Rust"
+  - "JavaScript"
+visibility: described

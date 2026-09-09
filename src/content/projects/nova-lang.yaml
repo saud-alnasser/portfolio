@@ -1,0 +1,14 @@
+name: "Nova"
+period:
+  start: "2026-06"
+  end: "2026-08"
+role:
+  en: "Sole developer"
+  ar: "المطور الوحيد"
+summary:
+  en: "A statically typed, garbage-collected programming language with generics, traits, sum types, and exhaustive matching, running on a bytecode virtual machine with a JIT. Errors are values, there is no null, and parallelism is by isolated actors. In draft."
+  ar: "لغة برمجة ذات أنواع ساكنة وجمع تلقائي للمهملات، تدعم الأنواع العامة والسمات وأنواع المجموع والمطابقة الشاملة، وتعمل على آلة افتراضية للبايت كود مع ترجمة فورية (JIT). الأخطاء فيها قيم، ولا وجود فيها للقيمة الفارغة null، والتوازي فيها عبر ممثلين معزولين. في طور المسودة."
+technologies:
+  - "Rust"
+visibility: described
+order: 4

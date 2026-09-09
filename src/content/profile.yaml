@@ -1,0 +1,29 @@
+# The person. The top-level key is the entry id.
+profile:
+  name:
+    en: Saud Alnasser
+    ar: سعود الناصر
+  label:
+    en: Software developer
+    ar: مطور برمجيات
+  summary:
+    en: >-
+      Software developer in Riyadh, working mostly in Rust and TypeScript: an
+      offline-first desktop rent tracker, a Discord bot framework, a statically
+      typed programming language, and an engineering protocol for AI-assisted
+      software work. Course work for a Bachelor of Science in Computer Science
+      at Saudi Electronic University is complete, with the certificate pending.
+    ar: >-
+      مطور برمجيات في الرياض، يعمل في الغالب بلغتي Rust وTypeScript: متتبع
+      لمدفوعات الإيجار على سطح المكتب يعمل دون اتصال أولاً، وإطار عمل لبوتات
+      Discord، ولغة برمجة ذات أنواع ساكنة، وبروتوكول هندسي للعمل البرمجي
+      بمساعدة الذكاء الاصطناعي. اكتملت مقررات درجة بكالوريوس العلوم في علوم
+      الحاسب في الجامعة السعودية الإلكترونية، ولم تصدر الشهادة بعد.
+  email: saud4services@gmail.com
+  location:
+    en: Riyadh, Saudi Arabia
+    ar: الرياض، المملكة العربية السعودية
+  profiles:
+    - network: GitHub
+      username: saud-alnasser
+      url: https://github.com/saud-alnasser

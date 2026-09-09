@@ -1,0 +1,15 @@
+name: "advent-of-code"
+period:
+  start: "2024-06"
+  end: "2025-07"
+role:
+  en: "Sole developer"
+  ar: "المطور الوحيد"
+summary:
+  en: "Solutions to Advent of Code puzzles, in Rust."
+  ar: "حلول لألغاز Advent of Code بلغة Rust."
+technologies:
+  - "Rust"
+links:
+  repository: https://github.com/saud-alnasser/advent-of-code
+visibility: public

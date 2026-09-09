@@ -6,9 +6,9 @@ use-when: "this repository uses stacked changes and a branch must be created, re
 
 **This file is yours.** Seeded on 2026-09-08 because this repository chose
 stacked changes through Graphite (`[[rules/version-control]]`). The CLI is
-installed (`gt` 1.8.6) but `gt init` has not been run and there is no remote:
-the local commands below apply now, and `gt submit` has nowhere to go until
-a GitHub remote exists.
+installed (`gt` 1.8.6). `gt init` ran on 2026-09-08, as a side effect of the
+first `gt` invocation on the clone, and set `main` as trunk; the remote is
+GitHub (`[[references/github]]`), so `gt submit` has somewhere to go.
 
 ## What changes when a repository stacks
 
@@ -31,6 +31,7 @@ gt create -m "<message>"         # branch + commit, stacked on the current branc
 gt modify                        # amend the current branch, then restack descendants
 gt restack                       # after any history rewrite
 gt submit --stack                # PUBLISHES — the human's call, never an agent's
+gt submit --draft --no-edit      # the same, opening drafts and taking no prompt; still the human's call
 ```
 
 **Never `git commit --amend` on a stacked branch.** A bare amend leaves every
@@ -39,7 +40,7 @@ restacks together.
 
 ## Creating a stacked branch
 
-The branch name is still AEP's convention (`<effort>/<ticket-id>-<slug>`), not the one the
+The branch name is still this repository's convention (`tickets/<effort>/<ticket-id>-<slug>`), not the one the
 tool would generate — two tools must produce the same name for a task or the
 branch stops working as a claim.
 

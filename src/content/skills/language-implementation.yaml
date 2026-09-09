@@ -1,0 +1,12 @@
+name:
+  en: "Language implementation"
+  ar: "بناء لغات البرمجة"
+keywords:
+  - "Interpreters"
+  - "Compilers"
+  - "Lexers and parsers"
+  - "Bytecode virtual machines"
+  - "JIT compilation"
+  - "Type systems"
+  - "Garbage collection"
+order: 4

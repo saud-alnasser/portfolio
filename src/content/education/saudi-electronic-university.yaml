@@ -1,0 +1,58 @@
+# Course work complete as of the 2025-2026 summer term; the certificate has not
+# been issued. The status field says so, and the site renders it as it is.
+institution:
+  en: Saudi Electronic University
+  ar: الجامعة السعودية الإلكترونية
+area:
+  en: Computer Science
+  ar: علوم الحاسب
+studyType:
+  en: Bachelor of Science
+  ar: بكالوريوس العلوم
+period:
+  start: "2023-09"
+  end: "2026-09"
+status: certificate-pending
+courses:
+  - en: Digital Logic Design
+    ar: تصميم المنطق الرقمي
+  - en: Introduction to Database
+    ar: مقدمة في قواعد البيانات
+  - en: System Analysis and Design
+    ar: تحليل النظم وتصميمها
+  - en: Computer Architecture and Organization
+    ar: بنية الحاسب وتنظيمه
+  - en: Theory of Computing
+    ar: نظرية الحوسبة
+  - en: Operating Systems
+    ar: أنظمة التشغيل
+  - en: Design and Analysis of Algorithms
+    ar: تصميم الخوارزميات وتحليلها
+  - en: Web Programming
+    ar: برمجة الويب
+  - en: Computer Networks
+    ar: شبكات الحاسب
+  - en: Artificial Intelligence
+    ar: الذكاء الاصطناعي
+  - en: Principles of Programming Languages
+    ar: مبادئ لغات البرمجة
+  - en: Human Computer Interaction
+    ar: التفاعل بين الإنسان والحاسب
+  - en: Computer Security
+    ar: أمن الحاسب
+  - en: Compiler Design
+    ar: تصميم المترجمات
+  - en: Computer Graphics
+    ar: رسومات الحاسب
+  - en: Project Management
+    ar: إدارة المشاريع
+  - en: Professional Ethics
+    ar: أخلاقيات المهنة
+  - en: Mobile Computing
+    ar: الحوسبة المتنقلة
+  - en: Parallel and Distributed Computing
+    ar: الحوسبة المتوازية والموزعة
+  - en: Senior Project
+    ar: مشروع التخرج
+  - en: Practical Training
+    ar: التدريب العملي

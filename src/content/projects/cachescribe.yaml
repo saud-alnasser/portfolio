@@ -1,0 +1,17 @@
+name: "cachescribe"
+period:
+  start: "2023-09"
+  end: "2025-05"
+role:
+  en: "Sole developer"
+  ar: "المطور الوحيد"
+summary:
+  en: "An npm package: a simple cache that persists to the file system across runs of a program, with namespaces, time to live, and pluggable hashing and serialisation. Archived."
+  ar: "حزمة npm: ذاكرة تخزين مؤقت بسيطة تُحفظ في نظام الملفات بين تشغيلات البرنامج، مع مساحات أسماء ومدة صلاحية وآليات قابلة للاستبدال للتجزئة والتسلسل. مؤرشفة."
+technologies:
+  - "TypeScript"
+  - "Node.js"
+  - "npm"
+links:
+  repository: https://github.com/saud-alnasser/cachescribe
+visibility: public

@@ -1,0 +1,14 @@
+name: "discord-trengo-integration"
+period:
+  start: "2026-03"
+  end: "2026-03"
+role:
+  en: "Sole developer"
+  ar: "المطور الوحيد"
+summary:
+  en: "An integration between Discord and Trengo, written in Rust and packaged with Docker."
+  ar: "تكامل بين Discord وTrengo، مكتوب بلغة Rust ومحزوم باستخدام Docker."
+technologies:
+  - "Rust"
+  - "Docker"
+visibility: described

@@ -1,0 +1,111 @@
+name: '🚀 deploy'
+
+# The site publishes from `main` and nowhere else. `workflow_dispatch` is here so
+# a deploy can be run by hand from `main` without waiting for a change to land,
+# such as after the Pages source is changed.
+on:
+  push:
+    branches: ['main']
+  workflow_dispatch:
+
+# One deploy at a time, and a running one finishes: cancelling a deploy
+# mid-flight can leave the site between two versions.
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    timeout-minutes: 10
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: read
+
+    steps:
+      - name: '☁️ checkout repository'
+        uses: actions/checkout@v7
+
+      # pnpm before node, so setup-node can cache the pnpm store. The pnpm
+      # version comes from the `packageManager` field in package.json.
+      - name: '🔧 setup pnpm'
+        uses: pnpm/action-setup@v6
+
+      - name: '🔧 setup node'
+        uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: pnpm
+
+      - name: '📦 install dependencies'
+        run: pnpm install --frozen-lockfile
+
+      - name: '🏗️ build the site'
+        run: pnpm build
+
+      # The CV PDFs need a browser, and Playwright downloads its own Chromium.
+      # The download is cached by the Playwright version, which is what decides
+      # the build it fetches; the OS packages it needs are installed every run,
+      # because apt is not cached and a cache hit skips only the download.
+      - name: '🔎 read the playwright version'
+        id: playwright
+        run: echo "version=$(node -p "require('playwright/package.json').version")" >> "$GITHUB_OUTPUT"
+
+      - name: '💾 cache playwright browsers'
+        uses: actions/cache@v6
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-${{ steps.playwright.outputs.version }}
+
+      - name: '🌐 install chromium'
+        run: pnpm exec playwright install --with-deps chromium
+
+      # pdftotext, which the dist check runs over the English PDF. Without it
+      # the check prints a notice and skips the extraction, so CI installs it
+      # to make the assertion real.
+      - name: '📄 install poppler'
+        run: sudo apt-get update && sudo apt-get install -y --no-install-recommends poppler-utils
+
+      - name: '📄 render the cv pdfs'
+        run: pnpm render:pdf
+
+      - name: '🔍 check the built site'
+        run: pnpm check:dist
+
+      - name: '📤 upload the pages artifact'
+        uses: actions/upload-pages-artifact@v5
+        with:
+          path: dist
+
+  deploy:
+    needs: build
+    timeout-minutes: 10
+    runs-on: ubuntu-latest
+
+    # The two permissions Pages requires from a custom workflow, plus reading
+    # the repository for the check script, and the environment it deploys
+    # into. The repository's Pages source must be set to GitHub Actions once,
+    # by hand, or this job fails.
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+
+    steps:
+      - name: '☁️ checkout repository'
+        uses: actions/checkout@v7
+
+      - name: '🚀 deploy to github pages'
+        id: deployment
+        uses: actions/deploy-pages@v5
+
+      # The job ends green only when the site answers at its address: the
+      # redirect page at the root, each language's pages, and the downloads.
+      # This is the check that a merge to main published the site, run by
+      # the deploy itself so nobody has to look.
+      - name: '🔎 check the live site'
+        run: bash scripts/check-live.sh "${{ steps.deployment.outputs.page_url }}"

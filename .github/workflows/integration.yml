@@ -19,12 +19,18 @@ jobs:
   # it, or moving it off a trigger that fires for every commit, makes every pull
   # request unmergeable once that ruleset exists.
   integration:
-    timeout-minutes: 10
+    # Lighthouse alone runs twelve audits, which takes about two minutes on
+    # a runner, and the content test builds the site twice more.
+    timeout-minutes: 15
     runs-on: ubuntu-latest
 
     steps:
+      # The whole history, because the identifier scan below reads every
+      # commit on every branch; a shallow clone would scan only the newest.
       - name: '☁️ checkout repository'
         uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
 
       - name: '🔧 setup node'
         uses: actions/setup-node@v7
@@ -34,8 +40,7 @@ jobs:
       # A generated index is never hand-edited, and this is what enforces it: the
       # regeneration overwrites the index, so anything git still reports afterwards —
       # a stale index, a hand edit, a drifted generator — fails the run, named. Needs
-      # node and nothing else, which is why it is the whole gate until there is
-      # source to build and test.
+      # node and nothing else, which is why it runs before anything is installed.
       - name: '🗺️ verify generated indexes'
         run: |
           node .aep/scripts/index.mjs > /dev/null
@@ -47,7 +52,73 @@ jobs:
           fi
           node .aep/scripts/validate.mjs --quiet
 
-      # The site itself is not built here yet: the stack it is built with is not
-      # decided (.aep/contexts/repository.md). When it is, the install, check, test
-      # and build steps go below this line, and the deploy goes in its own workflow
-      # on `push` to `main`.
+      # The site. The pnpm version comes from the `packageManager` field in
+      # package.json. After the install: the history scan, the type check, the
+      # build, the CV PDFs, then every gate over the built output in turn: the
+      # dist checks, the browser tests, Lighthouse, and the content mechanism
+      # test, which rebuilds the site with a fixture and so runs last. The
+      # deploy is its own workflow, deploy.yml, on `push` to `main`; it does
+      # not repeat the gates, it deploys what this workflow already judged.
+      - name: '🔧 setup pnpm'
+        uses: pnpm/action-setup@v6
+
+      - name: '📦 install dependencies'
+        run: pnpm install --frozen-lockfile
+
+      # No identifier in any commit on any branch. Needs only git and the full
+      # history fetched above, so it runs before anything is built.
+      - name: '🔒 scan the history for identifiers'
+        run: pnpm scan:history
+
+      - name: '🔍 check the site'
+        run: pnpm check
+
+      - name: '🏗️ build the site'
+        run: pnpm build
+
+      # The CV PDFs and the browser tests need a browser, and Playwright
+      # downloads its own Chromium. The download is cached by the Playwright
+      # version, which is what decides the build it fetches; the OS packages it
+      # needs are installed every run, because apt is not cached and a cache
+      # hit skips only the download.
+      - name: '🔎 read the playwright version'
+        id: playwright
+        run: echo "version=$(node -p "require('playwright/package.json').version")" >> "$GITHUB_OUTPUT"
+
+      - name: '💾 cache playwright browsers'
+        uses: actions/cache@v6
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-${{ steps.playwright.outputs.version }}
+
+      - name: '🌐 install chromium'
+        run: pnpm exec playwright install --with-deps chromium
+
+      # pdftotext, which the dist check runs over the English PDF and over both
+      # PDFs for identifiers. Without it the check prints a notice and skips
+      # the extraction, so CI installs it to make the assertion real.
+      - name: '📄 install poppler'
+        run: sudo apt-get update && sudo apt-get install -y --no-install-recommends poppler-utils
+
+      - name: '📄 render the cv pdfs'
+        run: pnpm render:pdf
+
+      - name: '🔍 check the built site'
+        run: pnpm check:dist
+
+      # Contrast, themes, print, the phone viewport, and reduced motion, in a
+      # browser against a static server of dist/.
+      - name: '🧪 run the browser tests'
+        run: pnpm test
+
+      # Performance, accessibility, and best practices on the home and CV
+      # pages in both languages, mobile profile, 90 or the run fails. Lighthouse
+      # finds the Chrome the runner image ships; nothing points it there.
+      - name: '🚦 run lighthouse'
+        run: pnpm lighthouse
+
+      # Adds a fixture project, rebuilds, and asserts it reaches every output
+      # and nothing outside src/content/ changed. It rebuilds dist/ without the
+      # PDFs, which is why it runs after everything that reads them.
+      - name: '🧪 test the content mechanism'
+        run: pnpm test:content

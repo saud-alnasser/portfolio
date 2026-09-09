@@ -1,0 +1,12 @@
+name:
+  en: "Programming languages"
+  ar: "لغات البرمجة"
+keywords:
+  - "Rust"
+  - "TypeScript"
+  - "JavaScript"
+  - "Java"
+  - "C#"
+  - "GDScript"
+  - "SQL"
+order: 1

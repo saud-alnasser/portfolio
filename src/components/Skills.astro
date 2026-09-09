@@ -1,0 +1,32 @@
+---
+import type { CollectionEntry } from 'astro:content';
+import { strings, type Locale } from '../lib/i18n';
+import { localized } from '../lib/localized';
+
+interface Props {
+  locale: Locale;
+  entries: CollectionEntry<'skills'>[];
+}
+
+const { locale, entries } = Astro.props;
+const t = strings[locale];
+---
+
+<dl class="divide-y divide-border border-y border-border">
+  {
+    entries.map((entry) => {
+      const text = localized(locale, 'skills', entry.id);
+      return (
+        <div class="grid gap-x-8 gap-y-1 py-4 sm:grid-cols-[12rem_1fr]">
+          <dt class="font-semibold">
+            {text('name', entry.data.name)}
+            {entry.data.level && (
+              <span class="block text-sm font-normal text-muted-foreground">{text('level', entry.data.level)}</span>
+            )}
+          </dt>
+          <dd class="leading-7 text-muted-foreground">{entry.data.keywords.join(t.listSeparator)}</dd>
+        </div>
+      );
+    })
+  }
+</dl>

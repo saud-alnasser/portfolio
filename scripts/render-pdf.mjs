@@ -1,0 +1,99 @@
+// Renders the CV page of each language from the built site to a PDF. Run
+// after `pnpm build`:
+//
+//   pnpm render:pdf
+//
+// It serves dist/ over a local HTTP server under the site's base path,
+// because the built pages reference their stylesheet and fonts by absolute
+// path and a file URL cannot resolve those, opens /<locale>/cv/ in
+// Playwright's Chromium, waits for the fonts and
+// the network to settle, and writes dist/cv.<locale>.pdf. Print media is what
+// page.pdf() uses by default, so the print stylesheet in src/styles/global.css
+// is what the PDF shows. Any page that fails to load, any font that fails to
+// arrive, and any file that does not appear afterwards exits non-zero with the
+// reason named, so CI reports what went wrong rather than uploading a site
+// with a broken download.
+
+import { stat } from 'node:fs/promises';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
+import { chromium } from 'playwright';
+import { serve } from './serve-dist.mjs';
+
+const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
+const dist = path.join(root, 'dist');
+const locales = ['en', 'ar'];
+
+class RenderFailure extends Error {
+  constructor(reason, message) {
+    super(message);
+    this.reason = reason;
+  }
+}
+
+// One page to one file. The page is loaded with the network idle so every
+// stylesheet and font request has completed, then the document's font set is
+// awaited and checked, because a face that did not load prints as boxes or in
+// a fallback that does not shape Arabic, and Chromium would not say so.
+async function render(browser, at, locale) {
+  const route = `/${locale}/cv/`;
+  const file = path.join(dist, `cv.${locale}.pdf`);
+  const page = await browser.newPage();
+  let fonts;
+  try {
+    const response = await page.goto(at(route), { waitUntil: 'networkidle' });
+    if (!response || !response.ok()) {
+      throw new RenderFailure('page-not-loaded', `${route} answered ${response ? response.status() : 'nothing'}`);
+    }
+    fonts = await page.evaluate(async () => {
+      await document.fonts.ready;
+      return [...document.fonts].map((face) => ({ family: face.family, weight: face.weight, status: face.status }));
+    });
+    const failed = fonts.filter((face) => face.status === 'error');
+    if (failed.length > 0) {
+      const names = failed.map((face) => `${face.family} ${face.weight}`).join(', ');
+      throw new RenderFailure('font-not-loaded', `${route}: ${names} failed to load`);
+    }
+    await page.pdf({ path: file, format: 'A4', printBackground: false });
+  } finally {
+    await page.close();
+  }
+
+  let size;
+  try {
+    size = (await stat(file)).size;
+  } catch {
+    throw new RenderFailure('file-not-written', `${path.relative(root, file)} was not written`);
+  }
+  if (size === 0) {
+    throw new RenderFailure('file-not-written', `${path.relative(root, file)} is empty`);
+  }
+  const loaded = fonts.filter((face) => face.status === 'loaded').map((face) => `${face.family} ${face.weight}`);
+  return `${path.relative(root, file)}: ${size} bytes${loaded.length > 0 ? `, fonts ${loaded.join(', ')}` : ''}`;
+}
+
+// The server refuses a directory with no index.html, which is the one
+// failure that can happen before a page is opened.
+let server;
+try {
+  server = await serve(dist);
+} catch (error) {
+  console.error(`render-pdf: ${error.message}`);
+  process.exit(1);
+}
+const browser = await chromium.launch();
+try {
+  for (const locale of locales) {
+    console.log(await render(browser, server.at, locale));
+  }
+} catch (error) {
+  if (error instanceof RenderFailure) {
+    console.error(`render-pdf: ${error.reason}: ${error.message}`);
+  } else {
+    console.error(`render-pdf: unexpected: ${error.stack ?? error}`);
+  }
+  process.exitCode = 1;
+} finally {
+  await browser.close();
+  await server.close();
+}

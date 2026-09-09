@@ -4,9 +4,9 @@ use-when: "running any git operation — reading state, branching, staging, comm
 
 # Reference — git
 
-**This file is yours.** Reviewed at install on 2026-09-08. This repository has
-no remote yet, so the remote-side checks below are inert until one is added;
-the local commands are standard git and apply as written.
+**This file is yours.** Reviewed at install on 2026-09-08, and corrected the
+same day when the remote `origin` was found on the repository: the remote-side
+checks below apply. The local commands are standard git and apply as written.
 
 ## Reading state
 
@@ -41,8 +41,8 @@ landed on the base branch since this work started from being attributed to it.
 
 ```sh
 git branch --list <name>                       # claimed here?
-git ls-remote --heads origin <name>            # claimed elsewhere? no remote yet — skip until one exists
-git switch -c <effort>/<ticket-id>-<slug>      # claim it
+git ls-remote --heads origin <name>            # claimed elsewhere?
+git switch -c tickets/<effort>/<ticket-id>-<slug>   # claim it
 ```
 
 **Check both sides before creating.** A claim held elsewhere is never taken.
@@ -64,13 +64,17 @@ shells and mangle the body silently.
 # Anchored on the main checkout, because the path is what decides a run's role.
 # Relative, git resolves it against the cwd, which nests one surface in another.
 # <main> is the first entry of `git worktree list --porcelain`.
-git worktree add <main>/.aep/worktrees/<effort>/<ticket-id>-<slug> -b <effort>/<ticket-id>-<slug>
+git worktree add <main>/.aep/worktrees/<effort>/<ticket-id>-<slug> -b tickets/<effort>/<ticket-id>-<slug>
 git worktree list
 git worktree remove <main>/.aep/worktrees/<effort>/<ticket-id>-<slug>
 ```
 
 The branch name carries the effort as a namespace. Ticket ids restart at `01` in
-every effort, so a bare `03-shared-id` is a name two efforts can both want.
+every effort, so a bare `03-shared-id` is a name two efforts can both want. The
+`tickets/` prefix is what keeps the name from nesting under the effort branch's
+own ref, which git refuses (`[[rules/version-control]]`). The worktree path has
+no such prefix: `scope.mjs` reads exactly `<effort>/<occupant>` under
+`.aep/worktrees/`.
 
 Worktrees are infrastructure, never knowledge. `.aep/worktrees/` is gitignored.
 

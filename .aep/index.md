@@ -34,6 +34,7 @@ Start at [[protocol]].
 | Artifact | Load when | Owner |
 | --- | --- | --- |
 | [[references/git]] | running any git operation — reading state, branching, staging, committing, or working with worktrees | — |
+| [[references/github]] | reading or writing anything on the GitHub repository: issues, pull requests, labels, or the Pages deployment | — |
 | [[references/graphite]] | this repository uses stacked changes and a branch must be created, restacked, or submitted | — |
 
 ## Skills
@@ -86,4 +87,28 @@ Start at [[protocol]].
 
 ## Efforts
 
-_None._
+| Effort | Status | Spec | Research | Prototypes | Tickets |
+| --- | --- | --- | --- | --- | --- |
+| 1-portfolio-site | implemented | [[efforts/1-portfolio-site/spec]] | 6 | 0 | 15 |
+
+## Tickets
+
+Every task of every effort. The tracker carries the effort, never its tasks.
+
+| Ticket | Effort | Status | Blocked by |
+| --- | --- | --- | --- |
+| [[efforts/1-portfolio-site/tickets/01-scaffold-and-deploy-workflow]] build(site): scaffold the Astro site and its deployment workflow | 1-portfolio-site | resolved | — |
+| [[efforts/1-portfolio-site/tickets/02-user-site-address]] chore(repo): enable GitHub Pages for saud-alnasser and check the live site on every deploy | 1-portfolio-site | resolved | 13, 14 |
+| [[efforts/1-portfolio-site/tickets/03-content-contract]] feat(content): define the content collections and their schemas | 1-portfolio-site | resolved | 01 |
+| [[efforts/1-portfolio-site/tickets/04-content-english]] feat(content): author the English content from the inventory | 1-portfolio-site | resolved | 03 |
+| [[efforts/1-portfolio-site/tickets/05-layout-pages-and-themes]] feat(site): build the layout, the pages, the themes, and the language switch | 1-portfolio-site | resolved | 03 |
+| [[efforts/1-portfolio-site/tickets/06-cv-page]] feat(cv): render the CV page per language with a print stylesheet and downloads | 1-portfolio-site | resolved | 05 |
+| [[efforts/1-portfolio-site/tickets/07-json-resume-endpoint]] feat(cv): emit a JSON Resume document per language | 1-portfolio-site | resolved | 03 |
+| [[efforts/1-portfolio-site/tickets/08-pdf-render]] build(cv): render the CV pages to PDF in CI and check the English text extracts | 1-portfolio-site | resolved | 06 |
+| [[efforts/1-portfolio-site/tickets/09-quality-gates]] test(site): add the build-output checks and the accessibility and performance gates | 1-portfolio-site | resolved | 05, 07, 08 |
+| [[efforts/1-portfolio-site/tickets/10-content-arabic]] feat(content): author the Arabic text for every entry and the UI strings | 1-portfolio-site | resolved | 04, 05 |
+| [[efforts/1-portfolio-site/tickets/11-sitemap-xml]] feat(site): publish the sitemap at /sitemap.xml as the spec names it | 1-portfolio-site | resolved | 09 |
+| [[efforts/1-portfolio-site/tickets/12-education-timeline]] feat(site): order the studies page as one timeline, courses between school and university | 1-portfolio-site | resolved | 05 |
+| [[efforts/1-portfolio-site/tickets/13-base-path]] feat(site): serve the site under the /saud-alnasser/ base path of the project site | 1-portfolio-site | resolved | 09, 11, 12 |
+| [[efforts/1-portfolio-site/tickets/14-profile-readme]] docs(repo): open the README as the profile page and name the repository saud-alnasser everywhere | 1-portfolio-site | resolved | 13 |
+| [[efforts/1-portfolio-site/tickets/15-profile-readme-only]] docs(repo): make the README the profile page alone and move the site's documentation beside the code | 1-portfolio-site | resolved | 14 |

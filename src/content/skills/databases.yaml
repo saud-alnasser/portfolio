@@ -1,0 +1,10 @@
+name:
+  en: "Databases"
+  ar: "قواعد البيانات"
+keywords:
+  - "PostgreSQL"
+  - "Supabase"
+  - "Turso"
+  - "Drizzle ORM"
+  - "SQL"
+order: 3

@@ -1,0 +1,16 @@
+name: "bevy-pong"
+period:
+  start: "2024-03"
+  end: "2024-11"
+role:
+  en: "Sole developer"
+  ar: "المطور الوحيد"
+summary:
+  en: "A Pong clone made in Rust with the Bevy game engine."
+  ar: "نسخة من لعبة Pong مبنية بلغة Rust باستخدام محرك الألعاب Bevy."
+technologies:
+  - "Rust"
+  - "Bevy"
+links:
+  repository: https://github.com/saud-alnasser/bevy-pong
+visibility: public
