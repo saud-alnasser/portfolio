@@ -82,10 +82,12 @@ jobs:
     timeout-minutes: 10
     runs-on: ubuntu-latest
 
-    # The two permissions Pages requires from a custom workflow, and the
-    # environment it deploys into. The repository's Pages source must be set to
-    # GitHub Actions once, by hand, or this job fails.
+    # The two permissions Pages requires from a custom workflow, plus reading
+    # the repository for the check script, and the environment it deploys
+    # into. The repository's Pages source must be set to GitHub Actions once,
+    # by hand, or this job fails.
     permissions:
+      contents: read
       pages: write
       id-token: write
 
@@ -94,6 +96,16 @@ jobs:
       url: ${{ steps.deployment.outputs.page_url }}
 
     steps:
+      - name: '☁️ checkout repository'
+        uses: actions/checkout@v7
+
       - name: '🚀 deploy to github pages'
         id: deployment
         uses: actions/deploy-pages@v5
+
+      # The job ends green only when the site answers at its address: the
+      # redirect page at the root, each language's pages, and the downloads.
+      # This is the check that a merge to main published the site, run by
+      # the deploy itself so nobody has to look.
+      - name: '🔎 check the live site'
+        run: bash scripts/check-live.sh "${{ steps.deployment.outputs.page_url }}"

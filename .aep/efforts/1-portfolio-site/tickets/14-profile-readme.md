@@ -28,3 +28,5 @@ The README, which GitHub shows at `github.com/saud-alnasser`, opens with who Sau
 Appended on 2026-09-09 by the return to plan. Takes over the third criterion of ticket 02 as it was first written, and adds the profile opening requirement 15 asks for.
 
 Built by the orchestrator on 2026-09-09 as a wave of one. The README's opening is written in the first person, as a profile page reads; the "Content" section below it keeps its third-person wording, which is documentation rather than the profile. Recorded, not acted on: the two em dashes in `AGENTS.md` predate the effort and were left, as the standards review already noted.
+
+Corrected on 2026-09-09, after the push that followed: `origin` also carried a push-only URL (`remote.origin.pushurl`) still naming `portfolio`, which `git remote get-url origin` does not show, so the third criterion's check was incomplete; the push went through GitHub's redirect. The push URL was set to the new name as well, and `git remote -v` now prints it for fetch and for push.
