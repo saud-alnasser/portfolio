@@ -123,8 +123,12 @@ One file per job or placement.
 
 ### `education/`
 
-One file per institution attended. The site orders them by `period.start`,
-so high school comes first and university last.
+One file per institution attended. The education page is one timeline in
+order of time: institutions by `period.start` and certificates by `date`,
+together, so high school comes first, the online courses next, and university
+last. A certificate with no `date` is placed just before the most recent
+institution, in the online-courses phase; give it a `date` to place it
+exactly. The CV page keeps separate Education and Certifications sections.
 
 | Field | Type | Per language | Meaning |
 | --- | --- | --- | --- |

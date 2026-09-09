@@ -1,5 +1,5 @@
 ---
-import { getCollection, getEntry } from 'astro:content';
+import { getCollection, getEntry, type CollectionEntry } from 'astro:content';
 import Base from '../../../layouts/Base.astro';
 import Education from '../../../components/Education.astro';
 import Certificate from '../../../components/Certificate.astro';
@@ -17,10 +17,37 @@ const t = strings[locale];
 const profile = (await getEntry('profile', 'profile'))!;
 const name = localized(locale, 'profile', profile.id)('name', profile.data.name);
 
-// In order of time, oldest first: high school before university. The
-// certificates follow, also oldest first, so both read as one timeline.
+// One timeline in order of time: high school, then the online courses, then
+// university. Institutions sort by their start and certificates by their
+// date, together. A certificate with no date cannot be placed by it, so it
+// goes immediately before the most recent institution: that is the
+// online-courses phase between school and university, whatever dated
+// certificates exist. With no institution at all, undated certificates come
+// last. README.md, "education/", says the same for whoever edits the content.
+// The first certificate carries the "Certificates" heading, so the section
+// the site names exists on this page as well as on the CV.
+type Item =
+  | { at: string; kind: 'education'; entry: CollectionEntry<'education'> }
+  | { at: string; kind: 'certificate'; entry: CollectionEntry<'certificates'> };
+
 const education = (await getCollection('education')).sort((a, b) => byStartAscending(a.data, b.data));
 const certificates = (await getCollection('certificates')).sort((a, b) => byDateAscending(a.data, b.data));
+
+const items: Item[] = [
+  ...education.map((entry): Item => ({ at: entry.data.period.start, kind: 'education', entry })),
+  ...certificates
+    .filter((entry) => entry.data.date)
+    .map((entry): Item => ({ at: entry.data.date!, kind: 'certificate', entry })),
+].sort((a, b) => byStartAscending({ period: { start: a.at } }, { period: { start: b.at } }));
+
+const undated = certificates.filter((entry) => !entry.data.date).map((entry): Item => ({ at: '', kind: 'certificate', entry }));
+let lastInstitution = -1;
+items.forEach((item, index) => {
+  if (item.kind === 'education') lastInstitution = index;
+});
+items.splice(lastInstitution >= 0 ? lastInstitution : items.length, 0, ...undated);
+
+const firstCertificate = items.findIndex((item) => item.kind === 'certificate');
 ---
 
 <Base
@@ -35,29 +62,24 @@ const certificates = (await getCollection('certificates')).sort((a, b) => byDate
     <h2 id="studies" class="text-xl font-semibold tracking-tight">{t.sections.studies}</h2>
     <ol class="mt-8 border-s border-border">
       {
-        education.map((entry) => (
+        items.map((item, index) => (
           <li>
-            <Education locale={locale} entry={entry} />
+            {index === firstCertificate && (
+              <h3 id="certificates" class="relative ps-7 pb-4 text-base font-semibold tracking-tight text-muted-foreground">
+                {t.sections.certificates}
+              </h3>
+            )}
+            {item.kind === 'education' ? (
+              <Education locale={locale} entry={item.entry} />
+            ) : (
+              <div class="relative ps-7 pb-4 last:pb-0">
+                <span aria-hidden="true" class="absolute -start-[5px] top-7 size-2.5 rounded-full bg-border"></span>
+                <Certificate locale={locale} entry={item.entry} />
+              </div>
+            )}
           </li>
         ))
       }
     </ol>
   </section>
-
-  {
-    certificates.length > 0 && (
-      <section aria-labelledby="certificates" class="mt-16">
-        <h2 id="certificates" class="text-xl font-semibold tracking-tight">
-          {t.sections.certificates}
-        </h2>
-        <ol class="mt-2 divide-y divide-border">
-          {certificates.map((entry) => (
-            <li>
-              <Certificate locale={locale} entry={entry} />
-            </li>
-          ))}
-        </ol>
-      </section>
-    )
-  }
 </Base>
