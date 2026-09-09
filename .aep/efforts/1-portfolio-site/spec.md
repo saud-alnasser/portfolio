@@ -18,6 +18,7 @@ One website, at a GitHub-hosted address that costs nothing, is the record of Sau
 - The CV: a human-readable, printable document and a machine-readable document, both generated from the content source.
 - Hosting and deployment on GitHub's free infrastructure, from this repository.
 - First content: the material inventoried in [[efforts/1-portfolio-site/evidence/research/source-material-inventory]], as far as it goes.
+- The profile page: the repository README, which GitHub shows at `github.com/saud-alnasser` because the repository carries his username, opens as Saud's profile and points at the site.
 
 # Requirements
 
@@ -35,6 +36,7 @@ One website, at a GitHub-hosted address that costs nothing, is the record of Sau
 12. **Privacy.** No national identifier, student identifier, or phone number appears in the repository or on the site. Public contact is an email address and the GitHub profile, plus any profile Saud chooses to add.
 13. **Two languages.** The site is published in English and Arabic. Every page exists in both, Arabic renders right to left, and a switch on every page leads to the same page in the other language. Both CV outputs exist per language. Text is authored per language; every other fact (a date, a link, a technology, a status) is authored once.
 14. **Light and dark.** The site has a light and a dark theme. It follows the visitor's system preference by default, a control on every page overrides it, and the choice persists in that browser. The printed CV is always light.
+15. **One repository, one place.** The repository is `saud-alnasser/saud-alnasser`, whose README GitHub shows as the profile page. The README opens as that profile, who Saud is and where the site and the CV are, and keeps the content documentation of requirement 9 below it. The site is served from the same repository, at the project-site address that name gives it, and every address it publishes is under that base.
 
 # Acceptance Criteria
 
@@ -52,6 +54,7 @@ One website, at a GitHub-hosted address that costs nothing, is the record of Sau
 12. A search of the repository history and the published site for the patterns of a Saudi national ID, an SEU student ID, and a phone number finds nothing.
 13. Every route has an English and an Arabic counterpart. The Arabic pages carry `lang="ar"` and `dir="rtl"` on the root element, and the English pages `lang="en"`. The language switch on any page links to the same page in the other language. The machine-readable CV exists at one address per language. An entry whose Arabic text is missing renders its English text rather than a blank, and a build-time report lists every such gap.
 14. With the system preference set to dark and no override stored, the page renders the dark palette; the control switches it and a reload keeps the choice; both palettes meet the contrast criterion in 7; printing the CV yields the light palette whatever the screen shows.
+15. `https://github.com/saud-alnasser` shows the README, whose first section names Saud, links the site and the CV page, and says the repository is the site's source. Every address the site publishes, in its pages, its sitemaps, `robots.txt`, and the JSON Resume documents, is under `https://saud-alnasser.github.io/saud-alnasser/`.
 
 # Constraints
 
@@ -76,7 +79,7 @@ One website, at a GitHub-hosted address that costs nothing, is the record of Sau
 
 # Assumptions
 
-- "Hosted for free based on my GitHub" means GitHub Pages serving this repository at the user-site address `saud-alnasser.github.io`, chosen on 2026-09-08. That address requires the repository to be renamed `saud-alnasser.github.io`; GitHub redirects the old name. [[efforts/1-portfolio-site/evidence/research/github-pages-free-hosting]] establishes that this is free for a public repository and that any static site generator can build it through GitHub Actions.
+- "Hosted for free based on my GitHub" means GitHub Pages serving this repository. On 2026-09-08 that was read as the user-site address `saud-alnasser.github.io`, which needs a repository of that name. On 2026-09-09 Saud renamed the repository `saud-alnasser` instead and chose to keep it, so the site is a project site at `https://saud-alnasser.github.io/saud-alnasser/` (requirement 15); [[efforts/1-portfolio-site/evidence/research/repository-name-and-base-path]] records what that changes. [[efforts/1-portfolio-site/evidence/research/github-pages-free-hosting]] establishes that Pages is free for a public repository and that any static site generator can build it through GitHub Actions.
 - Saud writes or reviews every Arabic text. An agent may draft a translation, but nothing Arabic is published without his reading it, because the CV is a hiring document in both languages.
 - Private repositories may be described publicly by name and summary, without a link. The evidence marks which are private; Saud decides per project when the content is authored.
 - The public contact is an email address chosen for this purpose, and the phone number stays off the site.

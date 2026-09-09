@@ -89,7 +89,7 @@ Start at [[protocol]].
 
 | Effort | Status | Spec | Research | Prototypes | Tickets |
 | --- | --- | --- | --- | --- | --- |
-| 1-portfolio-site | accepted | [[efforts/1-portfolio-site/spec]] | 5 | 0 | 12 |
+| 1-portfolio-site | accepted | [[efforts/1-portfolio-site/spec]] | 6 | 0 | 14 |
 
 ## Tickets
 
@@ -98,7 +98,7 @@ Every task of every effort. The tracker carries the effort, never its tasks.
 | Ticket | Effort | Status | Blocked by |
 | --- | --- | --- | --- |
 | [[efforts/1-portfolio-site/tickets/01-scaffold-and-deploy-workflow]] build(site): scaffold the Astro site and its deployment workflow | 1-portfolio-site | resolved | — |
-| [[efforts/1-portfolio-site/tickets/02-user-site-address]] chore(repo): point the repository at saud-alnasser.github.io | 1-portfolio-site | open | 01 |
+| [[efforts/1-portfolio-site/tickets/02-user-site-address]] chore(repo): enable GitHub Pages for saud-alnasser and publish the first deploy | 1-portfolio-site | open | 13, 14 |
 | [[efforts/1-portfolio-site/tickets/03-content-contract]] feat(content): define the content collections and their schemas | 1-portfolio-site | resolved | 01 |
 | [[efforts/1-portfolio-site/tickets/04-content-english]] feat(content): author the English content from the inventory | 1-portfolio-site | resolved | 03 |
 | [[efforts/1-portfolio-site/tickets/05-layout-pages-and-themes]] feat(site): build the layout, the pages, the themes, and the language switch | 1-portfolio-site | resolved | 03 |
@@ -109,3 +109,5 @@ Every task of every effort. The tracker carries the effort, never its tasks.
 | [[efforts/1-portfolio-site/tickets/10-content-arabic]] feat(content): author the Arabic text for every entry and the UI strings | 1-portfolio-site | open | 04, 05 |
 | [[efforts/1-portfolio-site/tickets/11-sitemap-xml]] feat(site): publish the sitemap at /sitemap.xml as the spec names it | 1-portfolio-site | resolved | 09 |
 | [[efforts/1-portfolio-site/tickets/12-education-timeline]] feat(site): order the studies page as one timeline, courses between school and university | 1-portfolio-site | resolved | 05 |
+| [[efforts/1-portfolio-site/tickets/13-base-path]] feat(site): serve the site under the /saud-alnasser/ base path of the project site | 1-portfolio-site | open | 09, 11, 12 |
+| [[efforts/1-portfolio-site/tickets/14-profile-readme]] docs(repo): open the README as the profile page and name the repository saud-alnasser everywhere | 1-portfolio-site | open | 13 |

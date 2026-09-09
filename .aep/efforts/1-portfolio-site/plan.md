@@ -4,7 +4,7 @@ use-when: "building a ticket in this effort and the approach is not obvious from
 
 # Architecture
 
-Astro builds the site from typed content collections, styled with Tailwind 4, with zero client-side JavaScript except a few lines for the theme control. The content source is one YAML file per entry under `src/content/`, validated by Zod schemas at build. Every text field is a language map (`{ en, ar }`); every other field is authored once. Three renderers read the same collections: the pages, the CV page per language with a print stylesheet, and a static endpoint per language that emits JSON Resume. A GitHub Actions workflow builds on every push to `main`, renders the CV pages to PDF with Playwright's Chromium, and deploys through the official Pages actions. The site is served at `saud-alnasser.github.io`, which requires renaming the repository.
+Astro builds the site from typed content collections, styled with Tailwind 4, with zero client-side JavaScript except a few lines for the theme control. The content source is one YAML file per entry under `src/content/`, validated by Zod schemas at build. Every text field is a language map (`{ en, ar }`); every other field is authored once. Three renderers read the same collections: the pages, the CV page per language with a print stylesheet, and a static endpoint per language that emits JSON Resume. A GitHub Actions workflow builds on every push to `main`, renders the CV pages to PDF with Playwright's Chromium, and deploys through the official Pages actions. The site is a project site at `https://saud-alnasser.github.io/saud-alnasser/`, served from the repository that is also the GitHub profile, so every path the site publishes is derived from one base path (the address section below).
 
 The spec's requirements and criteria are in [[efforts/1-portfolio-site/spec]] and are not repeated here. The facts this plan rests on are in [[efforts/1-portfolio-site/evidence/research/static-site-generator-options]], [[efforts/1-portfolio-site/evidence/research/json-resume-schema]], [[efforts/1-portfolio-site/evidence/research/github-pages-free-hosting]], and [[efforts/1-portfolio-site/evidence/research/ats-parsing-and-resume-schemas]].
 
@@ -57,6 +57,26 @@ Theme: two palettes as CSS custom properties on `:root`, `prefers-color-scheme` 
 
 Language: Astro's i18n routing with `defaultLocale: "en"`, `locales: ["en", "ar"]`, and `prefixDefaultLocale: true`, so every page lives under `/en/` or `/ar/` and the two are symmetrical; the root redirects to `/en/` with a static meta refresh, since there is no server. The `<html>` element carries `lang` and `dir` from the locale. Layout is written in logical CSS properties (`margin-inline-start`, not `margin-left`) so right-to-left needs no second stylesheet.
 
+## The address
+
+The repository was to be renamed `saud-alnasser.github.io` for a user site at the root of that host. On 2026-09-09 Saud renamed it `saud-alnasser` instead, the name whose README GitHub shows as the profile page, and chose to keep it so that the profile and the site are one repository (requirement 15 in [[efforts/1-portfolio-site/spec]]). [[efforts/1-portfolio-site/evidence/research/repository-name-and-base-path]] records what follows from that name. Three ways to serve the site from it were compared:
+
+| | Advantages | Disadvantages | Risks | Maintenance |
+| --- | --- | --- | --- | --- |
+| **A. Project site at `https://saud-alnasser.github.io/saud-alnasser/`** (chosen) | one repository, no second remote, no secret; the deploy workflow is unchanged; Pages serves it as it serves any project site | every path the site publishes carries the base, so nothing under `src/` may write a root path by hand; the local server, the tests, the checks, and Lighthouse all learn the base | a template that writes `/en/` by hand works locally at the root and answers 404 on Pages; the dist check catches it | one constant in `astro.config.mjs` |
+| B. A second repository `saud-alnasser.github.io` that this one deploys into | the root address the spec first assumed, with no base path | two repositories for one site, which is what Saud declined; `deploy-pages` publishes only to its own repository, so the workflow would need a personal access token kept as a secret and a push into the other repository | a token that expires or is revoked stops deploys until someone looks | a secret to rotate and a second repository to keep |
+| C. A custom domain | no base path, and a memorable address | a paid, renewing dependency the spec rules out of scope | the domain lapses and the record with it | a renewal |
+
+A wins because it is the shape Saud asked for and the only one that adds nothing outside this repository. B and C are recorded so that the base path is not re-decided by accident. If a custom domain is ever added, `base` goes back to `/` and nothing else changes, which is how the spec's condition that the site must not break when one is added is met.
+
+**What the base changes**, as the probe build in the evidence shows (F5 to F9): Astro prefixes the assets it emits, and the sitemap integration prefixes its `<loc>` values, and nothing else. So:
+
+- `astro.config.mjs` sets `base: '/saud-alnasser'` beside `site`, and the root redirect's target is built from that constant rather than written as `/en/`.
+- One module, `src/lib/paths.ts`, is the only place a path is joined to the base: `withBase(path)` for a path on the site, from `import.meta.env.BASE_URL`, and `absolute(path, site)` for a full address. Every href, download link, `<link rel="sitemap">`, canonical, `hreflang`, `og:url`, and `resume.json` address goes through it. No file under `src/` writes a leading-slash site path literal.
+- `public/robots.txt` is a static file, so its `Sitemap:` line names the base by hand, and the dist check asserts it agrees with `site` and `base`.
+- `scripts/serve-dist.mjs` serves `dist/` under the base, as Pages will, and answers 404 outside it, so a link written without the base fails locally as it would live. The PDF render, the Playwright tests, and Lighthouse open pages under the base; Lighthouse starts that server through `startServerCommand` instead of `staticDistDir`, which can only serve at the root. The tests and the scripts read `site` and `base` from `astro.config.mjs` itself, so the address has one source.
+- `scripts/check-dist.mjs` expects every sitemap entry, every internal link, the `robots.txt` sitemap line, and the JSON Resume addresses under the base, and fails by name when one lacks it.
+
 # Components
 
 | Component | Responsibility |
@@ -64,13 +84,14 @@ Language: Astro's i18n routing with `defaultLocale: "en"`, `locales: ["en", "ar"
 | `src/content.config.ts` | the content contract: one `defineCollection` per entity type with its Zod schema, and the shared `localized` text schema |
 | `src/content/<collection>/*.yaml` | the content source: `profile.yaml` (one file), `projects/`, `experience/`, `education/`, `certificates/`, `skills/` |
 | `src/lib/resume.ts` | the mapper from collections to a JSON Resume document for one language, and the language fallback with its gap report |
+| `src/lib/paths.ts` | the one place a site path is joined to the base path, for hrefs and for absolute addresses |
 | `src/pages/[locale]/` | the site pages: home, work, education, cv |
 | `src/pages/[locale]/resume.json.ts` | the static endpoint that emits JSON Resume per language |
 | `src/styles/global.css` | the Tailwind import, the palette tokens for both themes in shadcn's variable conventions, and the print rules for the CV |
 | `scripts/render-pdf.mjs` | after `astro build`, opens each CV page from `dist/` in Playwright's Chromium and writes `dist/cv.<locale>.pdf` |
 | `scripts/check-dist.mjs` | the build-output checks CI runs: JSON Resume validation, PDF text extraction, identifier patterns, sitemap and metadata presence |
 | `.github/workflows/deploy.yml` | build, render PDFs, run checks, upload the artifact, deploy to Pages on push to `main` |
-| `README.md` | the content format, one section per collection, with every field and its meaning |
+| `README.md` | the profile page GitHub shows for the account, opening with who Saud is and where the site is, then the content format, one section per collection, with every field and its meaning |
 
 # Interfaces
 
@@ -93,7 +114,7 @@ profile: { name: localized; label: localized; summary: localized; email; profile
 
 `iso8601` is the JSON Resume pattern (`YYYY`, `YYYY-MM`, or `YYYY-MM-DD`), enforced in Zod so a date that would fail JSON Resume fails the build instead. `visibility: hidden` keeps an entry in the source but out of every output. `status` renders wording per language; `certificate-pending` maps to JSON Resume as an `education` entry with `endDate` set to the completion term and an additional `status` key, which the schema permits (`additionalProperties: true` everywhere) and the reference theme ignores.
 
-**Addresses the outside sees**, all under `https://saud-alnasser.github.io`:
+**Addresses the outside sees**, all under `https://saud-alnasser.github.io/saud-alnasser/`, the base every path below is relative to:
 
 | Path | What |
 | --- | --- |
@@ -102,13 +123,13 @@ profile: { name: localized; label: localized; summary: localized; email; profile
 | `/en/work/`, `/en/education/`, `/en/cv/` and the `/ar/` twins | sections and the CV page |
 | `/en/resume.json`, `/ar/resume.json` | JSON Resume, with `meta.canonical` pointing at itself and `basics.url` at the site |
 | `/cv.en.pdf`, `/cv.ar.pdf` | the rendered CVs |
-| `/sitemap-index.xml`, `/robots.txt` | discovery |
+| `/sitemap.xml`, `/sitemap-index.xml`, `/robots.txt` | discovery |
 
 # Technical Approach
 
 The order is chosen so that every step can be checked by a build, and so the content contract exists before any content or template depends on it.
 
-1. **Scaffold and deploy nothing.** Astro project with pnpm, `output: "static"`, `site: "https://saud-alnasser.github.io"`, the i18n block, Tailwind through `astro add tailwind`, `@astrojs/sitemap`, an empty home page per locale, and the deploy workflow. Rename the repository. First green deploy of a near-empty site proves the pipeline before anything sits on it. The integration workflow gains install, check, and build steps.
+1. **Scaffold and deploy nothing.** Astro project with pnpm, `output: "static"`, `site: "https://saud-alnasser.github.io"`, the i18n block, Tailwind through `astro add tailwind`, `@astrojs/sitemap`, an empty home page per locale, and the deploy workflow. First green deploy of a near-empty site proves the pipeline before anything sits on it (the rename this step first named became the base path of step 9). The integration workflow gains install, check, and build steps.
 2. **Content contract.** `content.config.ts` with the schemas above, the `localized` helper, and the README section that documents them. One fixture entry per collection so the build exercises every schema.
 3. **Content.** The real entries from the inventory evidence, English first, `visibility` set per project by Saud, identifiers absent. Arabic text follows in the same ticket or the next, reviewed by Saud.
 4. **Pages and layout.** Base layout with palette tokens, the theme control, the language switch, logical-property utilities, `motion-safe:` transitions, metadata and Open Graph per page. Home, work, education.
@@ -116,17 +137,19 @@ The order is chosen so that every step can be checked by a build, and so the con
 6. **JSON Resume endpoint** through the mapper, validated in CI with `@jsonresume/schema`.
 7. **PDF rendering** in CI with Playwright, a bundled Arabic-capable font, and the extraction check on the English PDF.
 8. **Checks and accessibility.** `scripts/check-dist.mjs`, Lighthouse in CI on the home and CV pages, axe contrast checks, identifier-pattern scan of `dist/` and of history.
+9. **The base path.** Added on 2026-09-09 when the repository kept the name `saud-alnasser`: `base` in the config, `src/lib/paths.ts`, every path through it, `robots.txt`, and the local server, the tests, the checks, and Lighthouse under the same base, as the address section says.
+10. **The profile README.** The README opens as the profile page and every artifact that named the old repository is corrected; Pages is enabled on the repository by Saud and the first deploy runs on merge.
 
 # Integration
 
 - `.github/workflows/integration.yml` already gates the AEP index; it gains the install, check, test, and build steps at step 1, as its own comment anticipates. The deploy is a separate workflow on push to `main`, as the same comment says.
 - `.github/labeler.yml` gains an `area:` family only if more than one place a diff can land emerges; `src/` and `scripts/` are the candidates.
-- The repository rename changes the remote name. `[[references/github]]`, `[[rules/version-control]]`, and `[[contexts/repository]]` name `saud-alnasser/portfolio` and are corrected in the ticket that renames.
+- The repository is named `saud-alnasser`, renamed from `portfolio` on 2026-09-09. `[[references/github]]`, `[[rules/version-control]]`, `[[contexts/repository]]`, and `AGENTS.md` name `saud-alnasser/portfolio` or a user site and are corrected in the ticket that rewrites the README.
 - Renovate already runs; the Playwright and Astro majors will arrive through it.
 
 # Migration
 
-Nothing exists to migrate. The repository rename is the one act with an outside effect: GitHub redirects `saud-alnasser/portfolio` to the new name for git and web, and the local remote URL is updated afterwards.
+Nothing exists to migrate. The rename from `portfolio` to `saud-alnasser` happened on 2026-09-09: GitHub redirects the old name for git and web, and the local remote URL is updated afterwards.
 
 # Testing Strategy
 
@@ -148,11 +171,12 @@ How each acceptance criterion in [[efforts/1-portfolio-site/spec]] is checked. A
 | 12 | regex scan of `dist/` and of `git log -p` for `1[0-9]{9}`, `2[0-9]{8}`, and `\+?9665[0-9]{8}` or `05[0-9]{8}`; runs in CI |
 | 13 | every route under `dist/en/` has a twin under `dist/ar/`; `lang` and `dir` attributes asserted; the gap report is emitted by the build and printed in CI |
 | 14 | Playwright with `colorScheme: "dark"` asserts the dark tokens; toggling and reloading asserts persistence; print emulation asserts the light tokens on the CV page |
+| 15 | `check-dist.mjs` asserts every internal link, sitemap entry, the `robots.txt` sitemap line, and the JSON Resume addresses carry the base; the README's opening is read by eye against the profile page at the close |
 
 # Operational Considerations
 
-- **Pages settings.** After the rename, the repository's Pages source must be set to GitHub Actions once, by hand, in the repository settings. The first deploy fails until then.
-- **The rename** is done by Saud, or by the run with his say-so in that turn, since it is a write to shared data.
+- **Pages settings.** The repository's Pages source must be set to GitHub Actions once, by Saud or by the run with his say-so in that turn, since it is a write to shared data. The first deploy fails until then.
+- **The profile page.** The README is what `github.com/saud-alnasser` shows, so its opening is read by more people than the rest of the repository; keep it short and current.
 - **Content updates** are ordinary pull requests through Graphite; the build refuses bad content, and the deploy runs on merge.
 - **Arabic review** is a human step for every entry, per the spec's assumption.
 
@@ -162,4 +186,5 @@ How each acceptance criterion in [[efforts/1-portfolio-site/spec]] is checked. A
 - **Astro's i18n under static output.** The docs state the `domains` option needs server output and say nothing about the rest; the plan uses only prefixed routes, which are plain static files. Shows up at step 1, before anything depends on it.
 - **The v1.0.0 `$schema` trap.** JSON Resume's own samples point `$schema` at the old document that forbids top-level custom keys. The endpoint sets `$schema` to the monorepo `schema.json` and keeps custom keys inside sections, where every version permits them.
 - **Tailwind 4 and Astro majors moving together.** Both sit on Vite 8 today; a Vite major that one adopts before the other blocks the upgrade until both do. Shows up as a Renovate pull request that fails to build; the answer is to wait, not to pin one side by hand.
+- **Paths under a base.** A new template that writes `/en/...` by hand works in `astro dev` and breaks on Pages. `check-dist.mjs` fails a page whose internal links lack the base, so the mistake shows in CI rather than on the live site.
 - **Playwright on Windows.** Local rendering on Saud's machine needs a Chromium download; CI is the authoritative renderer, and the local script is optional.
