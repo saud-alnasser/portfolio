@@ -1,9 +1,11 @@
 ---
 import { getCollection, getEntry, type CollectionEntry } from 'astro:content';
 import Base from '../../../layouts/Base.astro';
-import Education from '../../../components/Education.astro';
+import Card from '../../../components/Card.astro';
 import Certificate from '../../../components/Certificate.astro';
-import { fill, locales, strings, type Locale } from '../../../lib/i18n';
+import Education from '../../../components/Education.astro';
+import Icon from '../../../components/Icon.astro';
+import { fill, formatPeriod, locales, plural, strings, type Locale } from '../../../lib/i18n';
 import { localized } from '../../../lib/localized';
 import { byDateAscending, byStartAscending } from '../../../lib/order';
 
@@ -17,37 +19,29 @@ const t = strings[locale];
 const profile = (await getEntry('profile', 'profile'))!;
 const name = localized(locale, 'profile', profile.id)('name', profile.data.name);
 
-// One timeline in order of time: high school, then the online courses, then
-// university. Institutions sort by their start and certificates by their
-// date, together. A certificate with no date cannot be placed by it, so it
-// goes immediately before the most recent institution: that is the
-// online-courses phase between school and university, whatever dated
-// certificates exist. With no institution at all, undated certificates come
-// last. src/content/README.md, "education/", says the same for whoever edits the content.
-// The first certificate carries the "Certificates" heading, so the section
-// the site names exists on this page as well as on the CV.
-type Item =
-  | { at: string; kind: 'education'; entry: CollectionEntry<'education'> }
-  | { at: string; kind: 'certificate'; entry: CollectionEntry<'certificates'> };
-
 const education = (await getCollection('education')).sort((a, b) => byStartAscending(a.data, b.data));
 const certificates = (await getCollection('certificates')).sort((a, b) => byDateAscending(a.data, b.data));
 
-const items: Item[] = [
-  ...education.map((entry): Item => ({ at: entry.data.period.start, kind: 'education', entry })),
-  ...certificates
-    .filter((entry) => entry.data.date)
-    .map((entry): Item => ({ at: entry.data.date!, kind: 'certificate', entry })),
-].sort((a, b) => byStartAscending({ period: { start: a.at } }, { period: { start: b.at } }));
+// The timeline is the institutions in order of time, by their start, with one
+// node for the online-courses phase in the place the undated certificates used
+// to take: immediately before the most recent institution. So the page reads
+// high school, online courses, university, whatever dates the certificates
+// carry, and a phase that spans years needs no date to sit where it belongs.
+// src/content/README.md, "education/", says the same for whoever edits the content.
+type Item = { kind: 'education'; entry: CollectionEntry<'education'> } | { kind: 'courses' };
 
-const undated = certificates.filter((entry) => !entry.data.date).map((entry): Item => ({ at: '', kind: 'certificate', entry }));
-let lastInstitution = -1;
-items.forEach((item, index) => {
-  if (item.kind === 'education') lastInstitution = index;
+const items: Item[] = education.map((entry): Item => ({ kind: 'education', entry }));
+if (certificates.length > 0) items.splice(Math.max(items.length - 1, 0), 0, { kind: 'courses' });
+
+// The node stands for every certificate, dated or not: it counts them all and
+// runs from the earliest dated one to the latest. The certificates themselves
+// are below the timeline, under the heading it links to.
+const dated = certificates.filter((entry) => entry.data.date);
+const period = dated.length > 0 ? { start: dated[0].data.date!, end: dated[dated.length - 1].data.date! } : undefined;
+const count = fill(t.education.onlineCourses.count, {
+  count: String(certificates.length),
+  noun: plural(locale, certificates.length, t.education.onlineCourses.noun),
 });
-items.splice(lastInstitution >= 0 ? lastInstitution : items.length, 0, ...undated);
-
-const firstCertificate = items.findIndex((item) => item.kind === 'certificate');
 ---
 
 <Base
@@ -63,24 +57,47 @@ const firstCertificate = items.findIndex((item) => item.kind === 'certificate');
     <h2 id="studies" class="text-xl font-semibold tracking-tight">{t.sections.studies}</h2>
     <ol class="mt-8 border-s border-border">
       {
-        items.map((item, index) => (
-          <li>
-            {index === firstCertificate && (
-              <h3 id="certificates" class="relative ps-7 pb-4 text-base font-semibold tracking-tight text-muted-foreground">
-                {t.sections.certificates}
-              </h3>
-            )}
+        items.map((item) => (
+          <li class="relative ps-7 pb-6 last:pb-0">
+            {/* The marker on the rail. The courses node takes the accent,
+                because it is the one item on the timeline that leads
+                somewhere else on the page. */}
+            <span
+              aria-hidden="true"
+              class:list={[
+                'absolute -start-[5px] top-6 size-2.5 rounded-full sm:top-7',
+                item.kind === 'courses' ? 'bg-primary' : 'bg-border',
+              ]}
+            />
             {item.kind === 'education' ? (
               <Education locale={locale} entry={item.entry} />
             ) : (
-              <div class="relative ps-7 pb-4 last:pb-0">
-                <span aria-hidden="true" class="absolute -start-[5px] top-7 size-2.5 rounded-full bg-border"></span>
-                <Certificate locale={locale} entry={item.entry} />
-              </div>
+              <Card href="#certificates" data-courses-node>
+                {period && <p class="text-sm text-muted-foreground tabular-nums">{formatPeriod(locale, period)}</p>}
+                <h3 class="mt-1 text-lg font-semibold tracking-tight">{t.education.onlineCourses.name}</h3>
+                <p class="mt-1">{count}</p>
+                <p class="mt-2 flex items-center gap-1.5 text-sm text-primary">
+                  {t.education.onlineCourses.link}
+                  <Icon name="chevron-down" class="size-4" />
+                </p>
+              </Card>
             )}
           </li>
         ))
       }
     </ol>
+  </section>
+
+  <section aria-labelledby="certificates" class="mt-16">
+    <h2 id="certificates" class="text-xl font-semibold tracking-tight">{t.sections.certificates}</h2>
+    <ul class="mt-4 divide-y divide-border">
+      {
+        certificates.map((entry) => (
+          <li>
+            <Certificate locale={locale} entry={entry} />
+          </li>
+        ))
+      }
+    </ul>
   </section>
 </Base>

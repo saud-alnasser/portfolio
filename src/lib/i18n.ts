@@ -112,6 +112,16 @@ const en = {
       'in-progress': 'In progress',
     },
     courses: 'Courses',
+    // The one node on the timeline that is not an institution: the phase of
+    // online courses between school and university. It stands for every
+    // certificate, so `count` says how many, with `noun` in the form the
+    // number takes, and `link` leads to the certificates themselves.
+    onlineCourses: {
+      name: 'Online courses',
+      count: '{count} {noun}',
+      noun: { one: 'certificate', other: 'certificates' } as PluralForms,
+      link: 'View the certificates',
+    },
   },
   certificate: {
     view: 'View certificate',
@@ -206,6 +216,13 @@ const ar: Strings = {
       'in-progress': 'قيد الدراسة',
     },
     courses: 'المقررات',
+    onlineCourses: {
+      name: 'الدورات الإلكترونية',
+      count: '{count} {noun}',
+      // The counted noun in the form Arabic gives each range, as `fold` above.
+      noun: { one: 'شهادة', two: 'شهادتان', few: 'شهادات', many: 'شهادةً', other: 'شهادة' },
+      link: 'عرض الشهادات',
+    },
   },
   certificate: {
     view: 'عرض الشهادة',
