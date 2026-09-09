@@ -20,7 +20,7 @@ The fixtures are replaced by real entries: the profile, the projects Saud choose
 - [x] `pnpm build` succeeds with the real content (requirement 1).
   Verified in the run's surface after integration: `pnpm check` 0 errors, 0 warnings; `pnpm build` exit 0, 2 pages; `pnpm check:dist` printed `en/resume.json: valid, work 1, education 1, certificates 27, skills 7, projects 19` and the same for `ar`.
 
-Answers from Saud on 2026-09-09, after the close: PHP and Python are out of the programming languages he lists, as things he has not worked in enough to claim; FiveM is out of game development for the same reason; the IT support group is removed altogether, since its items are the custom tools of one placement. The projects and certificates that name those technologies are unchanged, being facts about the work rather than claims about him.
+Answers from Saud on 2026-09-09, after the close: PHP and Python are out of the programming languages he lists, as things he has not worked in enough to claim; Lua is out for the same reason, in a later message; FiveM is out of game development for the same reason; the IT support group is removed altogether, since its items are the custom tools of one placement. The projects and certificates that name those technologies are unchanged, being facts about the work rather than claims about him.
 
 ## Relevant areas
 `src/content/**` only. The inventory evidence file is the source; the Drive folder and the GitHub account are where to verify a fact it lacks.
