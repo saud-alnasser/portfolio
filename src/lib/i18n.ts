@@ -88,6 +88,20 @@ const en = {
     sections: 'On this site',
     work: 'Projects and experience.',
     education: 'Studies and certificates.',
+    cv: 'Experience, education, skills, and certifications on one page.',
+    // What a section card says it holds: "19 projects", "27 certificates".
+    // The count comes from the collection the section renders, never from
+    // this file. {count} is the number and {noun} the form of the section's
+    // noun that goes with it, from `nouns`.
+    counts: {
+      line: '{count} {noun}',
+      nouns: {
+        projects: { one: 'project', other: 'projects' } as PluralForms,
+        experience: { one: 'position', other: 'positions' } as PluralForms,
+        education: { one: 'institution', other: 'institutions' } as PluralForms,
+        certificates: { one: 'certificate', other: 'certificates' } as PluralForms,
+      },
+    },
   },
   sections: {
     projects: 'Projects',
@@ -192,6 +206,18 @@ const ar: Strings = {
     sections: 'في هذا الموقع',
     work: 'المشاريع والخبرات العملية.',
     education: 'الدراسة والشهادات.',
+    cv: 'الخبرة العملية والتعليم والمهارات والشهادات في صفحة واحدة.',
+    counts: {
+      line: '{count} {noun}',
+      // The counted noun of each section, in the forms Arabic gives each
+      // range: one, two, three to ten, eleven to ninety-nine, and the rest.
+      nouns: {
+        projects: { one: 'مشروع', two: 'مشروعان', few: 'مشاريع', many: 'مشروعاً', other: 'مشروع' },
+        experience: { one: 'وظيفة', two: 'وظيفتان', few: 'وظائف', many: 'وظيفة', other: 'وظيفة' },
+        education: { one: 'جهة تعليمية', two: 'جهتان تعليميتان', few: 'جهات تعليمية', many: 'جهة تعليمية', other: 'جهة تعليمية' },
+        certificates: { one: 'شهادة', two: 'شهادتان', few: 'شهادات', many: 'شهادة', other: 'شهادة' },
+      },
+    },
   },
   sections: {
     projects: 'المشاريع',

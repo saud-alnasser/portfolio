@@ -1,9 +1,12 @@
 ---
 import { getCollection, getEntry } from 'astro:content';
 import Base from '../../layouts/Base.astro';
+import Icon from '../../components/Icon.astro';
+import SectionCard from '../../components/SectionCard.astro';
 import Skills from '../../components/Skills.astro';
-import { locales, strings, type Locale } from '../../lib/i18n';
+import { fill, locales, plural, strings, type Locale, type Strings } from '../../lib/i18n';
 import { localized } from '../../lib/localized';
+import { profileIcon, type ProfileIcon } from '../../lib/networks';
 import { byOrderThenName } from '../../lib/order';
 import { withBase } from '../../lib/paths';
 
@@ -21,45 +24,84 @@ const label = text('label', profile.data.label);
 const summary = text('summary', profile.data.summary);
 const location = text('location', profile.data.location);
 
-// Skills sit on the home page, beside the summary, because they are the
+const cv = withBase(`/${locale}/cv/`);
+
+// The contact details as actions rather than a table: the label is what the
+// visitor reads and the address is in the link, so the page never repeats the
+// footer's email line. A profile takes its network's mark where the icon set
+// has one and the external link icon where it does not (src/lib/networks.ts).
+const actions: { key: string; href: string; icon: 'mail' | 'file' | ProfileIcon; label: string }[] = [
+  { key: 'email', href: `mailto:${profile.data.email}`, icon: 'mail', label: t.home.email },
+  ...profile.data.profiles.map((p) => ({
+    key: p.network.toLowerCase(),
+    href: p.url,
+    icon: profileIcon(p.network),
+    label: p.network,
+  })),
+  { key: 'cv', href: cv, icon: 'file', label: t.nav.cv },
+];
+
+// Skills sit on the home page, above the sections, because they are the
 // fastest read for a visitor deciding whether to open the work page.
 const skills = (await getCollection('skills')).sort((a, b) => byOrderThenName(a.data, b.data));
 
+// Every count a section card shows is the length of the collection that
+// section renders, read here and never written by hand, so a card cannot
+// drift from the content source. The visibility filter is the work page's:
+// a hidden project stays in the source and out of every output.
+const projects = await getCollection('projects', ({ data }) => data.visibility !== 'hidden');
+const experience = await getCollection('experience');
+const education = await getCollection('education');
+const certificates = await getCollection('certificates');
+
+const count = (n: number, noun: keyof Strings['home']['counts']['nouns']) =>
+  fill(t.home.counts.line, { count: String(n), noun: plural(locale, n, t.home.counts.nouns[noun]) });
+
 const sections = [
-  { href: withBase(`/${locale}/work/`), label: t.nav.work, description: t.home.work },
-  { href: withBase(`/${locale}/education/`), label: t.nav.education, description: t.home.education },
+  {
+    section: 'work',
+    href: withBase(`/${locale}/work/`),
+    name: t.nav.work,
+    description: t.home.work,
+    counts: [count(projects.length, 'projects'), count(experience.length, 'experience')],
+  },
+  {
+    section: 'education',
+    href: withBase(`/${locale}/education/`),
+    name: t.nav.education,
+    description: t.home.education,
+    counts: [count(education.length, 'education'), count(certificates.length, 'certificates')],
+  },
+  { section: 'cv', href: cv, name: t.nav.cv, description: t.home.cv },
 ];
 ---
 
 <Base locale={locale} title={name} description={summary} path="/" column="grid">
   <h1 class="text-4xl font-semibold tracking-tight text-balance sm:text-5xl">{name}</h1>
-  <p class="mt-3 text-xl text-muted-foreground">{label}</p>
-  <p class="mt-8 max-w-prose text-lg leading-8">{summary}</p>
+  <p data-hero-label class="mt-3 text-xl text-muted-foreground">{label}</p>
+  <p class="mt-1 text-sm text-muted-foreground">
+    <span class="sr-only">{t.home.location}: </span>{location}
+  </p>
+  <p data-hero-summary class="mt-8 max-w-prose text-lg leading-8">{summary}</p>
 
-  <section aria-labelledby="contact" class="mt-16">
-    <h2 id="contact" class="text-xl font-semibold tracking-tight">{t.home.contact}</h2>
-    <dl class="mt-5 grid gap-x-8 gap-y-2 sm:grid-cols-[12rem_1fr]">
-      <dt class="text-muted-foreground">{t.home.email}</dt>
-      <dd>
-        <a href={`mailto:${profile.data.email}`} class="text-primary underline underline-offset-4 hover:decoration-2">
-          {profile.data.email}
-        </a>
-      </dd>
+  <section aria-labelledby="contact" class="mt-8">
+    <h2 id="contact" class="sr-only">{t.home.contact}</h2>
+    <ul data-contact-actions class="flex flex-wrap gap-2">
       {
-        profile.data.profiles.map((p) => (
-          <>
-            <dt class="text-muted-foreground">{p.network}</dt>
-            <dd>
-              <a href={p.url} class="text-primary underline underline-offset-4 hover:decoration-2">
-                {p.username}
-              </a>
-            </dd>
-          </>
+        actions.map((action) => (
+          <li>
+            <a
+              href={action.href}
+              data-contact={action.key}
+              class="flex items-center gap-2 rounded-md border border-border bg-card px-3 py-2 text-sm hover:border-primary hover:text-primary motion-safe:transition-colors"
+            >
+              <Icon name={action.icon} class="size-4" />
+              {action.label}
+            </a>
+          </li>
         ))
       }
-      <dt class="text-muted-foreground">{t.home.location}</dt>
-      <dd>{location}</dd>
-    </dl>
+    </ul>
   </section>
 
   {
@@ -74,18 +116,12 @@ const sections = [
   }
 
   <section aria-labelledby="sections" class="mt-16">
-    <h2 id="sections" class="text-xl font-semibold tracking-tight">{t.home.sections}</h2>
-    <ul class="mt-5 divide-y divide-border border-y border-border">
+    <h2 id="sections" class="mb-5 text-xl font-semibold tracking-tight">{t.home.sections}</h2>
+    <ul data-section-grid class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
       {
         sections.map((section) => (
-          <li>
-            <a
-              href={section.href}
-              class="group flex flex-wrap items-baseline justify-between gap-x-8 gap-y-1 py-4 hover:text-primary motion-safe:transition-colors"
-            >
-              <span class="font-semibold">{section.label}</span>
-              <span class="text-sm text-muted-foreground">{section.description}</span>
-            </a>
+          <li class="h-full">
+            <SectionCard locale={locale} {...section} />
           </li>
         ))
       }

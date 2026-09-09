@@ -114,7 +114,7 @@ Every task of every effort. The tracker carries the effort, never its tasks.
 | [[efforts/1-portfolio-site/tickets/14-profile-readme]] docs(repo): open the README as the profile page and name the repository saud-alnasser everywhere | 1-portfolio-site | resolved | 13 |
 | [[efforts/1-portfolio-site/tickets/15-profile-readme-only]] docs(repo): make the README the profile page alone and move the site's documentation beside the code | 1-portfolio-site | resolved | 14 |
 | [[efforts/3-site-redesign/tickets/01-foundation-and-header]] feat(site): card, icon, and fold components, the wider column, and the header controls with icons | 3-site-redesign | resolved | — |
-| [[efforts/3-site-redesign/tickets/02-home-page]] feat(site): lay the home page out as a hero, contact actions, skill cards, and section cards | 3-site-redesign | open | 01 |
+| [[efforts/3-site-redesign/tickets/02-home-page]] feat(site): lay the home page out as a hero, contact actions, skill cards, and section cards | 3-site-redesign | resolved | 01 |
 | [[efforts/3-site-redesign/tickets/03-work-page]] feat(site): render projects and experience as card grids with folded highlights | 3-site-redesign | resolved | 01 |
 | [[efforts/3-site-redesign/tickets/04-education-timeline]] feat(site): render the studies timeline as institution cards with one node for the online courses | 3-site-redesign | resolved | 01 |
 | [[efforts/3-site-redesign/tickets/05-certificate-documents]] feat(content): add the certificate documents to the content source with their previews and the script that renders them | 3-site-redesign | resolved | — |
