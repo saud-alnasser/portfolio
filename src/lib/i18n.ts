@@ -9,8 +9,13 @@
 //   strings[locale]         the UI strings for one locale
 //   formatDate(locale, iso) a YYYY, YYYY-MM, or YYYY-MM-DD date for display
 //   formatPeriod(locale, p) "start to end", or "start to present"
+//   plural(locale, n, forms) the form of a noun that goes with a count
 
 export type Locale = 'en' | 'ar';
+
+// A noun that takes a count, in the forms the language distinguishes. Arabic
+// has six; English needs two. `other` is the fallback every language ends in.
+export type PluralForms = { other: string } & Partial<Record<Intl.LDMLPluralRule, string>>;
 
 export const locales: ReadonlyArray<{
   code: Locale;
@@ -44,11 +49,24 @@ const en = {
     work: 'Work',
     education: 'Education',
     cv: 'CV',
+    // The language menu's accessible name.
+    language: 'Language',
   },
   theme: {
     switchTo: 'Switch to',
     dark: 'Dark theme',
     light: 'Light theme',
+  },
+  // A card's fold: the control that shows or hides a list too long for the
+  // card. {count} is the number and {noun} the form of the list's noun that
+  // goes with it, from `nouns`.
+  fold: {
+    show: 'Show {count} {noun}',
+    hide: 'Hide {count} {noun}',
+    nouns: {
+      courses: { one: 'course', other: 'courses' } as PluralForms,
+      highlights: { one: 'highlight', other: 'highlights' } as PluralForms,
+    },
   },
   titleSeparator: ' - ',
   // Between items of an inline list: technologies, courses, keywords.
@@ -128,11 +146,22 @@ const ar: Strings = {
     work: 'الأعمال',
     education: 'التعليم',
     cv: 'السيرة الذاتية',
+    language: 'اللغة',
   },
   theme: {
     switchTo: 'التبديل إلى',
     dark: 'الوضع الداكن',
     light: 'الوضع الفاتح',
+  },
+  fold: {
+    show: 'عرض {count} {noun}',
+    hide: 'إخفاء {count} {noun}',
+    // The counted noun in the form Arabic gives each range: one, two, three
+    // to ten, eleven to ninety-nine, and the rest.
+    nouns: {
+      courses: { one: 'مقرر', two: 'مقرران', few: 'مقررات', many: 'مقرراً', other: 'مقرر' },
+      highlights: { one: 'مهمة', two: 'مهمتان', few: 'مهام', many: 'مهمة', other: 'مهمة' },
+    },
   },
   titleSeparator: ' - ',
   listSeparator: '، ',
@@ -225,6 +254,12 @@ export function formatDate(locale: Locale, iso: string | number): string {
         ? { year: 'numeric', month: 'short' }
         : { year: 'numeric' };
   return new Intl.DateTimeFormat(dateLocale[locale], { ...options, timeZone: 'UTC' }).format(date);
+}
+
+// The form of a noun that goes with a count, by the language's own rules:
+// plural('ar', 21, nouns.courses) is the form for eleven to ninety-nine.
+export function plural(locale: Locale, count: number, forms: PluralForms): string {
+  return forms[new Intl.PluralRules(locale).select(count)] ?? forms.other;
 }
 
 export function formatPeriod(locale: Locale, period: { start: string; end?: string }): string {

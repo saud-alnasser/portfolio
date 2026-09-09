@@ -34,6 +34,26 @@ test('the theme control switches the palette and a reload keeps it', async ({ pa
   expect(await page.evaluate(rootBackground)).toBe(background[initial]);
 });
 
+test('the control shows the icon of the theme it switches to', async ({ page, colorScheme }) => {
+  // Under the light palette the control offers the dark theme, so it shows
+  // the moon; under the dark palette, the sun. Both icons are in the markup
+  // and the stylesheet shows one, with its label, so the visible icon and
+  // the accessible name change together with the palette.
+  const dark = colorScheme === 'dark';
+  const moon = page.locator(`${control} svg[data-icon="moon"]`);
+  const sun = page.locator(`${control} svg[data-icon="sun"]`);
+
+  await page.goto(at('/en/'));
+  await expect(dark ? sun : moon).toBeVisible();
+  await expect(dark ? moon : sun).toBeHidden();
+  await expect(page.locator(control)).toHaveAccessibleName(dark ? 'Switch to Light theme' : 'Switch to Dark theme');
+
+  await page.locator(control).click();
+  await expect(dark ? moon : sun).toBeVisible();
+  await expect(dark ? sun : moon).toBeHidden();
+  await expect(page.locator(control)).toHaveAccessibleName(dark ? 'Switch to Dark theme' : 'Switch to Light theme');
+});
+
 test('printing the CV page applies the light palette with dark stored', async ({ page }) => {
   await page.addInitScript((key) => localStorage.setItem(key, 'dark'), storageKey);
   await page.goto(at('/en/cv/'));

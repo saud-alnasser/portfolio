@@ -59,6 +59,7 @@ const muted = 'text-sm text-muted-foreground';
   title={`${t.cv.title}${t.titleSeparator}${name}`}
   description={fill(t.cv.description, { name })}
   path="/cv/"
+  column="document"
 >
   <nav aria-label={t.cv.downloads} class="cv-actions mb-10 flex flex-wrap gap-x-6 gap-y-2 text-sm">
     <a href={pdf} download class={link}>{t.cv.downloadPdf}</a>

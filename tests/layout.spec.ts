@@ -1,9 +1,10 @@
 import { expect, test } from '@playwright/test';
-import { at, pages } from './pages';
+import { at, pageList, pages } from './pages';
 
-// The layout on a phone and under reduced motion: no horizontal
-// scrolling at 360 pixels on any page, and nothing animates when the visitor
-// asked for reduced motion.
+// The layout on a phone, on a desktop, and under reduced motion: no
+// horizontal scrolling at 360 pixels on any page, the content column at the
+// width its route declares at 1440, centred, and nothing animates when the
+// visitor asked for reduced motion.
 
 test.describe('at 360 pixels wide', () => {
   test.use({ viewport: { width: 360, height: 780 } });
@@ -21,17 +22,23 @@ test.describe('at 360 pixels wide', () => {
 test.describe('at 1440 pixels wide', () => {
   test.use({ viewport: { width: 1440, height: 900 } });
 
-  // The layout's stated maximum is Tailwind's max-w-3xl, 48rem: the content
-  // column fills it, centred, rather than hugging one side or shrinking.
-  for (const page of pages) {
-    test(`${page} fills the content column`, async ({ page: browser }) => {
-      await browser.goto(page);
+  // Each route declares its column in tests/pages.ts: 64rem for the pages
+  // that lay cards in a grid, 48rem for the CV, which reads as a document.
+  // The content fills it, centred, rather than hugging one side or shrinking,
+  // and the header and footer share it.
+  for (const { path, width } of pageList) {
+    test(`${path} fills a ${width} pixel column`, async ({ page: browser }) => {
+      await browser.goto(path);
       const box = await browser.locator('main').boundingBox();
-      expect(box, `main on ${page}`).not.toBeNull();
-      expect(Math.round(box!.width), `main width on ${page}`).toBe(768);
+      expect(box, `main on ${path}`).not.toBeNull();
+      expect(Math.round(box!.width), `main width on ${path}`).toBe(width);
       const left = box!.x;
       const right = 1440 - (box!.x + box!.width);
-      expect(Math.abs(left - right), `main centred on ${page}`).toBeLessThanOrEqual(1);
+      expect(Math.abs(left - right), `main centred on ${path}`).toBeLessThanOrEqual(1);
+      for (const part of ['body > header', 'body > footer']) {
+        const other = await browser.locator(part).boundingBox();
+        expect(Math.round(other!.width), `${part} width on ${path}`).toBe(width);
+      }
     });
   }
 });

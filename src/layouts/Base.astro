@@ -4,6 +4,8 @@ import { getEntry } from 'astro:content';
 import { localeInfo, otherLocale, strings, type Locale } from '../lib/i18n';
 import { localized } from '../lib/localized';
 import { absolute, withBase } from '../lib/paths';
+import LanguageMenu from '../components/LanguageMenu.astro';
+import ThemeToggle from '../components/ThemeToggle.astro';
 
 interface Props {
   locale: Locale;
@@ -11,14 +13,19 @@ interface Props {
   description: string;
   // The route without its locale prefix, with the trailing slash: "/",
   // "/work/", "/cv/". The layout builds the canonical address, the language
-  // switch, and the alternates from it.
+  // menu, and the alternates from it.
   path: string;
+  // The width of the page: `grid` for a page laying cards in columns, 64rem;
+  // `document` for the CV, which reads as one column of text, 48rem. The
+  // header, the content, and the footer share it.
+  column: 'document' | 'grid';
 }
 
-const { locale, title, description, path } = Astro.props;
+const { locale, title, description, path, column } = Astro.props;
 const { dir, ogLocale } = localeInfo(locale);
 const other = otherLocale(locale);
 const t = strings[locale];
+const width = column === 'grid' ? 'max-w-5xl' : 'max-w-3xl';
 
 const profile = (await getEntry('profile', 'profile'))!;
 const text = localized(locale, 'profile', profile.id);
@@ -27,7 +34,6 @@ const siteName = text('name', profile.data.name);
 // The site lives under a base path, so every path here goes through
 // withBase, and every full address through absolute (src/lib/paths.ts).
 const site = Astro.site!;
-const href = (l: Locale) => withBase(`/${l}${path}`);
 const home = withBase(`/${locale}/`);
 const address = (l: Locale) => absolute(`/${l}${path}`, site);
 
@@ -62,8 +68,10 @@ const nav = [
     <meta property="og:locale:alternate" content={localeInfo(other).ogLocale} />
     <!--
       The only script on the site. It applies a stored theme before first
-      paint, so the page never flashes the other palette, and wires the
-      control once the document is parsed.
+      paint, so the page never flashes the other palette, wires the theme
+      control once the document is parsed, and closes the language menu on
+      Escape and on a click outside it. The menu itself opens and closes
+      without it.
     -->
     <script is:inline>
       (function () {
@@ -81,7 +89,25 @@ const nav = [
           );
         }
 
+        // Closes the open language menu when the event landed outside it or
+        // was Escape, and puts focus back on its summary in the second case.
+        function dismiss(event) {
+          var menu = document.querySelector('[data-language-menu][open]');
+          if (!menu) return;
+          if (event.type === 'keydown') {
+            if (event.key !== 'Escape') return;
+            menu.removeAttribute('open');
+            var summary = menu.querySelector('summary');
+            if (summary) summary.focus();
+          } else if (!menu.contains(event.target)) {
+            menu.removeAttribute('open');
+          }
+        }
+
         document.addEventListener('DOMContentLoaded', function () {
+          document.addEventListener('click', dismiss);
+          document.addEventListener('keydown', dismiss);
+
           var control = document.querySelector('[data-theme-toggle]');
           if (!control) return;
           control.addEventListener('click', function () {
@@ -103,12 +129,13 @@ const nav = [
       {t.skipToContent}
     </a>
 
-    <header class="mx-auto w-full max-w-3xl px-6 pt-8 sm:pt-12">
-      <div class="flex flex-wrap items-baseline justify-between gap-x-8 gap-y-4">
+    <header class:list={['mx-auto w-full px-6 pt-8 sm:pt-12', width]}>
+      <!-- `relative` anchors the language menu's list to this row. -->
+      <div class="relative flex flex-wrap items-center justify-between gap-x-8 gap-y-4">
         <a href={home} class="text-base font-semibold tracking-tight hover:text-primary">
           {siteName}
         </a>
-        <nav aria-label={t.nav.label} class="flex flex-wrap items-baseline gap-x-6 gap-y-2 text-sm">
+        <nav aria-label={t.nav.label} class="flex flex-wrap items-center gap-x-5 gap-y-2 text-sm">
           <ul class="flex gap-x-5">
             {
               nav.map((item) => (
@@ -127,39 +154,23 @@ const nav = [
               ))
             }
           </ul>
-          <ul class="flex gap-x-5 border-s border-border ps-5">
+          <ul class="flex items-center gap-x-1 border-s border-border ps-3">
             <li>
-              <a
-                href={href(other)}
-                hreflang={other}
-                lang={other}
-                dir={localeInfo(other).dir}
-                class="py-1 text-muted-foreground hover:text-primary motion-safe:transition-colors"
-              >
-                {localeInfo(other).name}
-              </a>
+              <LanguageMenu locale={locale} path={path} />
             </li>
             <li>
-              <button
-                type="button"
-                data-theme-toggle
-                class="cursor-pointer py-1 text-muted-foreground hover:text-primary motion-safe:transition-colors"
-              >
-                <span class="sr-only">{t.theme.switchTo} </span>
-                <span class="theme-when-light">{t.theme.dark}</span>
-                <span class="theme-when-dark">{t.theme.light}</span>
-              </button>
+              <ThemeToggle locale={locale} />
             </li>
           </ul>
         </nav>
       </div>
     </header>
 
-    <main id="content" class="mx-auto w-full max-w-3xl px-6 py-16 motion-safe:animate-reveal sm:py-20">
+    <main id="content" class:list={['mx-auto w-full px-6 py-16 motion-safe:animate-reveal sm:py-20', width]}>
       <slot />
     </main>
 
-    <footer class="mx-auto w-full max-w-3xl px-6 pb-12 text-sm text-muted-foreground">
+    <footer class:list={['mx-auto w-full px-6 pb-12 text-sm text-muted-foreground', width]}>
       <div class="flex flex-wrap justify-between gap-x-8 gap-y-2 border-t border-border pt-6">
         <a href={`mailto:${profile.data.email}`} class="hover:text-primary motion-safe:transition-colors">
           {profile.data.email}

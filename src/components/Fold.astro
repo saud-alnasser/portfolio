@@ -1,0 +1,37 @@
+---
+// A list too long for its card, folded behind a control that opens it in
+// place: the 21 university courses, the highlights of a placement. It is a
+// native <details>, so it opens with a click or the keyboard and needs no
+// script. The summary says what it holds and how many, "Show 21 courses",
+// and "Hide 21 courses" once open; which label shows follows the open
+// state in CSS, as the theme control's icons do. The chevron turns with it.
+
+import Icon from './Icon.astro';
+import { fill, plural, strings, type Locale, type Strings } from '../lib/i18n';
+
+interface Props {
+  locale: Locale;
+  count: number;
+  noun: keyof Strings['fold']['nouns'];
+  class?: string;
+}
+
+const { locale, count, noun, class: className } = Astro.props;
+const t = strings[locale];
+const values = { count: String(count), noun: plural(locale, count, t.fold.nouns[noun]) };
+const show = fill(t.fold.show, values);
+const hide = fill(t.fold.hide, values);
+---
+
+<details class:list={['mt-4 border-t border-border pt-3', className]}>
+  <summary
+    class="flex cursor-pointer list-none items-center gap-2 text-sm text-muted-foreground select-none hover:text-primary motion-safe:transition-colors"
+  >
+    <Icon name="chevron-down" class="fold-chevron size-4 motion-safe:transition-transform" />
+    <span class="fold-when-closed">{show}</span>
+    <span class="fold-when-open">{hide}</span>
+  </summary>
+  <div class="mt-3">
+    <slot />
+  </div>
+</details>

@@ -1,0 +1,33 @@
+---
+// The card every entry renders through: one surface, one border, one radius,
+// one padding, so a project, a placement, an institution, a certificate, and
+// a skill group read as the same kind of thing in both themes and both
+// directions. With `href` the whole card is the link, and says so on hover
+// by taking the accent on its border; keyboard focus draws the site's ring.
+// `as` names the element otherwise, for a card that is a list item or an
+// article.
+
+import type { HTMLTag } from 'astro/types';
+
+interface Props {
+  href?: string;
+  as?: HTMLTag;
+  class?: string;
+  [attribute: string]: unknown;
+}
+
+const { href, as, class: className, ...rest } = Astro.props as Props;
+const Tag: HTMLTag = href ? 'a' : (as ?? 'div');
+---
+
+<Tag
+  href={href}
+  class:list={[
+    'block rounded-lg border border-border bg-card p-5 sm:p-6',
+    href && 'hover:border-primary motion-safe:transition-colors',
+    className,
+  ]}
+  {...rest}
+>
+  <slot />
+</Tag>
