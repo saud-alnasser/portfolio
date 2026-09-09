@@ -1,0 +1,42 @@
+import { defineConfig, devices } from '@playwright/test';
+
+// The browser tests under tests/ run against a static server of dist/, never
+// the live site, so a pull request is judged on its own build
+// (.aep/efforts/1-portfolio-site/tickets/09-quality-gates.md). Run after
+// `pnpm build`:
+//
+//   pnpm test
+//
+// Every test runs twice, once per colour scheme, because both palettes must
+// meet the contrast criterion and the theme control has to work from either
+// starting point (.aep/efforts/1-portfolio-site/spec.md, criteria 7 and 14).
+
+const port = 4173;
+
+export default defineConfig({
+  testDir: './tests',
+  fullyParallel: true,
+  forbidOnly: !!process.env.CI,
+  retries: 0,
+  reporter: 'list',
+  use: {
+    baseURL: `http://127.0.0.1:${port}`,
+    trace: 'retain-on-failure',
+  },
+  webServer: {
+    command: `node scripts/serve-dist.mjs ${port}`,
+    url: `http://127.0.0.1:${port}/en/`,
+    reuseExistingServer: false,
+    timeout: 10_000,
+  },
+  projects: [
+    {
+      name: 'light',
+      use: { ...devices['Desktop Chrome'], colorScheme: 'light' },
+    },
+    {
+      name: 'dark',
+      use: { ...devices['Desktop Chrome'], colorScheme: 'dark' },
+    },
+  ],
+});

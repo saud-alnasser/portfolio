@@ -1,5 +1,10 @@
 # build output
 dist/
+# test and audit output
+test-results/
+playwright-report/
+.lighthouseci/
+
 # generated types
 .astro/
 
