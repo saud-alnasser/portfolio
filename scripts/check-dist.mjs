@@ -21,6 +21,8 @@ import { identifiersIn } from './identifiers.mjs';
 import { formatPeriod, localeInfo, strings } from '../src/lib/i18n.ts';
 import { gapReport, pick } from '../src/lib/localized.ts';
 import { byStartAscending, byStartDescending } from '../src/lib/order.ts';
+import { joinBase } from '../src/lib/paths.ts';
+import { base, site } from '../astro.config.mjs';
 
 const require = createRequire(import.meta.url);
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
@@ -30,6 +32,12 @@ const context = {
   dist: path.join(root, 'dist'),
   content: path.join(root, 'src', 'content'),
   locales: ['en', 'ar'],
+  // The site's base path with its slash ("/saud-alnasser/", or "/" at the
+  // root) and the full address of the site's root, from astro.config.mjs.
+  // GitHub Pages serves this repository as a project site under the
+  // repository's name, so every address the site publishes is under these.
+  prefix: joinBase(base, '/'),
+  siteRoot: new URL(joinBase(base, '/'), site).href,
 };
 
 class CheckFailure extends Error {
@@ -130,6 +138,14 @@ async function jsonResume() {
       if (described.includes(project.name) && 'url' in project) {
         throw new CheckFailure(name, `${locale}: described project "${project.name}" carries a url key`);
       }
+    }
+
+    if (resume.basics?.url !== context.siteRoot) {
+      throw new CheckFailure(name, `${locale}: basics.url is ${JSON.stringify(resume.basics?.url)}, expected the site's root ${context.siteRoot}`);
+    }
+    const canonical = `${context.siteRoot}${locale}/resume.json`;
+    if (resume.meta?.canonical !== canonical) {
+      throw new CheckFailure(name, `${locale}: meta.canonical is ${JSON.stringify(resume.meta?.canonical)}, expected ${canonical}`);
     }
 
     lines.push(`${locale}/resume.json: valid, ${counts.join(', ')}`);
@@ -332,6 +348,33 @@ async function hrefs() {
   return [`hrefs: ${count} links in ${files.length} pages, none empty or undefined`];
 }
 
+// Every root-relative path the site publishes is under its base path. GitHub
+// Pages serves this repository as a project site under the repository's
+// name, so a link, a stylesheet, a font, or a refresh target written without
+// the base answers 404 there while working in a build served at the root.
+// The base comes from astro.config.mjs; with `base: '/'` the check asks for
+// nothing.
+async function basePaths() {
+  const name = 'base paths';
+  const files = (await walk(context.dist)).filter((file) => ['.html', '.css'].includes(path.extname(file)));
+  let count = 0;
+  for (const file of files) {
+    const text = await readFile(path.join(context.dist, file), 'utf8');
+    const found = [
+      ...[...text.matchAll(/\b(?:href|src)=["'](\/[^"']*)["']/g)].map((match) => match[1]),
+      ...[...text.matchAll(/url\((\/[^)]*)\)/g)].map((match) => match[1]),
+      ...[...text.matchAll(/content=["']\d+;url=(\/[^"']*)["']/g)].map((match) => match[1]),
+    ];
+    for (const value of found) {
+      if (!value.startsWith(context.prefix)) {
+        throw new CheckFailure(name, `dist/${file} refers to ${value}, which is outside the site's base path ${context.prefix}`);
+      }
+    }
+    count += found.length;
+  }
+  return [`base paths: ${count} root-relative paths in ${files.length} files, all under ${context.prefix}`];
+}
+
 // Every page a visitor lands on carries a title, a description, and the
 // Open Graph fields a social preview reads. Titles are unique across the
 // site, since two pages sharing one are one page to a search result.
@@ -383,7 +426,10 @@ async function sitemap() {
 
   const listed = new Set();
   for (const url of sitemaps) {
-    const file = new URL(url).pathname.slice(1);
+    if (!url.startsWith(context.siteRoot)) {
+      throw new CheckFailure(name, `dist/${indexFile} points at ${url}, which is not under the site's root ${context.siteRoot}`);
+    }
+    const file = url.slice(context.siteRoot.length);
     let xml;
     try {
       xml = await readFile(path.join(context.dist, file), 'utf8');
@@ -393,10 +439,9 @@ async function sitemap() {
     for (const location of locations(xml)) listed.add(location);
   }
 
-  const origin = new URL(sitemaps[0]).origin;
   const expected = new Set();
   for (const locale of context.locales) {
-    for (const route of await routes(locale)) expected.add(`${origin}/${locale}${route}`);
+    for (const route of await routes(locale)) expected.add(`${context.siteRoot}${locale}${route}`);
   }
   for (const url of expected) {
     if (!listed.has(url)) throw new CheckFailure(name, `${url} is a page but no sitemap under dist/${indexFile} lists it`);
@@ -435,7 +480,13 @@ async function robots() {
   }
   const disallow = text.split(/\r?\n/).find((line) => /^\s*Disallow:\s*\/\s*$/i.test(line));
   if (disallow) throw new CheckFailure(name, `dist/robots.txt has the line "${disallow.trim()}", which forbids indexing the site`);
-  return ['robots.txt: no "Disallow: /" line'];
+  // The sitemap line must name the sitemap where the site actually publishes
+  // it, under the base path.
+  const sitemapLine = `Sitemap: ${context.siteRoot}sitemap-index.xml`;
+  if (!text.split(/\r?\n/).some((line) => line.trim() === sitemapLine)) {
+    throw new CheckFailure(name, `dist/robots.txt has no line "${sitemapLine}"; the robots.txt endpoint must name the sitemap under the site's base path`);
+  }
+  return [`robots.txt: no "Disallow: /" line, and "${sitemapLine}"`];
 }
 
 // No identifier in anything the site publishes: every HTML, JSON, XML, and
@@ -535,7 +586,7 @@ async function cvHazards() {
   return lines;
 }
 
-const checks = [jsonResume, cvPdf, localeTwins, hrefs, metadata, sitemap, robots, identifiers, gaps, noOverclaim, cvHazards];
+const checks = [jsonResume, cvPdf, localeTwins, hrefs, basePaths, metadata, sitemap, robots, identifiers, gaps, noOverclaim, cvHazards];
 
 for (const check of checks) {
   try {

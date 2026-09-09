@@ -1,4 +1,0 @@
-User-agent: *
-Allow: /
-
-Sitemap: https://saud-alnasser.github.io/sitemap-index.xml

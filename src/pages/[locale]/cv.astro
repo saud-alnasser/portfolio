@@ -3,6 +3,7 @@ import { getCollection, getEntry } from 'astro:content';
 import Base from '../../layouts/Base.astro';
 import { fill, formatDate, formatPeriod, locales, strings, type Locale } from '../../lib/i18n';
 import { localized } from '../../lib/localized';
+import { withBase } from '../../lib/paths';
 import {
   byDateAscending,
   byOrderThenName,
@@ -45,8 +46,8 @@ const projects = (await getCollection('projects', ({ data }) => data.visibility 
 
 // The two downloads for this language. The PDF is written beside dist/ by the
 // render step; the JSON Resume document is the endpoint at resume.json.ts.
-const pdf = `/cv.${locale}.pdf`;
-const json = `/${locale}/resume.json`;
+const pdf = withBase(`/cv.${locale}.pdf`);
+const json = withBase(`/${locale}/resume.json`);
 
 const link = 'text-primary underline underline-offset-4 hover:decoration-2';
 const heading = 'text-xl font-semibold tracking-tight';

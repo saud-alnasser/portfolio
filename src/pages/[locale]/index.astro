@@ -5,6 +5,7 @@ import Skills from '../../components/Skills.astro';
 import { locales, strings, type Locale } from '../../lib/i18n';
 import { localized } from '../../lib/localized';
 import { byOrderThenName } from '../../lib/order';
+import { withBase } from '../../lib/paths';
 
 export function getStaticPaths() {
   return locales.map((l) => ({ params: { locale: l.code } }));
@@ -25,8 +26,8 @@ const location = text('location', profile.data.location);
 const skills = (await getCollection('skills')).sort((a, b) => byOrderThenName(a.data, b.data));
 
 const sections = [
-  { href: `/${locale}/work/`, label: t.nav.work, description: t.home.work },
-  { href: `/${locale}/education/`, label: t.nav.education, description: t.home.education },
+  { href: withBase(`/${locale}/work/`), label: t.nav.work, description: t.home.work },
+  { href: withBase(`/${locale}/education/`), label: t.nav.education, description: t.home.education },
 ];
 ---
 

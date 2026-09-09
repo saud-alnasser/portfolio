@@ -3,9 +3,10 @@
 //
 //   pnpm render:pdf
 //
-// It serves dist/ over a local HTTP server, because the built pages reference
-// their stylesheet and fonts by absolute path and a file URL cannot resolve
-// those, opens /<locale>/cv/ in Playwright's Chromium, waits for the fonts and
+// It serves dist/ over a local HTTP server under the site's base path,
+// because the built pages reference their stylesheet and fonts by absolute
+// path and a file URL cannot resolve those, opens /<locale>/cv/ in
+// Playwright's Chromium, waits for the fonts and
 // the network to settle, and writes dist/cv.<locale>.pdf. Print media is what
 // page.pdf() uses by default, so the print stylesheet in src/styles/global.css
 // is what the PDF shows. Any page that fails to load, any font that fails to
@@ -34,13 +35,13 @@ class RenderFailure extends Error {
 // stylesheet and font request has completed, then the document's font set is
 // awaited and checked, because a face that did not load prints as boxes or in
 // a fallback that does not shape Arabic, and Chromium would not say so.
-async function render(browser, origin, locale) {
+async function render(browser, at, locale) {
   const route = `/${locale}/cv/`;
   const file = path.join(dist, `cv.${locale}.pdf`);
   const page = await browser.newPage();
   let fonts;
   try {
-    const response = await page.goto(origin + route, { waitUntil: 'networkidle' });
+    const response = await page.goto(at(route), { waitUntil: 'networkidle' });
     if (!response || !response.ok()) {
       throw new RenderFailure('page-not-loaded', `${route} answered ${response ? response.status() : 'nothing'}`);
     }
@@ -83,7 +84,7 @@ try {
 const browser = await chromium.launch();
 try {
   for (const locale of locales) {
-    console.log(await render(browser, server.origin, locale));
+    console.log(await render(browser, server.at, locale));
   }
 } catch (error) {
   if (error instanceof RenderFailure) {

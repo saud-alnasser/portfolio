@@ -16,7 +16,7 @@
     "render:pdf": "node scripts/render-pdf.mjs",
     "test": "playwright test",
     "test:content": "node scripts/test-content-mechanism.mjs",
-    "lighthouse": "lhci autorun",
+    "lighthouse": "node scripts/lighthouse.mjs",
     "scan:history": "node scripts/scan-history.mjs",
     "astro": "astro"
   },

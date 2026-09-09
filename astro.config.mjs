@@ -3,6 +3,17 @@ import { defineConfig } from 'astro/config';
 import sitemap from '@astrojs/sitemap';
 import tailwindcss from '@tailwindcss/vite';
 import { gapReport } from './src/lib/localized.ts';
+import { joinBase } from './src/lib/paths.ts';
+
+// The site's address. The repository is saud-alnasser/saud-alnasser, which
+// GitHub Pages serves as a project site under the repository's name, so the
+// site lives at `site` + `base` and every path it publishes is joined to
+// `base` (src/lib/paths.ts). The scripts and the tests import these two values
+// rather than repeating them. A custom domain, if one is ever added, sets
+// `base` to '/' and changes nothing else. The Pages source is set to GitHub
+// Actions once, by hand, in the repository settings (README.md, "Deployment").
+export const site = 'https://saud-alnasser.github.io';
+export const base = '/saud-alnasser';
 
 // Prints the language gap report once the pages are built: every field whose
 // Arabic was missing and rendered its English instead. The pages record the
@@ -33,11 +44,8 @@ const sitemapAlias = {
 
 // https://astro.build/config
 export default defineConfig({
-  // A user site: served at the root of the address, so no `base`. The address
-  // requires the repository to be named `saud-alnasser.github.io`: renaming it
-  // and setting the Pages source are done once, by hand, in the repository
-  // settings (README.md, "Deployment").
-  site: 'https://saud-alnasser.github.io',
+  site,
+  base,
   output: 'static',
 
   // Every page lives under `/en/` or `/ar/`, so the two languages are symmetrical.
@@ -49,11 +57,13 @@ export default defineConfig({
     },
   },
 
-  // The root is a static page carrying a meta refresh to the default language,
-  // since there is no server to redirect. Astro's own i18n redirect for `/` only
-  // runs in server output, so it is declared here.
+  // The root of the site is a static page carrying a meta refresh to the
+  // default language, since there is no server to redirect. Astro's own i18n
+  // redirect for the root only runs in server output, so it is declared here.
+  // The source is read under the base and the target is written as given, so
+  // the target is joined to the base.
   redirects: {
-    '/': '/en/',
+    '/': joinBase(base, '/en/'),
   },
 
   integrations: [sitemap(), localizedGaps, sitemapAlias],

@@ -1,13 +1,6 @@
 {
   "ci": {
     "collect": {
-      "staticDistDir": "./dist",
-      "url": [
-        "http://localhost/en/",
-        "http://localhost/ar/",
-        "http://localhost/en/cv/",
-        "http://localhost/ar/cv/"
-      ],
       "numberOfRuns": 3
     },
     "assert": {

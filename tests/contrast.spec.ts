@@ -1,7 +1,7 @@
 import AxeBuilder from '@axe-core/playwright';
 import { expect, test } from '@playwright/test';
 import { lowContrastPairs } from './contrast';
-import { pages } from './pages';
+import { at, pages } from './pages';
 
 // Every text and background pair meets WCAG AA contrast, in both palettes, on
 // every page. The project decides the colour scheme, so each test runs once
@@ -37,7 +37,7 @@ for (const page of audited) {
     // reason above and nothing else. A page it skips for a new reason fails.
     const ran = results.passes.some((rule) => rule.id === 'color-contrast');
     const skipped = results.inapplicable.some((rule) => rule.id === 'color-contrast');
-    const arabic = page.startsWith('/ar/');
+    const arabic = page.startsWith(at('/ar/'));
     expect(ran || (arabic && skipped), `axe's contrast rule ran on ${page}, or skipped an Arabic page`).toBe(true);
   });
 

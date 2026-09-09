@@ -1,8 +1,10 @@
 import { defineConfig, devices } from '@playwright/test';
+import { base } from './astro.config.mjs';
+import { joinBase } from './src/lib/paths';
 
-// The browser tests under tests/ run against a static server of dist/, never
-// the live site, so a pull request is judged on its own build. Run after
-// `pnpm build`:
+// The browser tests under tests/ run against a static server of dist/, under
+// the site's base path as Pages serves it, never the live site, so a pull
+// request is judged on its own build. Run after `pnpm build`:
 //
 //   pnpm test
 //
@@ -24,7 +26,7 @@ export default defineConfig({
   },
   webServer: {
     command: `node scripts/serve-dist.mjs ${port}`,
-    url: `http://127.0.0.1:${port}/en/`,
+    url: `http://127.0.0.1:${port}${joinBase(base, '/en/')}`,
     reuseExistingServer: false,
     timeout: 10_000,
   },

@@ -8,6 +8,7 @@ import {
   byStartAscending,
   byStartDescending,
 } from './order';
+import { absolute } from './paths';
 
 // The mapper from the content collections to a JSON Resume document for one
 // language. The pages and the CV page read the same collections through the
@@ -121,8 +122,9 @@ function mapSkill(entry: Skill, locale: Locale) {
   });
 }
 
-// The document for one language. `site` is the site's address, from which the
-// document's own canonical address is derived.
+// The document for one language. `site` is Astro.site, the origin the site is
+// served from; the site's own address and the document's canonical address
+// are derived from it under the base path.
 export async function resumeFor(locale: Locale, site: URL) {
   const profile = await getEntry('profile', 'profile');
   if (!profile) throw new Error('resume: the profile entry is missing from src/content/profile.yaml');
@@ -153,7 +155,7 @@ export async function resumeFor(locale: Locale, site: URL) {
       name: text('name', person.name),
       label: text('label', person.label),
       email: person.email,
-      url: site.href,
+      url: absolute('/', site),
       summary: text('summary', person.summary),
       // The content source carries one localized location text, so it goes in
       // `city` as written; there is no separate region or country code to map.
@@ -166,7 +168,7 @@ export async function resumeFor(locale: Locale, site: URL) {
     skills: skills.map((entry) => mapSkill(entry, locale)),
     projects: projects.map((entry) => mapProject(entry, locale)),
     meta: {
-      canonical: new URL(`/${locale}/resume.json`, site).href,
+      canonical: absolute(`/${locale}/resume.json`, site),
       version: schemaVersion,
       // YYYY-MM-DDThh:mm:ss, the form the schema's description names, in UTC.
       lastModified: buildTime.toISOString().slice(0, 19),

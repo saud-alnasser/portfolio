@@ -3,6 +3,7 @@ import '../styles/global.css';
 import { getEntry } from 'astro:content';
 import { localeInfo, otherLocale, strings, type Locale } from '../lib/i18n';
 import { localized } from '../lib/localized';
+import { absolute, withBase } from '../lib/paths';
 
 interface Props {
   locale: Locale;
@@ -23,16 +24,18 @@ const profile = (await getEntry('profile', 'profile'))!;
 const text = localized(locale, 'profile', profile.id);
 const siteName = text('name', profile.data.name);
 
+// The site lives under a base path, so every path here goes through
+// withBase, and every full address through absolute (src/lib/paths.ts).
 const site = Astro.site!;
-const href = (l: Locale) => `/${l}${path}`;
-const home = `/${locale}/`;
-const absolute = (l: Locale) => new URL(href(l), site).href;
+const href = (l: Locale) => withBase(`/${l}${path}`);
+const home = withBase(`/${locale}/`);
+const address = (l: Locale) => absolute(`/${l}${path}`, site);
 
 const nav = [
   { href: home, label: t.nav.home, current: path === '/' },
-  { href: `/${locale}/work/`, label: t.nav.work, current: path === '/work/' },
-  { href: `/${locale}/education/`, label: t.nav.education, current: path === '/education/' },
-  { href: `/${locale}/cv/`, label: t.nav.cv, current: path === '/cv/' },
+  { href: withBase(`/${locale}/work/`), label: t.nav.work, current: path === '/work/' },
+  { href: withBase(`/${locale}/education/`), label: t.nav.education, current: path === '/education/' },
+  { href: withBase(`/${locale}/cv/`), label: t.nav.cv, current: path === '/cv/' },
 ];
 ---
 
@@ -45,16 +48,16 @@ const nav = [
     <meta name="generator" content={Astro.generator} />
     <title>{title}</title>
     <meta name="description" content={description} />
-    <link rel="canonical" href={absolute(locale)} />
-    <link rel="alternate" hreflang={locale} href={absolute(locale)} />
-    <link rel="alternate" hreflang={other} href={absolute(other)} />
-    <link rel="alternate" hreflang="x-default" href={absolute('en')} />
-    <link rel="sitemap" href="/sitemap-index.xml" />
+    <link rel="canonical" href={address(locale)} />
+    <link rel="alternate" hreflang={locale} href={address(locale)} />
+    <link rel="alternate" hreflang={other} href={address(other)} />
+    <link rel="alternate" hreflang="x-default" href={address('en')} />
+    <link rel="sitemap" href={withBase('/sitemap-index.xml')} />
     <meta property="og:type" content="website" />
     <meta property="og:site_name" content={siteName} />
     <meta property="og:title" content={title} />
     <meta property="og:description" content={description} />
-    <meta property="og:url" content={absolute(locale)} />
+    <meta property="og:url" content={address(locale)} />
     <meta property="og:locale" content={ogLocale} />
     <meta property="og:locale:alternate" content={localeInfo(other).ogLocale} />
     <!--

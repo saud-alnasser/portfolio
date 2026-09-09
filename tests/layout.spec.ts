@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test';
-import { pages } from './pages';
+import { at, pages } from './pages';
 
 // The layout on a phone and under reduced motion: no horizontal
 // scrolling at 360 pixels on any page, and nothing animates when the visitor
@@ -40,7 +40,7 @@ test.describe('with reduced motion', () => {
   test.use({ reducedMotion: 'reduce' });
 
   test('nothing animates on /en/', async ({ page }) => {
-    await page.goto('/en/');
+    await page.goto(at('/en/'));
     const animations = await page.evaluate(() =>
       document.getAnimations().map((animation) => {
         const effect = animation.effect as KeyframeEffect | null;
@@ -56,7 +56,7 @@ test.describe('with reduced motion', () => {
     // never existed.
     const context = await browser.newContext({ reducedMotion: 'no-preference', baseURL: test.info().project.use.baseURL });
     const page = await context.newPage();
-    await page.goto('/en/');
+    await page.goto(at('/en/'));
     const count = await page.evaluate(() => document.getAnimations().length);
     await context.close();
     expect(count).toBeGreaterThan(0);
