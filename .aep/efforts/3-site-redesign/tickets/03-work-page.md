@@ -15,7 +15,7 @@ The work page shows the projects as a grid of cards, each with the name, the per
 - [x] Contrast passes in both palettes on `/en/work/` and `/ar/work/`, and the Arabic grid fills from the right (criterion 10). Verified 2026-09-09: `tests/contrast.spec.ts` (axe) passes on both work pages in both palettes; the spec asserts the first Arabic card's box sits at the end side; reviewed by eye at 360 and 1440 in both palettes and languages.
 
 ## Relevant areas
-`src/pages/[locale]/work/index.astro`, `src/components/Project.astro`, `src/components/Experience.astro`, `tests/cards.spec.ts`.
+`src/pages/[locale]/work/index.astro`, `src/components/Project.astro`, `src/components/Experience.astro`, new `tests/work.spec.ts`.
 
 ## Constraints
 - The order of entries is unchanged: `byOrderThenStartDescending` for projects, `byStartDescending` for experience (`src/lib/order.ts`).

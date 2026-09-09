@@ -7,7 +7,6 @@
 // open, so the card is an <article>: neither a link nor a button, and it does
 // not pretend to be one.
 
-import { getImage } from 'astro:assets';
 import type { CollectionEntry } from 'astro:content';
 import Card from './Card.astro';
 import Icon from './Icon.astro';
@@ -20,10 +19,18 @@ interface Props {
 }
 
 // The documents and their previews, read once for the whole build rather than
-// per card: the PDFs as the addresses Vite gives them under _astro/, the
-// previews as image metadata for Astro's image pipeline. Both are keyed by the
-// path the entry's `document` field names, relative to the certificates
-// directory (src/content.config.ts).
+// per card: the PDFs as the addresses Vite gives the files under _astro/, the
+// previews as image metadata, whose address is the committed file under
+// _astro/ and whose width and height let the dialog reserve the image's box
+// before it arrives. Both are keyed by the path the entry's `document` field
+// names, relative to the certificates directory (src/content.config.ts). The
+// preview is served as it was committed, 1600 pixels wide and 19 to 116 KB
+// (scripts/certificate-previews.mjs), which is wider than the dialog is on any
+// viewport and so stays sharp on a dense screen; deriving a smaller copy
+// through Astro's image pipeline made the build emit the original beside it,
+// unreferenced. Nothing on this page loads the preview: the card carries its
+// address and size, and the script sets them on the dialog's <img> when the
+// card is opened.
 const documents = import.meta.glob('../content/certificates/files/*.pdf', {
   query: '?url',
   import: 'default',
@@ -44,15 +51,7 @@ const name = text('name', data.name);
 const key = (relative: string) => `../content/certificates/${relative}`;
 
 const address = data.document ? documents[key(data.document)] : undefined;
-const source = data.document ? previews[key(data.document.replace(/\.pdf$/, '.webp'))] : undefined;
-
-// The dialog shows the preview at 1200 pixels wide, which is wider than the
-// dialog is on any viewport and so stays sharp on a dense screen. Nothing on
-// this page loads it: the image is generated here for its address, and the
-// script sets that address on the dialog's <img> when the card is opened.
-const width = source ? Math.min(1200, source.width) : 0;
-const height = source ? Math.round((source.height * width) / source.width) : 0;
-const preview = source ? await getImage({ src: source, width, format: 'webp' }) : undefined;
+const preview = data.document ? previews[key(data.document.replace(/\.pdf$/, '.webp'))] : undefined;
 
 // What the dialog says the image is, and what a screen reader hears in place
 // of it: the certificate and who issued it.
@@ -66,8 +65,8 @@ const caption = `${name}${t.listSeparator}${data.issuer}`;
   data-entry="certificate"
   data-document={address}
   data-preview={preview?.src}
-  data-preview-width={preview ? String(width) : undefined}
-  data-preview-height={preview ? String(height) : undefined}
+  data-preview-width={preview ? String(preview.width) : undefined}
+  data-preview-height={preview ? String(preview.height) : undefined}
   data-caption={address ? caption : undefined}
 >
   <div class="flex h-full flex-col">

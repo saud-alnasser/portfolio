@@ -27,7 +27,7 @@ pnpm build        # writes dist/
 pnpm render:pdf   # writes dist/cv.en.pdf and dist/cv.ar.pdf (needs Playwright's Chromium)
 pnpm check:dist   # the checks CI runs over dist/
 pnpm test         # the Playwright tests, against a static server of dist/
-pnpm test:content # adds a temporary project, rebuilds, and checks it shows everywhere
+pnpm test:content # adds a temporary project and a temporary certificate, rebuilds, and checks each shows everywhere it should
 pnpm lighthouse   # Lighthouse on the home and CV pages, mobile profile
 pnpm check:live <address>  # asks a served site for its pages and downloads; the deploy job runs it last
 pnpm readme       # rewrites the profile block of README.md from src/content/ and the config

@@ -15,7 +15,7 @@ The education page's timeline holds the institutions as cards, each with the per
 - [x] Contrast passes in both palettes on `/en/education/` and `/ar/education/`; the page has no horizontal scroll at 360 (criterion 10, criterion 11). Verified 2026-09-09: `tests/contrast.spec.ts` (axe) passes on both education pages in both palettes, the spec runs axe again with the fold open, and asserts no horizontal scroll at 360 with the fold open; passing. `pnpm check:dist` passes including no overclaim.
 
 ## Relevant areas
-`src/pages/[locale]/education/index.astro`, `src/components/Education.astro`, `src/lib/i18n.ts` for the node's strings, `tests/cards.spec.ts`.
+`src/pages/[locale]/education/index.astro`, `src/components/Education.astro`, `src/lib/i18n.ts` for the node's strings, new `tests/education.spec.ts`.
 
 ## Constraints
 - The placement rule from ticket 12 of the first effort stays as `src/content/README.md` describes it; only what is placed changes, from the certificates to their node.

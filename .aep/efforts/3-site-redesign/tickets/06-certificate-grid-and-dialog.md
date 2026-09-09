@@ -19,7 +19,7 @@ Below the timeline, under the `#certificates` heading, the certificates render a
 `src/pages/[locale]/education/index.astro`, `src/components/Certificate.astro`, new `src/components/CertificateDialog.astro`, `src/layouts/Base.astro` for the dialog handler in the inline script, `src/lib/i18n.ts`, new `tests/certificates.spec.ts`.
 
 ## Constraints
-- The plan's "Interfaces" fix the globs, the `getImage()` call, the data attributes, and the dialog as a child of `body`, outside `main`.
+- The plan's "Interfaces" fix the two globs, the preview served as committed (a derived copy through `getImage()` was dropped in review), the data attributes, and the dialog as a child of `body`, outside `main`.
 - The `certificate.view` string is replaced by `certificate.open`.
 
 ## Notes

@@ -132,7 +132,9 @@ checks that both files exist for every entry that names a `document`, so a
 PDF added without its preview fails the build until the command has run. A
 document is scanned for identifiers before it is published, the same way the
 CV PDF is; one that carries a national or student identifier is not added
-until it is redacted.
+until it is redacted. A scanned certificate has no text layer for that scan to
+read, so such a document is read by eye for identifiers before it is added,
+and the dist check reports how many documents it could read.
 
 ## `skills/`
 

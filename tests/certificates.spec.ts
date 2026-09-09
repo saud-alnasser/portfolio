@@ -107,6 +107,16 @@ for (const locale of locales) {
       await expect(page.locator(dialog)).toHaveAttribute('open', '');
       await expect(page.locator(`${dialog} ${image}`)).toHaveAttribute('src', expected.preview!);
       await expect(page.locator(`${dialog} ${image}`)).toHaveAttribute('alt', expected.caption!);
+      // The preview is a real file that arrives, not only an address, and the
+      // dialog reserved its box before it did: the image's size attributes are
+      // the card's, so the dialog does not grow when the file lands.
+      await expect
+        .poll(() => page.locator(`${dialog} ${image}`).evaluate((node) => (node as HTMLImageElement).naturalWidth), {
+          message: `the preview of ${url} loads`,
+        })
+        .toBeGreaterThan(0);
+      await expect(page.locator(`${dialog} ${image}`)).toHaveAttribute('width', (await card.getAttribute('data-preview-width'))!);
+      await expect(page.locator(`${dialog} ${image}`)).toHaveAttribute('height', (await card.getAttribute('data-preview-height'))!);
       await expect(page.locator(`${dialog} ${link}`)).toHaveAttribute('href', expected.document!);
       await expect(page.locator(`${dialog} ${link}`)).toContainText(strings[locale].certificate.document);
       await expect(page.locator(`${dialog} ${caption}`)).toHaveText(expected.caption!);

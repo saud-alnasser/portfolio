@@ -16,7 +16,7 @@ The home page opens with the name, the label, and the summary; the contact detai
 - [x] Lighthouse stays at 90 or above on `/en/` and `/ar/`; contrast passes in both palettes; the Arabic page mirrors the grid (criterion 10, criterion 11). Verified 2026-09-09: Lighthouse mobile through its Node API with the runner's configuration, `/en/` 100/100/96 and `/ar/` 92/100/96 (the `pnpm lighthouse` runner dies in chrome-launcher's temp cleanup on this machine after the audit); `tests/contrast.spec.ts` passes in both palettes; the spec asserts the first Arabic card sits at the end side.
 
 ## Relevant areas
-`src/pages/[locale]/index.astro`, `src/components/Skills.astro`, new `src/components/SectionCard.astro`, `src/lib/i18n.ts` for the count strings, new `tests/cards.spec.ts` (shared with tickets 03 and 04).
+`src/pages/[locale]/index.astro`, `src/components/Skills.astro`, new `src/components/SectionCard.astro`, `src/lib/i18n.ts` for the count strings, new `tests/home.spec.ts` (the plan named one `tests/cards.spec.ts` for tickets 02 to 04; it was split per page at dispatch).
 
 ## Constraints
 - Counts are computed from `getCollection` with the same visibility filter the pages use; never typed.

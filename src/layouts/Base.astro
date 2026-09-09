@@ -108,12 +108,14 @@ const nav = [
         // Turns a click on a certificate card into the page's dialog: the
         // preview, the caption, and the address the card carries. Without
         // this the card is the link to its PDF it already is, which is why a
-        // modified click (a new tab, a download) is left alone. Escape and
-        // the focus trap are the dialog's own; the close returns focus to the
+        // modified click (a new tab, a download) is left alone, and why a
+        // browser whose dialog cannot open modally is left alone too: the
+        // link is cancelled only where the dialog will open. Escape and the
+        // focus trap are the dialog's own; the close returns focus to the
         // card that opened it.
         function certificates() {
           var dialog = document.querySelector('[data-certificate-dialog]');
-          if (!dialog) return;
+          if (!dialog || typeof dialog.showModal !== 'function') return;
           var image = dialog.querySelector('[data-certificate-image]');
           var caption = dialog.querySelector('[data-certificate-caption]');
           var link = dialog.querySelector('[data-certificate-link]');
@@ -124,9 +126,11 @@ const nav = [
             var card = event.target.closest ? event.target.closest('[data-document]') : null;
             if (!card) return;
             event.preventDefault();
-            image.setAttribute('src', card.getAttribute('data-preview'));
+            // The size first, so the dialog opens at the box the image will
+            // fill rather than growing when it arrives.
             image.setAttribute('width', card.getAttribute('data-preview-width'));
             image.setAttribute('height', card.getAttribute('data-preview-height'));
+            image.setAttribute('src', card.getAttribute('data-preview'));
             image.setAttribute('alt', card.getAttribute('data-caption'));
             caption.textContent = card.getAttribute('data-caption');
             link.setAttribute('href', card.getAttribute('data-document'));

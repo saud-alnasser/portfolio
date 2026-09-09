@@ -1,24 +1,31 @@
 // The mechanism behind "one source of content": a project added to
 // src/content/projects/ appears on the work page, the CV page, and
 // resume.json in both languages, with no change to any file outside the
-// content source, and disappears again when removed.
+// content source, and disappears again when removed. A certificate added to
+// src/content/certificates/ does the same on the education page, the CV page,
+// and resume.json.
 //
 //   pnpm test:content
 //
-// The script writes a fixture project, builds, asserts the fixture's name is
-// in exactly the six outputs and nowhere else in dist/, removes the fixture,
-// builds again, and asserts the name is gone. At every step `git status` is
-// compared with what it showed at the start: nothing outside src/content/
-// may differ during the run, and nothing at all may differ at the end. In CI
-// the tree starts clean, so that is the literal assertion; on a developer's
-// machine it tolerates their own uncommitted work while still catching a
-// build that writes outside dist/.
+// The script writes a fixture project and a fixture certificate, builds,
+// asserts each fixture's name is in exactly its six outputs and nowhere else
+// in dist/, removes the fixtures, builds again, and asserts the names are
+// gone. At every step `git status` is compared with what it showed at the
+// start: nothing outside src/content/ may differ during the run, and nothing
+// at all may differ at the end. In CI the tree starts clean, so that is the
+// literal assertion; on a developer's machine it tolerates their own
+// uncommitted work while still catching a build that writes outside dist/.
 //
-// The fixture name starts with `fixture-`, as src/content/README.md reserves for
-// placeholders, and carries a suffix no real entry would. `render:pdf` is not
+// The fixture certificate names no document, so its card on the education
+// page has nothing to open and must be neither a link nor a button. Every
+// real certificate carries its document, so this is the one place that card
+// is rendered and checked.
+//
+// The fixture names start with `fixture-`, as src/content/README.md reserves for
+// placeholders, and carry a suffix no real entry would. `render:pdf` is not
 // run: the PDF is rendered from the CV page this script already asserts on.
 // Exits non-zero with a named reason on the first failure, and removes the
-// fixture whatever happens.
+// fixtures whatever happens.
 
 import { execFile } from 'node:child_process';
 import { readdir, readFile, rm, stat, writeFile } from 'node:fs/promises';
@@ -31,11 +38,17 @@ const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const dist = path.join(root, 'dist');
 const contentDir = 'src/content/';
 
-const fixtureName = 'fixture-mechanism-probe-4f9c2e';
-const fixtureFile = path.join(root, contentDir, 'projects', `${fixtureName}.yaml`);
-const fixture = `# Written by scripts/test-content-mechanism.mjs and removed by it. If this
+// Each fixture: its name, the file it is written to, what is written, and
+// where the name must appear. The two names share no prefix beyond
+// `fixture-`, so a search for one never finds the other.
+const project = {
+  name: 'fixture-mechanism-probe-4f9c2e',
+  file: path.join(root, contentDir, 'projects', 'fixture-mechanism-probe-4f9c2e.yaml'),
+  outputs: ['en/work/index.html', 'ar/work/index.html', 'en/cv/index.html', 'ar/cv/index.html', 'en/resume.json', 'ar/resume.json'],
+};
+project.text = `# Written by scripts/test-content-mechanism.mjs and removed by it. If this
 # file is in the tree, that script was interrupted; delete it.
-name: "${fixtureName}"
+name: "${project.name}"
 period:
   start: "2026-01"
   end: "2026-02"
@@ -48,13 +61,24 @@ summary:
 technologies:
   - "Fixture"
 links:
-  repository: https://example.invalid/${fixtureName}
+  repository: https://example.invalid/${project.name}
 visibility: public
 `;
 
-// Where the name must appear: the work page, the CV page, and the JSON Resume
-// document, in each language.
-const outputs = ['en/work/index.html', 'ar/work/index.html', 'en/cv/index.html', 'ar/cv/index.html', 'en/resume.json', 'ar/resume.json'];
+const certificate = {
+  name: 'fixture-certificate-without-document-7b1d0a',
+  file: path.join(root, contentDir, 'certificates', 'fixture-certificate-without-document-7b1d0a.yaml'),
+  outputs: ['en/education/index.html', 'ar/education/index.html', 'en/cv/index.html', 'ar/cv/index.html', 'en/resume.json', 'ar/resume.json'],
+};
+certificate.text = `# Written by scripts/test-content-mechanism.mjs and removed by it. If this
+# file is in the tree, that script was interrupted; delete it.
+name:
+  en: "${certificate.name}"
+  ar: "${certificate.name}"
+issuer: "Fixture issuer"
+`;
+
+const fixtures = [project, certificate];
 
 class Failure extends Error {
   constructor(reason, message) {
@@ -108,14 +132,14 @@ async function build(step) {
   }
 }
 
-// Every file under dist/ whose text mentions the fixture name.
-async function mentions() {
+// Every file under dist/ whose text mentions a name.
+async function mentions(name) {
   const found = [];
   const walk = async (directory) => {
     for (const entry of await readdir(directory, { withFileTypes: true })) {
       const file = path.join(directory, entry.name);
       if (entry.isDirectory()) await walk(file);
-      else if (/\.(html|json|xml|txt|js|css)$/.test(entry.name) && (await readFile(file, 'utf8')).includes(fixtureName)) {
+      else if (/\.(html|json|xml|txt|js|css)$/.test(entry.name) && (await readFile(file, 'utf8')).includes(name)) {
         found.push(path.relative(dist, file).split(path.sep).join('/'));
       }
     }
@@ -124,59 +148,87 @@ async function mentions() {
   return found.sort();
 }
 
-async function assertPresent() {
-  const found = await mentions();
-  for (const output of outputs) {
-    if (!found.includes(output)) throw new Failure('fixture-missing', `dist/${output} does not mention "${fixtureName}" after the build`);
+async function assertPresent(fixture) {
+  const found = await mentions(fixture.name);
+  for (const output of fixture.outputs) {
+    if (!found.includes(output)) throw new Failure('fixture-missing', `dist/${output} does not mention "${fixture.name}" after the build`);
   }
-  const elsewhere = found.filter((file) => !outputs.includes(file));
+  const elsewhere = found.filter((file) => !fixture.outputs.includes(file));
   if (elsewhere.length > 0) {
-    throw new Failure('fixture-leaked', `"${fixtureName}" also appears in ${elsewhere.map((file) => `dist/${file}`).join(', ')}, outside the three outputs`);
+    throw new Failure('fixture-leaked', `"${fixture.name}" also appears in ${elsewhere.map((file) => `dist/${file}`).join(', ')}, outside its six outputs`);
   }
-  for (const locale of ['en', 'ar']) {
-    const resume = JSON.parse(await readFile(path.join(dist, locale, 'resume.json'), 'utf8'));
-    const project = (resume.projects ?? []).find((entry) => entry.name === fixtureName);
-    if (!project) throw new Failure('fixture-missing', `dist/${locale}/resume.json has no project named "${fixtureName}"`);
-    if (project.url !== `https://example.invalid/${fixtureName}`) {
-      throw new Failure('fixture-wrong', `dist/${locale}/resume.json: the fixture's url is ${JSON.stringify(project.url)}, expected the repository link`);
-    }
-  }
-  console.log(`present: "${fixtureName}" in ${outputs.map((file) => `dist/${file}`).join(', ')} and nowhere else`);
+  console.log(`present: "${fixture.name}" in ${fixture.outputs.map((file) => `dist/${file}`).join(', ')} and nowhere else`);
 }
 
-async function assertAbsent() {
-  const found = await mentions();
-  if (found.length > 0) {
-    throw new Failure('fixture-remains', `"${fixtureName}" is still in ${found.map((file) => `dist/${file}`).join(', ')} after its removal`);
+// The project's link reaches the JSON Resume document as its url.
+async function assertProjectLinked() {
+  for (const locale of ['en', 'ar']) {
+    const resume = JSON.parse(await readFile(path.join(dist, locale, 'resume.json'), 'utf8'));
+    const entry = (resume.projects ?? []).find((item) => item.name === project.name);
+    if (!entry) throw new Failure('fixture-missing', `dist/${locale}/resume.json has no project named "${project.name}"`);
+    if (entry.url !== `https://example.invalid/${project.name}`) {
+      throw new Failure('fixture-wrong', `dist/${locale}/resume.json: the fixture's url is ${JSON.stringify(entry.url)}, expected the repository link`);
+    }
   }
-  console.log(`absent: "${fixtureName}" is in no file under dist/`);
+}
+
+// The certificate's card on the education page is neither a link nor a
+// button and carries no document, because the entry names none. The card is
+// the nearest element before the name that is marked as a certificate entry;
+// its opening tag says what it is.
+async function assertCardUnopenable() {
+  for (const locale of ['en', 'ar']) {
+    const file = `${locale}/education/index.html`;
+    const html = await readFile(path.join(dist, file), 'utf8');
+    const at = html.indexOf(certificate.name);
+    const marker = html.lastIndexOf('data-entry="certificate"', at);
+    if (at === -1 || marker === -1) throw new Failure('fixture-missing', `dist/${file} has no certificate card named "${certificate.name}"`);
+    const tag = html.slice(html.lastIndexOf('<', marker), html.indexOf('>', marker) + 1);
+    const element = /^<([a-z0-9-]+)/i.exec(tag)?.[1]?.toLowerCase();
+    if (element === 'a' || element === 'button' || /\s(href|data-document|data-preview)=/.test(tag)) {
+      throw new Failure('card-opens-nothing', `dist/${file}: the card for "${certificate.name}", which names no document, is ${tag}; expected neither a link nor a button`);
+    }
+    console.log(`unopenable: dist/${file} renders "${certificate.name}" as <${element}> with no link and no document`);
+  }
+}
+
+async function assertAbsent(fixture) {
+  const found = await mentions(fixture.name);
+  if (found.length > 0) {
+    throw new Failure('fixture-remains', `"${fixture.name}" is still in ${found.map((file) => `dist/${file}`).join(', ')} after its removal`);
+  }
+  console.log(`absent: "${fixture.name}" is in no file under dist/`);
 }
 
 try {
-  try {
-    await stat(fixtureFile);
-    throw new Failure('fixture-exists', `${path.relative(root, fixtureFile)} already exists; a previous run was interrupted, delete it`);
-  } catch (error) {
-    if (error instanceof Failure) throw error;
+  for (const fixture of fixtures) {
+    try {
+      await stat(fixture.file);
+      throw new Failure('fixture-exists', `${path.relative(root, fixture.file)} already exists; a previous run was interrupted, delete it`);
+    } catch (error) {
+      if (error instanceof Failure) throw error;
+    }
   }
 
   const baseline = await gitStatus();
   if (baseline.length > 0) console.log(`baseline: git status shows ${baseline.length} uncommitted path(s); the run must leave them as they are`);
 
   try {
-    await writeFile(fixtureFile, fixture, 'utf8');
-    await assertTreeUntouched('after writing the fixture', baseline, { allowContent: true });
-    await build('with the fixture');
-    await assertTreeUntouched('after the build with the fixture', baseline, { allowContent: true });
-    await assertPresent();
+    for (const fixture of fixtures) await writeFile(fixture.file, fixture.text, 'utf8');
+    await assertTreeUntouched('after writing the fixtures', baseline, { allowContent: true });
+    await build('with the fixtures');
+    await assertTreeUntouched('after the build with the fixtures', baseline, { allowContent: true });
+    for (const fixture of fixtures) await assertPresent(fixture);
+    await assertProjectLinked();
+    await assertCardUnopenable();
   } finally {
-    await rm(fixtureFile, { force: true });
+    for (const fixture of fixtures) await rm(fixture.file, { force: true });
   }
 
-  await assertTreeUntouched('after removing the fixture', baseline, { allowContent: false });
-  await build('without the fixture');
-  await assertTreeUntouched('after the build without the fixture', baseline, { allowContent: false });
-  await assertAbsent();
+  await assertTreeUntouched('after removing the fixtures', baseline, { allowContent: false });
+  await build('without the fixtures');
+  await assertTreeUntouched('after the build without the fixtures', baseline, { allowContent: false });
+  for (const fixture of fixtures) await assertAbsent(fixture);
   console.log('test-content-mechanism: passed');
 } catch (error) {
   if (error instanceof Failure) {

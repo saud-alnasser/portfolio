@@ -552,6 +552,14 @@ async function robots() {
 // No identifier in anything the site publishes: every HTML, JSON, XML, and
 // text file under dist/, and the text of each PDF where pdftotext is on the
 // PATH. The patterns are scripts/identifiers.mjs.
+//
+// A PDF that is a scanned image has no text layer, so extraction yields
+// nothing and the patterns have nothing to match; most of the course
+// certificates are of that kind. The line says how many PDFs held text, so a
+// green run never reads as a scan of documents it could not read. What is
+// done about those documents is the content README's to say
+// (src/content/README.md, "The certificate documents"); this check only
+// reports that it could not read them.
 async function identifiers() {
   const name = 'identifiers';
   const textual = ['.html', '.json', '.xml', '.txt'];
@@ -563,15 +571,25 @@ async function identifiers() {
   }
   const pdfs = (await walk(context.dist)).filter((file) => file.endsWith('.pdf'));
   let extracted = 0;
+  let withText = 0;
   for (const file of pdfs) {
     const text = await extractText(path.join(context.dist, file));
     if (text === null) break;
     extracted += 1;
+    if (text.trim().length > 0) withText += 1;
     const found = identifiersIn(text);
     if (found.length > 0) throw new CheckFailure(name, `the text of dist/${file} matches the pattern of a ${found.join(' and a ')}`);
   }
-  const pdfNote =
-    pdfs.length === 0 ? '' : extracted === pdfs.length ? ` and the text of ${pdfs.length} PDFs` : ` (pdftotext is not on the PATH, so ${pdfs.length} PDFs were not read)`;
+  let pdfNote = '';
+  if (pdfs.length > 0 && extracted < pdfs.length) {
+    pdfNote = ` (pdftotext is not on the PATH, so ${pdfs.length} PDFs were not read)`;
+  } else if (pdfs.length > 0) {
+    const imageOnly = pdfs.length - withText;
+    pdfNote =
+      imageOnly === 0
+        ? ` and the text of ${pdfs.length} PDFs`
+        : ` and the text of ${withText} of ${pdfs.length} PDFs; ${imageOnly} hold no text layer this scan can read`;
+  }
   return [`identifiers: no pattern matches in ${files.length} text files${pdfNote}`];
 }
 

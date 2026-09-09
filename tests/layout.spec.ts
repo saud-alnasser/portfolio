@@ -46,17 +46,21 @@ test.describe('at 1440 pixels wide', () => {
 test.describe('with reduced motion', () => {
   test.use({ reducedMotion: 'reduce' });
 
-  test('nothing animates on /en/', async ({ page }) => {
-    await page.goto(at('/en/'));
-    const animations = await page.evaluate(() =>
-      document.getAnimations().map((animation) => {
-        const effect = animation.effect as KeyframeEffect | null;
-        const target = effect?.target as Element | null;
-        return `${target?.tagName.toLowerCase() ?? '?'}: ${(animation as CSSAnimation).animationName ?? animation.id}`;
-      }),
-    );
-    expect(animations).toEqual([]);
-  });
+  // Every page, because the reveal runs on every page's main and a card page
+  // carries transitions of its own.
+  for (const path of pages) {
+    test(`nothing animates on ${path}`, async ({ page }) => {
+      await page.goto(path);
+      const animations = await page.evaluate(() =>
+        document.getAnimations().map((animation) => {
+          const effect = animation.effect as KeyframeEffect | null;
+          const target = effect?.target as Element | null;
+          return `${target?.tagName.toLowerCase() ?? '?'}: ${(animation as CSSAnimation).animationName ?? animation.id}`;
+        }),
+      );
+      expect(animations, `animations on ${path}`).toEqual([]);
+    });
+  }
 
   test('the reveal runs when motion is not reduced', async ({ browser }) => {
     // The opposite case, so the test above cannot pass because the animation

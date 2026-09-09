@@ -90,7 +90,7 @@ Start at [[protocol]].
 | Effort | Status | Spec | Research | Prototypes | Tickets |
 | --- | --- | --- | --- | --- | --- |
 | 1-portfolio-site | implemented | [[efforts/1-portfolio-site/spec]] | 6 | 0 | 15 |
-| 3-site-redesign | accepted | [[efforts/3-site-redesign/spec]] | 0 | 1 | 8 |
+| 3-site-redesign | implemented | [[efforts/3-site-redesign/spec]] | 0 | 1 | 8 |
 
 ## Tickets
 
