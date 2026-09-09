@@ -1,7 +1,7 @@
 import { expect, test } from '@playwright/test';
 import { background, control, storageKey } from './pages';
 
-// The themes (criterion 14): the page follows the system preference, the
+// The themes: the page follows the system preference, the
 // control overrides it, a reload keeps the choice, and print is always light.
 
 const rootBackground = () =>
@@ -9,7 +9,7 @@ const rootBackground = () =>
 
 test('the page follows the system preference with nothing stored', async ({ page, colorScheme }) => {
   await page.goto('/en/');
-  expect(await page.evaluate(() => localStorage.getItem('theme'))).toBeNull();
+  expect(await page.evaluate((key) => localStorage.getItem(key), storageKey)).toBeNull();
   expect(await page.evaluate(rootBackground)).toBe(background[colorScheme === 'dark' ? 'dark' : 'light']);
 });
 

@@ -10,9 +10,12 @@ interface Ordered {
 }
 
 // ISO dates of the form YYYY, YYYY-MM, or YYYY-MM-DD compare correctly as
-// text once padded to the same length, and a shorter one sorts as its start.
-function key(date: string): string {
-  return date.padEnd(10, '0');
+// text once completed to a full date, and a shorter one sorts as its start:
+// 2023 becomes 2023-01-01, so it sorts before 2023-09 rather than after it.
+// A bare year arrives as a number from a YAML parser, so it is stringified.
+function key(date: string | number): string {
+  const text = String(date);
+  return text.length === 4 ? `${text}-01-01` : text.length === 7 ? `${text}-01` : text;
 }
 
 export function byStartAscending<T extends Dated>(a: T, b: T): number {

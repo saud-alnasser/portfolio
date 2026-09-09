@@ -3,8 +3,8 @@
 /*
  * The one web font: Noto Naskh Arabic, bundled under public/fonts/ with its
  * licence beside it, so the Arabic CV shapes the same in the PDF that CI
- * renders (.aep/efforts/1-portfolio-site/plan.md, "Technical Risks") as on a
- * visitor's screen. The unicode-range keeps it to the Arabic blocks: Latin
+ * renders as on a visitor's screen. The unicode-range keeps it to the
+ * Arabic blocks: Latin
  * letters and digits stay in the system stack, and a page with no Arabic
  * text never requests the files.
  */
@@ -28,8 +28,7 @@
 
 /*
  * The palette, in shadcn's variable names so its components could be adopted
- * later without restyling (.aep/efforts/1-portfolio-site/plan.md, "Styling,
- * motion, and components").
+ * later without restyling.
  *
  * Each token is written once, as light-dark(light, dark). Which side applies
  * follows `color-scheme`: the system preference by default, and a data-theme
@@ -149,8 +148,8 @@
 }
 
 /*
- * The print stylesheet: the CV page on paper, and the PDF that ticket 08
- * renders from it. The palette side is above with the theme rules, where print
+ * The print stylesheet: the CV page on paper, and the PDF the render step
+ * writes from it. The palette side is above with the theme rules, where print
  * forces `color-scheme: light` whatever the visitor stored. No page size is
  * set, so A4 and Letter both take these margins and the one column reflows.
  */

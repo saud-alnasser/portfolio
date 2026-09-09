@@ -19,7 +19,6 @@ import {
 // `language` under `meta`) live inside section entries or inside `meta`, never
 // at the top level: every 1.x schema permits them there, and the v1.0.0
 // document that the project's own samples still cite forbids them at the root.
-// See .aep/efforts/1-portfolio-site/evidence/research/json-resume-schema.md.
 
 // The schema this document is written against. The property set is 1.3.1's,
 // published from the monorepo; the archived repository's v1.0.0 URL, which the

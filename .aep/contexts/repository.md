@@ -40,7 +40,7 @@ Decided so far:
 | `src/lib/` | UI strings per locale (`i18n.ts`), the language fallback and its gap report (`localized.ts`), the entry ordering (`order.ts`), the JSON Resume mapper (`resume.ts`) |
 | `src/styles/` | the one global stylesheet: Tailwind, the palette tokens for both themes, the print rules, the Arabic font faces |
 | `public/` | files served as they are: `robots.txt`, the bundled Arabic font and its licence |
-| `scripts/` | what runs after the build: the PDF render, the dist checks, the content mechanism test, the history scan, the static server the tests use |
+| `scripts/` | what runs after the build: the PDF render, the dist checks, the content mechanism test, the history scan, the static server the tests and the PDF render use |
 | `tests/` | the Playwright tests over the built site |
 | `AGENTS.md` | the entrypoint |
 

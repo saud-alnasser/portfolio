@@ -11,9 +11,9 @@ import {
   byStartDescending,
 } from '../../lib/order';
 
-// The CV a person reads, one page per language, and the page ticket 08 renders
-// to /cv.<locale>.pdf. It is laid out for resume parsers as much as for eyes
-// (.aep/efforts/1-portfolio-site/evidence/research/ats-parsing-and-resume-schemas.md):
+// The CV a person reads, one page per language, and the page the render step
+// writes to /cv.<locale>.pdf. It is laid out for resume parsers as much as
+// for eyes, following what applicant tracking systems document as hazards:
 // one column in reading order, the contact details in the flow of the
 // document, real text everywhere, headings for the sections parsers look for,
 // and no table, image, text box, or positioned header or footer. The print

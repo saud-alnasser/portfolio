@@ -1,10 +1,11 @@
 import AxeBuilder from '@axe-core/playwright';
 import { expect, test } from '@playwright/test';
 import { lowContrastPairs } from './contrast';
+import { pages } from './pages';
 
-// Every text and background pair meets WCAG AA contrast, in both palettes
-// (criterion 7, criterion 14). The project decides the colour scheme, so each
-// test runs once per palette.
+// Every text and background pair meets WCAG AA contrast, in both palettes, on
+// every page. The project decides the colour scheme, so each test runs once
+// per palette.
 //
 // Two measurements, because one is not enough. axe runs the whole WCAG 2 A
 // and AA rule set, contrast included. On the Arabic pages, though, axe's
@@ -18,7 +19,7 @@ import { lowContrastPairs } from './contrast';
 // measurement is what asserts the Arabic pages; axe is what asserts the
 // English ones twice over.
 
-const audited = ['/en/', '/ar/', '/en/cv/'];
+const audited = pages;
 
 for (const page of audited) {
   test(`axe finds no violation on ${page}`, async ({ page: browser, colorScheme }) => {

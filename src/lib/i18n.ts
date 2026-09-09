@@ -1,7 +1,7 @@
 // Every string the interface shows, in both languages, keyed by locale. Content
 // (names, summaries, dates) comes from src/content/; this file holds only the
 // chrome around it: navigation labels, headings, status wordings, control
-// labels. Ticket 10 reviews the Arabic here without touching a template.
+// labels. The Arabic is reviewed here without touching a template.
 //
 // Exports other pages and endpoints rely on:
 //   Locale                  'en' | 'ar'
@@ -118,8 +118,8 @@ const en = {
 
 export type Strings = typeof en;
 
-// Drafted by an agent and awaiting Saud's review in ticket 10. Nothing here is
-// published before he has read it.
+// Drafted by an agent and awaiting Saud's review. Nothing here is published
+// before he has read it.
 const ar: Strings = {
   skipToContent: 'انتقل إلى المحتوى',
   nav: {
@@ -212,8 +212,10 @@ const dateLocale: Record<Locale, string> = {
   ar: 'ar-SA-u-ca-gregory-nu-latn',
 };
 
-export function formatDate(locale: Locale, iso: string): string {
-  const parts = iso.split('-').map(Number);
+export function formatDate(locale: Locale, iso: string | number): string {
+  // A bare year read straight from YAML is a number; the content contract
+  // stringifies it, but a caller outside the build may not have.
+  const parts = String(iso).split('-').map(Number);
   const [year, month, day] = parts;
   const date = new Date(Date.UTC(year!, (month ?? 1) - 1, day ?? 1));
   const options: Intl.DateTimeFormatOptions =

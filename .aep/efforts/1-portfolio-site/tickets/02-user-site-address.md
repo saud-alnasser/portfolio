@@ -23,3 +23,5 @@ GitHub repository settings (name, Pages), the local remotes, and the three AEP a
 
 ## Notes
 The plan's operational considerations. This ticket is small and gated on a human act; it can be parked without blocking anything but the live-address checks in later tickets.
+
+Parked on 2026-09-08 and 2026-09-09 while every other ticket was built: the rename and the Pages setting are Saud's. `README.md` already describes the repository as `saud-alnasser.github.io`, because Saud asked for that wording on 2026-09-09 ("write readme as if this repo will be renamed"); the standards review noted the README runs ahead of the rename, and that is accepted by him. The third criterion's list of artifacts to correct is now `.aep/references/github.md`, `.aep/rules/version-control.md`, and `.aep/contexts/repository.md`, which name the old repository on purpose until this ticket lands.

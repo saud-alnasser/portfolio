@@ -48,17 +48,24 @@ async function visibleEntries(collection) {
   const entries = [];
   for (const file of files) {
     const text = await readFile(path.join(dir, file), 'utf8');
-    const visibility = text.match(/^visibility:\s*(\S+)\s*$/m)?.[1];
+    const visibility = scalar(text, 'visibility');
     if (visibility === 'hidden') continue;
     entries.push({ file, text, visibility });
   }
   return entries;
 }
 
+// A top-level scalar of a YAML file, with any surrounding quotes removed, so
+// `name: "Mudaraj"` and `name: Mudaraj` read the same.
+function scalar(text, key) {
+  const value = text.match(new RegExp(`^${key}:\\s*(.+?)\\s*$`, 'm'))?.[1];
+  return value?.replace(/^(["'])(.*)\1$/, '$2');
+}
+
 // The `name:` of a project file, which is authored once and so is the same in
 // every language's document.
 function projectName(text) {
-  return text.match(/^name:\s*(.+?)\s*$/m)?.[1];
+  return scalar(text, 'name');
 }
 
 async function readJson(file) {
@@ -152,10 +159,9 @@ async function extractText(file) {
 }
 
 // The PDFs the render step writes: one per language, present, small enough to
-// attach to an application, and the English one yielding the lines criterion 5
-// names, in reading order (.aep/efforts/1-portfolio-site/spec.md). The Arabic
-// PDF is checked by eye, because right-to-left extraction is not reliable
-// enough to assert on.
+// attach to an application, and the English one yielding the lines a resume
+// parser needs, in reading order. The Arabic PDF is checked by eye, because
+// right-to-left extraction is not reliable enough to assert on.
 async function cvPdf() {
   const name = 'cv pdf';
   const limit = 1_000_000;
@@ -281,7 +287,7 @@ function isNoindex(html) {
 }
 
 // Every route of one language exists in the other, and each page's <html>
-// says which language it is and which way it reads (criterion 13).
+// says which language it is and which way it reads.
 async function localeTwins() {
   const name = 'locale twins';
   const [en, ar] = await Promise.all(context.locales.map(routes));
@@ -312,8 +318,7 @@ async function localeTwins() {
 }
 
 // No link that goes nowhere: an `href=""` or an `href="undefined"` is what a
-// template prints when an optional link was read without checking it
-// (criterion 3).
+// template prints when an optional link was read without checking it.
 async function hrefs() {
   const name = 'hrefs';
   const files = await htmlFiles();
@@ -328,9 +333,8 @@ async function hrefs() {
 }
 
 // Every page a visitor lands on carries a title, a description, and the
-// Open Graph fields a social preview reads (criterion 10). Titles are unique
-// across the site, since two pages sharing one are one page to a search
-// result.
+// Open Graph fields a social preview reads. Titles are unique across the
+// site, since two pages sharing one are one page to a search result.
 async function metadata() {
   const name = 'metadata';
   const required = ['og:title', 'og:description', 'og:url', 'og:locale'];
@@ -363,8 +367,8 @@ function locations(xml) {
 }
 
 // sitemap-index.xml points at sitemaps that exist, and between them they list
-// every page of both languages and nothing else (criterion 10). The root
-// redirect is noindex and stays out.
+// every page of both languages and nothing else. The root redirect is
+// noindex and stays out.
 async function sitemap() {
   const name = 'sitemap';
   const indexFile = 'sitemap-index.xml';
@@ -401,8 +405,8 @@ async function sitemap() {
     if (!expected.has(url)) throw new CheckFailure(name, `a sitemap under dist/${indexFile} lists ${url}, which is not a page`);
   }
 
-  // The spec names /sitemap.xml (criterion 10): it must exist and list every
-  // page itself, not only point at the index.
+  // The site also publishes /sitemap.xml: it must exist and list every page
+  // itself, not only point at the index.
   const aliasFile = 'sitemap.xml';
   let alias;
   try {
@@ -420,8 +424,7 @@ async function sitemap() {
   return [`sitemap: ${sitemaps.length} sitemap(s) listing all ${expected.size} pages, and ${aliasFile} lists them all`];
 }
 
-// robots.txt permits indexing: no line disallows the whole site (criterion
-// 10).
+// robots.txt permits indexing: no line disallows the whole site.
 async function robots() {
   const name = 'robots';
   let text;
@@ -437,7 +440,7 @@ async function robots() {
 
 // No identifier in anything the site publishes: every HTML, JSON, XML, and
 // text file under dist/, and the text of each PDF where pdftotext is on the
-// PATH (criterion 12). The patterns are scripts/identifiers.mjs.
+// PATH. The patterns are scripts/identifiers.mjs.
 async function identifiers() {
   const name = 'identifiers';
   const textual = ['.html', '.json', '.xml', '.txt'];
@@ -465,7 +468,7 @@ async function identifiers() {
 // in the same words the build prints. It is recomputed here from the content
 // with the site's own fallback (src/lib/localized.ts), because the build's
 // line went to a log this script cannot read back; the rule and the wording
-// are the one function, so the two reports cannot differ (criterion 13).
+// are the one function, so the two reports cannot differ.
 async function gaps() {
   const walkValue = (value, collection, id, field) => {
     if (Array.isArray(value)) {
@@ -489,7 +492,50 @@ async function gaps() {
   return [gapReport()];
 }
 
-const checks = [jsonResume, cvPdf, localeTwins, hrefs, metadata, sitemap, robots, identifiers, gaps];
+// Nothing on the site claims more than the content states about a degree: the
+// words "graduated" and "awarded" appear on no page, because the only degree
+// is course work completed with the certificate pending.
+async function noOverclaim() {
+  const name = 'no overclaim';
+  const words = /\b(graduated|awarded)\b/i;
+  const files = await htmlFiles();
+  for (const file of files) {
+    const html = await readFile(path.join(context.dist, file), 'utf8');
+    const hit = html.match(words);
+    if (hit) throw new CheckFailure(name, `dist/${file} contains "${hit[0]}", which claims more than a pending certificate`);
+  }
+  return [`no overclaim: neither "graduated" nor "awarded" in ${files.length} pages`];
+}
+
+// The CV page carries none of the layout hazards resume parsers document: no
+// table, no image, and the contact block in the flow of the document rather
+// than in a positioned header or footer.
+async function cvHazards() {
+  const name = 'cv hazards';
+  const lines = [];
+  for (const locale of context.locales) {
+    const file = path.join(context.dist, locale, 'cv', 'index.html');
+    let html;
+    try {
+      html = await readFile(file, 'utf8');
+    } catch {
+      throw new CheckFailure(name, `dist/${locale}/cv/index.html does not exist`);
+    }
+    for (const tag of ['table', 'img']) {
+      if (new RegExp(`<${tag}[\\s>]`, 'i').test(html)) {
+        throw new CheckFailure(name, `dist/${locale}/cv/index.html contains a <${tag}> element`);
+      }
+    }
+    const main = html.match(/<main[\s>][\s\S]*?<\/main>/i)?.[0] ?? '';
+    if (!/mailto:/.test(main)) {
+      throw new CheckFailure(name, `dist/${locale}/cv/index.html has no email link inside <main>; the contact block must be in the flow of the document`);
+    }
+    lines.push(`cv hazards: ${locale}/cv/ has no table or image, and its contact block is in the flow`);
+  }
+  return lines;
+}
+
+const checks = [jsonResume, cvPdf, localeTwins, hrefs, metadata, sitemap, robots, identifiers, gaps, noOverclaim, cvHazards];
 
 for (const check of checks) {
   try {

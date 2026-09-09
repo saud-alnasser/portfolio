@@ -21,9 +21,13 @@ pnpm check        # type and template checks
 pnpm build        # writes dist/
 pnpm render:pdf   # writes dist/cv.en.pdf and dist/cv.ar.pdf (needs Playwright's Chromium)
 pnpm check:dist   # the checks CI runs over dist/
+pnpm test         # the Playwright tests, against a static server of dist/
+pnpm test:content # adds a temporary project, rebuilds, and checks it shows everywhere
+pnpm lighthouse   # Lighthouse on the home and CV pages, mobile profile
+pnpm scan:history # the identifier scan over the whole git history
 ```
 
-Node 24 and pnpm 12. The site is static files only.
+Node 22.12 or later (CI uses 24) and pnpm 12. The site is static files only.
 
 ## Deployment
 
@@ -70,8 +74,9 @@ people; where the two disagree, the code is right and this section is corrected.
   than silently vanishing.
 - **Never** a national identifier, a student identifier, or a phone number,
   in any file.
-- Files whose names start with `fixture-` are fictional placeholders that
-  exercise the contract. They are replaced by real entries.
+- The name prefix `fixture-` is reserved: the content mechanism test writes a
+  temporary entry with it and removes it again. A file carrying that prefix
+  in the tree is a leftover to delete, never content.
 
 ### `profile.yaml`
 

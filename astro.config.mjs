@@ -34,8 +34,9 @@ const sitemapAlias = {
 // https://astro.build/config
 export default defineConfig({
   // A user site: served at the root of the address, so no `base`. The address
-  // requires the repository to be named `saud-alnasser.github.io`, which is a
-  // separate step (.aep/efforts/1-portfolio-site/tickets/02-user-site-address.md).
+  // requires the repository to be named `saud-alnasser.github.io`: renaming it
+  // and setting the Pages source are done once, by hand, in the repository
+  // settings (README.md, "Deployment").
   site: 'https://saud-alnasser.github.io',
   output: 'static',
 

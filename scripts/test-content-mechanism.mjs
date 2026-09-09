@@ -1,7 +1,7 @@
-// The mechanism behind "one source of content" (.aep/efforts/1-portfolio-site/spec.md,
-// criteria 1 and 9): a project added to src/content/projects/ appears on the
-// work page, the CV page, and resume.json in both languages, with no change
-// to any file outside the content source, and disappears again when removed.
+// The mechanism behind "one source of content": a project added to
+// src/content/projects/ appears on the work page, the CV page, and
+// resume.json in both languages, with no change to any file outside the
+// content source, and disappears again when removed.
 //
 //   pnpm test:content
 //

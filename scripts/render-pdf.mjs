@@ -13,65 +13,21 @@
 // reason named, so CI reports what went wrong rather than uploading a site
 // with a broken download.
 
-import { createReadStream } from 'node:fs';
 import { stat } from 'node:fs/promises';
-import http from 'node:http';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { chromium } from 'playwright';
+import { serve } from './serve-dist.mjs';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const dist = path.join(root, 'dist');
 const locales = ['en', 'ar'];
-
-// The media types the CV page requests. Anything else is served as bytes,
-// which is fine for a download the page does not depend on.
-const types = {
-  '.html': 'text/html; charset=utf-8',
-  '.css': 'text/css; charset=utf-8',
-  '.js': 'text/javascript; charset=utf-8',
-  '.json': 'application/json; charset=utf-8',
-  '.ttf': 'font/ttf',
-  '.woff2': 'font/woff2',
-  '.svg': 'image/svg+xml',
-  '.png': 'image/png',
-  '.ico': 'image/x-icon',
-  '.txt': 'text/plain; charset=utf-8',
-  '.xml': 'application/xml; charset=utf-8',
-};
 
 class RenderFailure extends Error {
   constructor(reason, message) {
     super(message);
     this.reason = reason;
   }
-}
-
-// A static server over dist/ on an ephemeral port. A path ending in a slash
-// serves its index.html, as Pages does for the built site.
-async function serve(directory) {
-  const server = http.createServer(async (request, response) => {
-    const url = new URL(request.url, 'http://localhost');
-    let pathname = decodeURIComponent(url.pathname);
-    if (pathname.endsWith('/')) pathname += 'index.html';
-    const file = path.join(directory, pathname);
-    if (!file.startsWith(directory + path.sep)) {
-      response.writeHead(403).end();
-      return;
-    }
-    try {
-      const info = await stat(file);
-      if (!info.isFile()) throw new Error('not a file');
-    } catch {
-      response.writeHead(404).end();
-      return;
-    }
-    response.writeHead(200, { 'content-type': types[path.extname(file)] ?? 'application/octet-stream' });
-    createReadStream(file).pipe(response);
-  });
-  await new Promise((resolve) => server.listen(0, '127.0.0.1', resolve));
-  const { port } = server.address();
-  return { origin: `http://127.0.0.1:${port}`, close: () => new Promise((resolve) => server.close(resolve)) };
 }
 
 // One page to one file. The page is loaded with the network idle so every
@@ -115,14 +71,15 @@ async function render(browser, origin, locale) {
   return `${path.relative(root, file)}: ${size} bytes${loaded.length > 0 ? `, fonts ${loaded.join(', ')}` : ''}`;
 }
 
+// The server refuses a directory with no index.html, which is the one
+// failure that can happen before a page is opened.
+let server;
 try {
-  await stat(path.join(dist, 'index.html'));
-} catch {
-  console.error('render-pdf: no-build: dist/ has no index.html; run `pnpm build` first');
+  server = await serve(dist);
+} catch (error) {
+  console.error(`render-pdf: ${error.message}`);
   process.exit(1);
 }
-
-const server = await serve(dist);
 const browser = await chromium.launch();
 try {
   for (const locale of locales) {
