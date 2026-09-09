@@ -21,11 +21,3 @@ Saudi Electronic University is complete, with the certificate pending.
 - **Game development:** Bevy, Godot, FiveM
 - **IT support:** Microsoft Dynamics 365 ticketing, Microsoft Configuration Manager, Nexthink, Hardware deployment and maintenance, Software troubleshooting, Microsoft Teams and Outlook
 <!-- /profile -->
-
-## 🛠️ This repository
-
-It is the source of my portfolio site: an Astro site built from typed YAML
-content, in English and Arabic, with a CV derived from the same content. To
-build it, read [docs/development.md](docs/development.md); to add a project,
-a course, or a job, read [src/content/README.md](src/content/README.md). The
-paragraph and the lists above are written from that content by `pnpm readme`.

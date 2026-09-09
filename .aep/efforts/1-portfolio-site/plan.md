@@ -96,7 +96,7 @@ A wins because it is the shape Saud asked for and the only one that adds nothing
 | `scripts/lighthouse.mjs` | starts that server and runs `lhci` against the home and CV pages under the base |
 | `scripts/check-live.sh` | asks the live site for its pages and downloads; the deploy job's last step |
 | `.github/workflows/deploy.yml` | build, render PDFs, run checks, upload the artifact, deploy to Pages on push to `main`, then check the live site |
-| `README.md` | the profile page GitHub shows for the account, and nothing else: a greeting, then a block written from the content source and the config by `scripts/readme-profile.mjs` (the summary, the addresses, the contact, the skill groups), so who Saud is stays authored once (requirement 1 and requirement 15 both hold), then one paragraph pointing at the documentation |
+| `README.md` | the profile page GitHub shows for the account, and nothing else: a greeting, then a block written from the content source and the config by `scripts/readme-profile.mjs` (the summary, the addresses, the contact, the skill groups), so who Saud is stays authored once (requirement 1 and requirement 15 both hold); `AGENTS.md` and `docs/` are where a reader of the source is pointed |
 | `docs/development.md` | how the site is built, checked, and deployed: the addresses, the scripts, the Pages source |
 | `src/content/README.md` | the content format, one section per collection, with every field and its meaning; the README criterion 9 names |
 | `scripts/readme-profile.mjs` | writes the README's profile block from `src/content/` and the config, and the dist check fails when the README is behind |
