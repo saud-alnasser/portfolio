@@ -106,7 +106,7 @@ Every task of every effort. The tracker carries the effort, never its tasks.
 | [[efforts/1-portfolio-site/tickets/07-json-resume-endpoint]] feat(cv): emit a JSON Resume document per language | 1-portfolio-site | resolved | 03 |
 | [[efforts/1-portfolio-site/tickets/08-pdf-render]] build(cv): render the CV pages to PDF in CI and check the English text extracts | 1-portfolio-site | resolved | 06 |
 | [[efforts/1-portfolio-site/tickets/09-quality-gates]] test(site): add the build-output checks and the accessibility and performance gates | 1-portfolio-site | resolved | 05, 07, 08 |
-| [[efforts/1-portfolio-site/tickets/10-content-arabic]] feat(content): author the Arabic text for every entry and the UI strings | 1-portfolio-site | open | 04, 05 |
+| [[efforts/1-portfolio-site/tickets/10-content-arabic]] feat(content): author the Arabic text for every entry and the UI strings | 1-portfolio-site | resolved | 04, 05 |
 | [[efforts/1-portfolio-site/tickets/11-sitemap-xml]] feat(site): publish the sitemap at /sitemap.xml as the spec names it | 1-portfolio-site | resolved | 09 |
 | [[efforts/1-portfolio-site/tickets/12-education-timeline]] feat(site): order the studies page as one timeline, courses between school and university | 1-portfolio-site | resolved | 05 |
 | [[efforts/1-portfolio-site/tickets/13-base-path]] feat(site): serve the site under the /saud-alnasser/ base path of the project site | 1-portfolio-site | resolved | 09, 11, 12 |
