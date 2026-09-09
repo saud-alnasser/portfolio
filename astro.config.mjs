@@ -11,7 +11,8 @@ import { joinBase } from './src/lib/paths.ts';
 // `base` (src/lib/paths.ts). The scripts and the tests import these two values
 // rather than repeating them. A custom domain, if one is ever added, sets
 // `base` to '/' and changes nothing else. The Pages source is set to GitHub
-// Actions once, by hand, in the repository settings (README.md, "Deployment").
+// Actions once, by hand, in the repository settings (docs/development.md,
+// "Deployment").
 export const site = 'https://saud-alnasser.github.io';
 export const base = '/saud-alnasser';
 

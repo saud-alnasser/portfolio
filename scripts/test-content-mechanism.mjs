@@ -14,7 +14,7 @@
 // machine it tolerates their own uncommitted work while still catching a
 // build that writes outside dist/.
 //
-// The fixture name starts with `fixture-`, as README.md reserves for
+// The fixture name starts with `fixture-`, as src/content/README.md reserves for
 // placeholders, and carries a suffix no real entry would. `render:pdf` is not
 // run: the PDF is rendered from the CV page this script already asserts on.
 // Exits non-zero with a named reason on the first failure, and removes the

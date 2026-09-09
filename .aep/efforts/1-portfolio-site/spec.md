@@ -1,5 +1,5 @@
 ---
-status: implemented
+status: accepted
 priority: high
 ---
 
@@ -36,7 +36,7 @@ One website, at a GitHub-hosted address that costs nothing, is the record of Sau
 12. **Privacy.** No national identifier, student identifier, or phone number appears in the repository or on the site. Public contact is an email address and the GitHub profile, plus any profile Saud chooses to add.
 13. **Two languages.** The site is published in English and Arabic. Every page exists in both, Arabic renders right to left, and a switch on every page leads to the same page in the other language. Both CV outputs exist per language. Text is authored per language; every other fact (a date, a link, a technology, a status) is authored once.
 14. **Light and dark.** The site has a light and a dark theme. It follows the visitor's system preference by default, a control on every page overrides it, and the choice persists in that browser. The printed CV is always light.
-15. **One repository, one place.** The repository is `saud-alnasser/saud-alnasser`, whose README GitHub shows as the profile page. The README opens as that profile, who Saud is and where the site and the CV are, and keeps the content documentation of requirement 9 below it. The site is served from the same repository, at the project-site address that name gives it, and every address it publishes is under that base.
+15. **One repository, one place.** The repository is `saud-alnasser/saud-alnasser`, whose README GitHub shows as the profile page. The README opens as that profile, who Saud is and where the site and the CV are, and keeps the content documentation of requirement 9 below it. The site is served from the same repository, at the project-site address that name gives it, and every address it publishes is under that base. The README is the profile page and nothing else: a greeting, who Saud is, the portfolio and CV links, the contact, and what he works with, in the plain emoji style GitHub profile READMEs use, as Saud asked on 2026-09-09; that style is a declared deviation from the reporting policy's prohibition on decorative emoji and reaches no other text. The site's own documentation lives beside the code, in `docs/` and in `src/content/README.md`, which is the README requirement 9 and criterion 9 name.
 
 # Acceptance Criteria
 
@@ -54,7 +54,7 @@ One website, at a GitHub-hosted address that costs nothing, is the record of Sau
 12. A search of the repository history and the published site for the patterns of a Saudi national ID, an SEU student ID, and a phone number finds nothing.
 13. Every route has an English and an Arabic counterpart. The Arabic pages carry `lang="ar"` and `dir="rtl"` on the root element, and the English pages `lang="en"`. The language switch on any page links to the same page in the other language. The machine-readable CV exists at one address per language. An entry whose Arabic text is missing renders its English text rather than a blank, and a build-time report lists every such gap.
 14. With the system preference set to dark and no override stored, the page renders the dark palette; the control switches it and a reload keeps the choice; both palettes meet the contrast criterion in 7; printing the CV yields the light palette whatever the screen shows.
-15. `https://github.com/saud-alnasser` shows the README, whose first section names Saud, links the site and the CV page, and says the repository is the site's source. Every address the site publishes, in its pages, its sitemaps, `robots.txt`, and the JSON Resume documents, is under `https://saud-alnasser.github.io/saud-alnasser/`.
+15. `https://github.com/saud-alnasser` shows the README, whose first section names Saud, links the site and the CV page, and says the repository is the site's source. Every address the site publishes, in its pages, its sitemaps, `robots.txt`, and the JSON Resume documents, is under `https://saud-alnasser.github.io/saud-alnasser/`. The README carries no build, deployment, or content-format documentation beyond a pointer to where it lives.
 
 # Constraints
 

@@ -2,7 +2,7 @@ import { defineCollection, z } from 'astro:content';
 import { file, glob } from 'astro/loaders';
 
 // The content contract. Every page and every CV output reads the collections
-// declared here, and the build refuses an entry that does not fit. README.md
+// declared here, and the build refuses an entry that does not fit. src/content/README.md
 // documents the same fields for whoever edits the content.
 
 // JSON Resume's own date pattern: YYYY, YYYY-MM, or YYYY-MM-DD. A date valid

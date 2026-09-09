@@ -96,8 +96,10 @@ A wins because it is the shape Saud asked for and the only one that adds nothing
 | `scripts/lighthouse.mjs` | starts that server and runs `lhci` against the home and CV pages under the base |
 | `scripts/check-live.sh` | asks the live site for its pages and downloads; the deploy job's last step |
 | `.github/workflows/deploy.yml` | build, render PDFs, run checks, upload the artifact, deploy to Pages on push to `main`, then check the live site |
-| `README.md` | the profile page GitHub shows for the account: its opening paragraph is written from the profile entry by `scripts/readme-profile.mjs`, so who Saud is stays authored once (requirement 1 and requirement 15 both hold), then where the site is and the content format, one section per collection, with every field and its meaning |
-| `scripts/readme-profile.mjs` | writes the README's opening paragraph from `profile.yaml`, and the dist check fails when the README is behind |
+| `README.md` | the profile page GitHub shows for the account, and nothing else: a greeting, then a block written from the content source and the config by `scripts/readme-profile.mjs` (the summary, the addresses, the contact, the skill groups), so who Saud is stays authored once (requirement 1 and requirement 15 both hold), then one paragraph pointing at the documentation |
+| `docs/development.md` | how the site is built, checked, and deployed: the addresses, the scripts, the Pages source |
+| `src/content/README.md` | the content format, one section per collection, with every field and its meaning; the README criterion 9 names |
+| `scripts/readme-profile.mjs` | writes the README's profile block from `src/content/` and the config, and the dist check fails when the README is behind |
 
 # Interfaces
 
@@ -171,7 +173,7 @@ How each acceptance criterion in [[efforts/1-portfolio-site/spec]] is checked. A
 | 6 | `@jsonresume/schema` `validate()` on both endpoints; assert entry counts equal the CV page's |
 | 7 | Lighthouse CI on `/en/`, `/ar/`, `/en/cv/`, `/ar/cv/`, mobile profile, thresholds 90 on performance, accessibility, and best practices; axe contrast rule in both themes via Playwright; viewport 360 asserts `scrollWidth <= 360` and viewport 1440 asserts the content column is not narrower than the layout's stated maximum; with `reducedMotion: "reduce"` emulated, `getAnimations()` on the document returns none |
 | 8 | the deploy workflow on `main`; a `curl` of the live address in the workflow's last step; `package.json` reviewed for hosted services |
-| 9 | the criterion-1 test covers the mechanism; README section presence asserted by the check script |
+| 9 | the criterion-1 test covers the mechanism; `src/content/README.md` documents the format, and the dist check keeps the profile README current with the content |
 | 10 | assert `<title>`, `<meta name="description">`, `og:` tags on every page; `sitemap-index.xml` lists every route; `robots.txt` has no `Disallow: /` |
 | 11 | reviewed by eye against the inventory evidence at the close |
 | 12 | regex scan of `dist/` and of `git log -p` for `1[0-9]{9}`, `2[0-9]{8}`, and `\+?9665[0-9]{8}` or `05[0-9]{8}`; runs in CI |
@@ -182,7 +184,7 @@ How each acceptance criterion in [[efforts/1-portfolio-site/spec]] is checked. A
 # Operational Considerations
 
 - **Pages settings.** The repository's Pages source must be set to GitHub Actions once, by Saud or by the run with his say-so in that turn, since it is a write to shared data. The first deploy fails until then.
-- **The profile page.** The README is what `github.com/saud-alnasser` shows, so its opening is read by more people than the rest of the repository; keep it short and current.
+- **The profile page.** The README is what `github.com/saud-alnasser` shows and is only that page, in the emoji style profile READMEs use; its facts come from the content, so keeping it current is `pnpm readme` after a content edit, which the dist check enforces.
 - **Content updates** are ordinary pull requests through Graphite; the build refuses bad content, and the deploy runs on merge.
 - **Arabic review** is a human step for every entry, per the spec's assumption.
 

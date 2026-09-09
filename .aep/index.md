@@ -89,7 +89,7 @@ Start at [[protocol]].
 
 | Effort | Status | Spec | Research | Prototypes | Tickets |
 | --- | --- | --- | --- | --- | --- |
-| 1-portfolio-site | implemented | [[efforts/1-portfolio-site/spec]] | 6 | 0 | 14 |
+| 1-portfolio-site | accepted | [[efforts/1-portfolio-site/spec]] | 6 | 0 | 15 |
 
 ## Tickets
 
@@ -111,3 +111,4 @@ Every task of every effort. The tracker carries the effort, never its tasks.
 | [[efforts/1-portfolio-site/tickets/12-education-timeline]] feat(site): order the studies page as one timeline, courses between school and university | 1-portfolio-site | resolved | 05 |
 | [[efforts/1-portfolio-site/tickets/13-base-path]] feat(site): serve the site under the /saud-alnasser/ base path of the project site | 1-portfolio-site | resolved | 09, 11, 12 |
 | [[efforts/1-portfolio-site/tickets/14-profile-readme]] docs(repo): open the README as the profile page and name the repository saud-alnasser everywhere | 1-portfolio-site | resolved | 13 |
+| [[efforts/1-portfolio-site/tickets/15-profile-readme-only]] docs(repo): make the README the profile page alone and move the site's documentation beside the code | 1-portfolio-site | resolved | 14 |

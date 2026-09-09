@@ -27,7 +27,7 @@ export function byStartDescending<T extends Dated>(a: T, b: T): number {
 }
 
 // Entries with an `order` come first, lowest first; the rest follow by start
-// date, newest first (README.md, "projects").
+// date, newest first (src/content/README.md, "projects/").
 export function byOrderThenStartDescending<T extends Dated & Ordered>(a: T, b: T): number {
   if (a.order !== undefined && b.order !== undefined && a.order !== b.order) return a.order - b.order;
   if (a.order !== undefined && b.order === undefined) return -1;

@@ -587,16 +587,16 @@ async function cvHazards() {
   return lines;
 }
 
-// The README's opening paragraph is written from the profile entry
-// (scripts/readme-profile.mjs), so who Saud is stays authored once; a README
-// behind the profile fails here rather than drifting on the profile page.
+// The README's profile block is written from the content source and the
+// config (scripts/readme-profile.mjs), so who Saud is stays authored once; a
+// README behind them fails here rather than drifting on the profile page.
 async function readmeProfile() {
   const name = 'readme profile';
   const { current, next } = await readmeWithProfile();
   if (current !== next) {
-    throw new CheckFailure(name, 'README.md is behind src/content/profile.yaml; run `pnpm readme` and commit the result');
+    throw new CheckFailure(name, 'README.md is behind src/content/ or astro.config.mjs; run `pnpm readme` and commit the result');
   }
-  return ['readme profile: README.md carries the profile as src/content/profile.yaml states it'];
+  return ['readme profile: README.md carries the profile as src/content/ states it'];
 }
 
 const checks = [jsonResume, cvPdf, localeTwins, hrefs, basePaths, metadata, sitemap, robots, identifiers, gaps, noOverclaim, cvHazards, readmeProfile];
