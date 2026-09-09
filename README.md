@@ -13,11 +13,10 @@ Saudi Electronic University is complete, with the certificate pending.
 
 ## 🧰 What I work with
 
-- **Programming languages:** Rust, TypeScript, JavaScript, Java, Python, C#, PHP, Lua, GDScript, SQL
+- **Programming languages:** Rust, TypeScript, JavaScript, Java, C#, Lua, GDScript, SQL
 - **Web and desktop applications:** Svelte, SvelteKit, Tauri, React, SolidJS, Tailwind CSS, Node.js, HTML, CSS, ASP.NET MVC, Entity Framework
 - **Databases:** PostgreSQL, Supabase, Turso, Drizzle ORM, SQL
 - **Language implementation:** Interpreters, Compilers, Lexers and parsers, Bytecode virtual machines, JIT compilation, Type systems, Garbage collection
 - **Tools and practices:** Git, GitHub Actions, Docker, pnpm, Renovate, Unit testing, Design patterns, Refactoring, Data structures, Scrum, AI-assisted development
-- **Game development:** Bevy, Godot, FiveM
-- **IT support:** Microsoft Dynamics 365 ticketing, Microsoft Configuration Manager, Nexthink, Hardware deployment and maintenance, Software troubleshooting, Microsoft Teams and Outlook
+- **Game development:** Bevy, Godot
 <!-- /profile -->
