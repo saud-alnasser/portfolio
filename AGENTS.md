@@ -1,6 +1,6 @@
 # This repository
 
-The `portfolio` repository: Saud Alnasser's personal portfolio website. It will be hosted for free on GitHub-based infrastructure, decided later; work here lands as stacked changes through Graphite. At install it holds no source yet.
+Saud Alnasser's personal portfolio website, served for free from GitHub Pages as his user site. It is an Astro site built from typed YAML content, in English and Arabic, with a CV derived from the same content; `README.md` says how it is built and how content is added. Work here lands as stacked changes through Graphite.
 
 ## Start here
 
