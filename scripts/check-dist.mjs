@@ -400,7 +400,24 @@ async function sitemap() {
   for (const url of listed) {
     if (!expected.has(url)) throw new CheckFailure(name, `a sitemap under dist/${indexFile} lists ${url}, which is not a page`);
   }
-  return [`sitemap: ${sitemaps.length} sitemap(s) listing all ${expected.size} pages`];
+
+  // The spec names /sitemap.xml (criterion 10): it must exist and list every
+  // page itself, not only point at the index.
+  const aliasFile = 'sitemap.xml';
+  let alias;
+  try {
+    alias = await readFile(path.join(context.dist, aliasFile), 'utf8');
+  } catch {
+    throw new CheckFailure(name, `dist/${aliasFile} does not exist`);
+  }
+  const aliased = new Set(locations(alias));
+  for (const url of expected) {
+    if (!aliased.has(url)) throw new CheckFailure(name, `${url} is a page but dist/${aliasFile} does not list it`);
+  }
+  for (const url of aliased) {
+    if (!expected.has(url)) throw new CheckFailure(name, `dist/${aliasFile} lists ${url}, which is not a page`);
+  }
+  return [`sitemap: ${sitemaps.length} sitemap(s) listing all ${expected.size} pages, and ${aliasFile} lists them all`];
 }
 
 // robots.txt permits indexing: no line disallows the whole site (criterion

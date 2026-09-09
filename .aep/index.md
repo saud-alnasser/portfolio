@@ -89,7 +89,7 @@ Start at [[protocol]].
 
 | Effort | Status | Spec | Research | Prototypes | Tickets |
 | --- | --- | --- | --- | --- | --- |
-| 1-portfolio-site | accepted | [[efforts/1-portfolio-site/spec]] | 5 | 0 | 10 |
+| 1-portfolio-site | accepted | [[efforts/1-portfolio-site/spec]] | 5 | 0 | 11 |
 
 ## Tickets
 
@@ -107,3 +107,4 @@ Every task of every effort. The tracker carries the effort, never its tasks.
 | [[efforts/1-portfolio-site/tickets/08-pdf-render]] build(cv): render the CV pages to PDF in CI and check the English text extracts | 1-portfolio-site | resolved | 06 |
 | [[efforts/1-portfolio-site/tickets/09-quality-gates]] test(site): add the build-output checks and the accessibility and performance gates | 1-portfolio-site | resolved | 05, 07, 08 |
 | [[efforts/1-portfolio-site/tickets/10-content-arabic]] feat(content): author the Arabic text for every entry and the UI strings | 1-portfolio-site | open | 04, 05 |
+| [[efforts/1-portfolio-site/tickets/11-sitemap-xml]] feat(site): publish the sitemap at /sitemap.xml as the spec names it | 1-portfolio-site | resolved | 09 |

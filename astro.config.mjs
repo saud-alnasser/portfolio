@@ -16,6 +16,21 @@ const localizedGaps = {
   },
 };
 
+// The sitemap integration writes sitemap-index.xml and sitemap-0.xml. The spec
+// names /sitemap.xml, so the page list is copied to that name once it exists;
+// derived from the integration's own file, it can never disagree with it.
+/** @type {import('astro').AstroIntegration} */
+const sitemapAlias = {
+  name: 'sitemap-alias',
+  hooks: {
+    'astro:build:done': async ({ dir, logger }) => {
+      const { copyFile } = await import('node:fs/promises');
+      await copyFile(new URL('sitemap-0.xml', dir), new URL('sitemap.xml', dir));
+      logger.info('`sitemap.xml` created at `dist`');
+    },
+  },
+};
+
 // https://astro.build/config
 export default defineConfig({
   // A user site: served at the root of the address, so no `base`. The address
@@ -40,7 +55,7 @@ export default defineConfig({
     '/': '/en/',
   },
 
-  integrations: [sitemap(), localizedGaps],
+  integrations: [sitemap(), localizedGaps, sitemapAlias],
 
   vite: {
     plugins: [tailwindcss()],
