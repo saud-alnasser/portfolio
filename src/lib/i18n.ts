@@ -150,6 +150,10 @@ const en = {
     downloadPdf: 'Download PDF',
     downloadJson: 'Download JSON Resume',
     summary: 'Summary',
+    // The template names these two sections; the other headings on the page
+    // are the site's own, above.
+    experience: 'Work experience',
+    skills: 'Key skills',
     certifications: 'Certifications',
   },
   period: {
@@ -261,6 +265,8 @@ const ar: Strings = {
     downloadPdf: 'تنزيل PDF',
     downloadJson: 'تنزيل JSON Resume',
     summary: 'الملخص',
+    experience: 'الخبرة العملية',
+    skills: 'المهارات الأساسية',
     certifications: 'الشهادات',
   },
   period: {

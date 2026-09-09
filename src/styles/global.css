@@ -186,6 +186,28 @@ details[open] > summary .fold-chevron {
 }
 
 /*
+ * The CV page, after the white and blue minimalist corporate template: black
+ * text on white, one column of real text, and the heading bands as the only
+ * tint. Everything else the page needs is a utility on the page itself; what
+ * is here is what a utility cannot say.
+ */
+
+/* A long address in the contact line or a project's links wraps rather than
+   pushing the column past the paper. */
+.cv {
+  overflow-wrap: break-word;
+}
+
+/* A section heading's band. `print-color-adjust: exact` is what carries it
+   onto paper: a browser drops background colours when printing unless the
+   page insists, and the PDF the render step writes is a print. */
+.cv-band {
+  background-color: var(--band);
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
+}
+
+/*
  * The print stylesheet: the CV page on paper, and the PDF the render step
  * writes from it. The palette side is above with the theme rules, where print
  * forces `color-scheme: light` whatever the visitor stored. No page size is
@@ -231,6 +253,12 @@ details[open] > summary .fold-chevron {
   }
 
   .cv-entry {
+    break-inside: avoid;
+  }
+
+  /* The keyword columns balance across the whole block, so a page break
+     through them reads as two half-filled sets rather than one list. */
+  .cv-skills {
     break-inside: avoid;
   }
 

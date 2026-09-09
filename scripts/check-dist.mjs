@@ -176,7 +176,7 @@ async function extractText(file) {
 }
 
 // The PDFs the render step writes: one per language, present, small enough to
-// attach to an application, and the English one yielding the lines a resume
+// attach to an application, and the English one yielding the facts a resume
 // parser needs, in reading order. The Arabic PDF is checked by eye, because
 // right-to-left extraction is not reliable enough to assert on.
 async function cvPdf() {
@@ -197,25 +197,37 @@ async function cvPdf() {
     }
   }
 
-  // What the English CV page prints, from the content it prints it from: the
-  // name, the email, then each experience entry's organisation, position, and
-  // period, then each education entry's institution, degree, and period, in
-  // the page's own order (src/pages/[locale]/cv.astro).
+  // What the English CV page prints, from the content it prints it from, in
+  // the order it prints it (src/pages/[locale]/cv.astro): the name, the
+  // email, then each experience entry's position with its period and its
+  // organisation beneath, then each education entry's degree with its period
+  // and its institution beneath.
+  //
+  // The expectation is groups rather than lines, because the template puts an
+  // entry's title and its dates on one line: the items of a group may share
+  // one extracted line, in order, or fall on consecutive lines, and both read
+  // correctly. A group of one is one line, as before.
   const locale = 'en';
   const t = strings[locale];
   const profile = parseYaml(await readFile(path.join(context.content, 'profile.yaml'), 'utf8')).profile;
   const experience = (await visibleEntries('experience')).map((entry) => parseYaml(entry.text)).sort(byStartDescending);
   const education = (await visibleEntries('education')).map((entry) => parseYaml(entry.text)).sort(byStartAscending);
-  const expected = [profile.name[locale], profile.email];
+  const expected = [
+    // The page sets the name in capitals, so that is what comes out of the
+    // PDF whatever the content file says; it is the one item compared
+    // without case.
+    { items: [profile.name[locale]], caseless: true },
+    { items: [profile.email] },
+  ];
   for (const entry of experience) {
-    expected.push(entry.organisation[locale], entry.position[locale], formatPeriod(locale, entry.period));
+    expected.push({ items: [entry.position[locale], formatPeriod(locale, entry.period)] });
+    expected.push({ items: [entry.organisation[locale]] });
   }
   for (const entry of education) {
-    expected.push(
-      entry.institution[locale],
-      `${entry.studyType[locale]}${t.listSeparator}${entry.area[locale]}`,
-      formatPeriod(locale, entry.period),
-    );
+    expected.push({
+      items: [`${entry.studyType[locale]}${t.listSeparator}${entry.area[locale]}`, formatPeriod(locale, entry.period)],
+    });
+    expected.push({ items: [entry.institution[locale]] });
   }
 
   const file = path.join(context.dist, `cv.${locale}.pdf`);
@@ -225,22 +237,69 @@ async function cvPdf() {
   } else {
     const found = text.split(/\r?\n/).map(squash);
     let cursor = 0;
-    for (const item of expected) {
-      const index = found.findIndex((line, i) => i >= cursor && line.includes(squash(item)));
+    for (const group of expected) {
+      const index = matchGroup(found, cursor, group);
       if (index === -1) {
+        // Which half of the failure it is: a fact the page no longer prints,
+        // or facts that are all there but no longer in the order the layout
+        // is supposed to put them in.
+        const absent = group.items.find((item) => findItem(found, cursor, item, group.caseless) === -1);
+        const where = `after line ${cursor} of the extracted text`;
         throw new CheckFailure(
           name,
-          `cv.${locale}.pdf: "${item}" is not on its own line after line ${cursor} of the extracted text`,
+          absent
+            ? `cv.${locale}.pdf: "${absent}" is nowhere ${where}`
+            : `cv.${locale}.pdf: ${group.items.map((item) => `"${item}"`).join(' and ')} are not on one line, or on consecutive lines in that order, ${where}`,
         );
       }
       cursor = index + 1;
     }
-    lines.push(`cv.${locale}.pdf: ${sizes[locale]} bytes, ${expected.length} expected lines found in reading order`);
+    const items = expected.reduce((total, group) => total + group.items.length, 0);
+    lines.push(`cv.${locale}.pdf: ${sizes[locale]} bytes, ${items} expected facts found in ${expected.length} groups in reading order`);
   }
   for (const other of context.locales.filter((l) => l !== locale)) {
     lines.push(`cv.${other}.pdf: ${sizes[other]} bytes`);
   }
   return lines;
+}
+
+// Where an expected item sits in one extracted line, searching from `from`,
+// or -1. The comparison is exact unless the expectation says otherwise, which
+// only the name does.
+function indexIn(line, item, from, caseless) {
+  const needle = squash(item);
+  return caseless ? line.toLowerCase().indexOf(needle.toLowerCase(), from) : line.indexOf(needle, from);
+}
+
+// The first line at or after `cursor` holding an item at all, or -1.
+function findItem(found, cursor, item, caseless) {
+  return found.findIndex((line, i) => i >= cursor && indexIn(line, item, 0, caseless) !== -1);
+}
+
+// The line on which a group finishes, searching from `cursor`, or -1. Each
+// item follows the one before it on the same line, or opens the next one;
+// nothing may be skipped over, so a fact that moved out of order fails here.
+function matchGroup(found, cursor, group) {
+  for (let start = cursor; start < found.length; start += 1) {
+    let line = start;
+    let from = 0;
+    let matched = true;
+    for (const item of group.items) {
+      let at = indexIn(found[line], item, from, group.caseless);
+      if (at === -1 && line + 1 < found.length) {
+        line += 1;
+        from = 0;
+        at = indexIn(found[line], item, 0, group.caseless);
+      }
+      if (at === -1) {
+        matched = false;
+        break;
+      }
+      from = at + squash(item).length;
+    }
+    if (matched) return line;
+  }
+  return -1;
 }
 
 // Every file under a directory, recursively, as paths relative to it with

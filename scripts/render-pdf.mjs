@@ -9,10 +9,10 @@
 // Playwright's Chromium, waits for the fonts and
 // the network to settle, and writes dist/cv.<locale>.pdf. Print media is what
 // page.pdf() uses by default, so the print stylesheet in src/styles/global.css
-// is what the PDF shows. Any page that fails to load, any font that fails to
-// arrive, and any file that does not appear afterwards exits non-zero with the
-// reason named, so CI reports what went wrong rather than uploading a site
-// with a broken download.
+// is what the PDF shows, backgrounds included. Any page that fails to load,
+// any font that fails to arrive, and any file that does not appear afterwards
+// exits non-zero with the reason named, so CI reports what went wrong rather
+// than uploading a site with a broken download.
 
 import { stat } from 'node:fs/promises';
 import path from 'node:path';
@@ -54,7 +54,10 @@ async function render(browser, at, locale) {
       const names = failed.map((face) => `${face.family} ${face.weight}`).join(', ');
       throw new RenderFailure('font-not-loaded', `${route}: ${names} failed to load`);
     }
-    await page.pdf({ path: file, format: 'A4', printBackground: false });
+    // Backgrounds are printed, because the CV's section headings sit in a
+    // tinted band and the band is the template's one tint; the page asks for
+    // it with `print-color-adjust: exact` and this is the other half.
+    await page.pdf({ path: file, format: 'A4', printBackground: true });
   } finally {
     await page.close();
   }

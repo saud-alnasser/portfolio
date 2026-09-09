@@ -66,4 +66,18 @@ test('printing the CV page applies the light palette with dark stored', async ({
   // The chrome around the document is off the page.
   await expect(page.locator('body > header')).toBeHidden();
   await expect(page.locator('body > footer')).toBeHidden();
+
+  // The heading bands are the one tint the template has, and a browser drops
+  // background colours when printing unless the page insists. The band asks
+  // for `print-color-adjust: exact`, and the render step prints backgrounds,
+  // so the PDF shows what the screen shows: the light side of --band, since
+  // print forces the light palette above.
+  const band = await page.locator('.cv-band').first().evaluate((element) => {
+    const style = getComputedStyle(element);
+    return { background: style.backgroundColor, adjust: style.printColorAdjust };
+  });
+  expect(band.adjust, 'the band keeps its background on paper').toBe('exact');
+  expect(band.background, 'in print the band takes the light --band from src/styles/global.css').toBe(
+    'rgb(221, 232, 240)',
+  );
 });
