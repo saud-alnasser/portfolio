@@ -5,8 +5,12 @@ use-when: "reading or writing anything on the GitHub repository: issues, pull re
 # Reference — GitHub
 
 **This file is yours.** Seeded on 2026-09-08, the day the remote was found on the
-repository: `origin` is `https://github.com/saud-alnasser/portfolio.git`, public,
-default branch `main`, and the label vocabulary is already created there.
+repository, and corrected on 2026-09-09 when Saud renamed it: `origin` is
+`https://github.com/saud-alnasser/saud-alnasser.git`, public, default branch
+`main`, and the label vocabulary is already created there. GitHub redirects the
+old name, `portfolio`, for git and for the API. The repository
+carries the account's username, so GitHub shows its `README.md` on the profile
+page and serves its Pages site as a project site under `/saud-alnasser/`.
 
 ## Purpose
 
@@ -23,7 +27,7 @@ opens the stacked pull requests for tickets.
 ## Commands
 
 ```sh
-gh repo view saud-alnasser/portfolio --json name,visibility,defaultBranchRef
+gh repo view saud-alnasser/saud-alnasser --json name,visibility,defaultBranchRef
 gh label list --limit 200                              # the vocabulary; read before naming a label
 gh issue list --state all --limit 50
 gh pr list --state all --limit 50
@@ -66,6 +70,19 @@ The `size:` family and the thresholds behind it are recorded in
 requests are set by the workflows under `.github/workflows/`, so a run never
 sets those two by hand.
 
+## Pages
+
+```sh
+gh api repos/saud-alnasser/saud-alnasser/pages                        # 404 until Pages is enabled; then build_type
+gh api -X POST repos/saud-alnasser/saud-alnasser/pages -f build_type=workflow   # enables Pages with GitHub Actions as the source. Saud's say-so, in that turn
+gh run list --workflow deploy.yml --limit 5                          # the deploys, newest first
+```
+
+The deploy workflow needs the source set to GitHub Actions once; until then
+its deploy job fails. The site is served at
+`https://saud-alnasser.github.io/saud-alnasser/`, and the base path lives in
+`astro.config.mjs`.
+
 ## Expected output
 
 `gh issue create` and `gh pr create` print the new object's URL and nothing
@@ -91,4 +108,5 @@ gh pr view <n> --json labels,title,isDraft,baseRefName,headRefName
 
 Anything that pushes, opens, merges, or closes a pull request without the human
 asking in that turn. `gh pr merge` is never run by an agent. `gh repo delete`,
-`gh label delete`, and `gh issue delete` are irreversible on shared data.
+`gh repo rename`, `gh label delete`, and `gh issue delete` change or destroy
+shared data; the rename also moves the profile README and the Pages address.

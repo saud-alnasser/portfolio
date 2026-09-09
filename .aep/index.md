@@ -110,4 +110,4 @@ Every task of every effort. The tracker carries the effort, never its tasks.
 | [[efforts/1-portfolio-site/tickets/11-sitemap-xml]] feat(site): publish the sitemap at /sitemap.xml as the spec names it | 1-portfolio-site | resolved | 09 |
 | [[efforts/1-portfolio-site/tickets/12-education-timeline]] feat(site): order the studies page as one timeline, courses between school and university | 1-portfolio-site | resolved | 05 |
 | [[efforts/1-portfolio-site/tickets/13-base-path]] feat(site): serve the site under the /saud-alnasser/ base path of the project site | 1-portfolio-site | resolved | 09, 11, 12 |
-| [[efforts/1-portfolio-site/tickets/14-profile-readme]] docs(repo): open the README as the profile page and name the repository saud-alnasser everywhere | 1-portfolio-site | open | 13 |
+| [[efforts/1-portfolio-site/tickets/14-profile-readme]] docs(repo): open the README as the profile page and name the repository saud-alnasser everywhere | 1-portfolio-site | resolved | 13 |

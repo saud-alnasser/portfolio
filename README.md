@@ -1,16 +1,30 @@
-# saud-alnasser.github.io
+# Saud Alnasser
 
-The GitHub user site of [saud-alnasser](https://github.com/saud-alnasser):
-Saud Alnasser's portfolio, the record of his work and studies, published in
-English and Arabic at <https://saud-alnasser.github.io>, with a CV derived from
-the same content for people and for machines.
+This repository is my portfolio: the record of my work and studies, in
+English and Arabic, with a CV derived from the same content for people and
+for machines. GitHub shows this file on my profile because the repository
+carries my username, so the profile, the site, and its source are one place.
 
-| Address | What |
+| | English | Arabic |
+| --- | --- | --- |
+| The site | <https://saud-alnasser.github.io/saud-alnasser/en/> | <https://saud-alnasser.github.io/saud-alnasser/ar/> |
+| The CV, printable | <https://saud-alnasser.github.io/saud-alnasser/en/cv/> | <https://saud-alnasser.github.io/saud-alnasser/ar/cv/> |
+
+Each CV page offers the same CV as a PDF and as a
+[JSON Resume](https://jsonresume.org) document, in its language.
+
+## Addresses
+
+Everything the site publishes is under
+`https://saud-alnasser.github.io/saud-alnasser/`:
+
+| Path | What |
 | --- | --- |
 | `/en/`, `/ar/` | the site, in each language |
 | `/en/cv/`, `/ar/cv/` | the CV page, printable |
 | `/cv.en.pdf`, `/cv.ar.pdf` | the CV as a PDF, rendered at build time |
-| `/en/resume.json`, `/ar/resume.json` | the CV as a [JSON Resume](https://jsonresume.org) document |
+| `/en/resume.json`, `/ar/resume.json` | the CV as a JSON Resume document |
+| `/sitemap.xml`, `/robots.txt` | for crawlers; the sitemap is also linked from every page |
 
 ## Development
 
@@ -31,13 +45,16 @@ Node 22.12 or later (CI uses 24) and pnpm 12. The site is static files only.
 
 ## Deployment
 
-This repository is named `saud-alnasser.github.io`, so GitHub Pages serves it
-at the root of that address with no base path. A push to `main` runs
-`.github/workflows/deploy.yml`, which builds the site, renders the PDFs, runs
-the checks, and deploys `dist/` through the Pages actions. The repository's
-Pages source is set to GitHub Actions, once, in the repository settings.
-Nothing else is configured anywhere: no custom domain, no server, no paid
-service.
+GitHub Pages serves this repository as a project site, under the repository's
+name, at `https://saud-alnasser.github.io/saud-alnasser/`. That base path is
+`base` in `astro.config.mjs`, and every path the site publishes is joined
+to it through `src/lib/paths.ts`; the dist checks fail a page that links
+outside it. A push to `main` runs `.github/workflows/deploy.yml`, which
+builds the site, renders the PDFs, runs the checks, and deploys `dist/`
+through the Pages actions. The repository's Pages source is set to GitHub
+Actions, once, in the repository settings. Nothing else is configured
+anywhere: no custom domain, no server, no paid service. A custom domain, if
+one is ever added, sets `base` to `/` and changes nothing else.
 
 ## Content
 

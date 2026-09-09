@@ -86,8 +86,9 @@ read here rather than assume:
 | how a commit references its task | the commit **carries the closing keyword**. It reaches `main` only through its own branch's pull request, so the cherry-pick hazard that bans the keyword on plain-merge repositories cannot arise. A stack merges bottom-first, so the keyword goes on the change that merges **last** and everything under it carries a plain reference |
 | what publishes | `gt submit` opens pull requests. It is the human's call, never an agent's |
 
-**The remote is GitHub.** `origin` is `https://github.com/saud-alnasser/portfolio.git`,
-public, and the label vocabulary the workflows under `.github/workflows/` name
+**The remote is GitHub.** `origin` is `https://github.com/saud-alnasser/saud-alnasser.git`,
+renamed from `portfolio` on 2026-09-09 (GitHub redirects the old name), public,
+and the label vocabulary the workflows under `.github/workflows/` name
 already exists there (`[[references/github]]` has the list and the mapping).
 `gt init` has been run with `main` as trunk. Every label the labelers name must
 exist before it is used — the REST call behind them creates a missing label

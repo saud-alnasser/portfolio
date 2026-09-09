@@ -1,6 +1,6 @@
 # This repository
 
-Saud Alnasser's personal portfolio website, served for free from GitHub Pages as his user site. It is an Astro site built from typed YAML content, in English and Arabic, with a CV derived from the same content; `README.md` says how it is built and how content is added. Work here lands as stacked changes through Graphite.
+Saud Alnasser's personal portfolio website, served for free from GitHub Pages as a project site under the repository's name, `saud-alnasser`, which is also the repository whose README GitHub shows on his profile. It is an Astro site built from typed YAML content, in English and Arabic, with a CV derived from the same content; `README.md` says how it is built and how content is added. Work here lands as stacked changes through Graphite.
 
 ## Start here
 
