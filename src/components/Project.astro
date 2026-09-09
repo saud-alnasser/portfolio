@@ -1,5 +1,13 @@
 ---
+// A project card. The whole card is not a link, because a public project has
+// up to two destinations and a described one has none; the links sit inside
+// it, each with the icon that says what it opens. The technologies and the
+// links are pushed to the foot, so cards in a row line up on their last line
+// however long a summary runs.
+
 import type { CollectionEntry } from 'astro:content';
+import Card from './Card.astro';
+import Icon from './Icon.astro';
 import { formatPeriod, strings, type Locale } from '../lib/i18n';
 import { localized } from '../lib/localized';
 
@@ -18,37 +26,44 @@ const text = localized(locale, 'projects', entry.id);
 const links = data.visibility === 'public' ? (data.links ?? {}) : {};
 ---
 
-<article class="py-8">
-  <div class="flex flex-wrap items-baseline justify-between gap-x-6 gap-y-1">
-    <h3 class="text-lg font-semibold tracking-tight">{data.name}</h3>
-    <p class="text-sm text-muted-foreground tabular-nums">{formatPeriod(locale, data.period)}</p>
+<Card as="article" data-entry="project" class="h-full">
+  <div class="flex h-full flex-col">
+    <div class="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
+      <h3 class="text-lg font-semibold tracking-tight">{data.name}</h3>
+      <p class="text-sm text-muted-foreground tabular-nums">{formatPeriod(locale, data.period)}</p>
+    </div>
+    <p class="mt-1 text-sm text-muted-foreground">{text('role', data.role)}</p>
+    <p class="mt-3 leading-7">{text('summary', data.summary)}</p>
+
+    <div class="mt-auto">
+      <ul aria-label={t.project.technologies} class="mt-4 flex flex-wrap gap-x-1 text-sm text-muted-foreground">
+        {
+          data.technologies.map((technology, index) => (
+            <li>
+              {technology}
+              {index < data.technologies.length - 1 && <span aria-hidden="true">{t.listSeparator.trim()}</span>}
+            </li>
+          ))
+        }
+      </ul>
+      {
+        (links.repository || links.live) && (
+          <p class="mt-4 flex flex-wrap gap-x-5 gap-y-2 text-sm">
+            {links.repository && (
+              <a href={links.repository} class="group inline-flex items-center gap-1.5 text-primary">
+                <Icon name="github" class="size-4" />
+                <span class="underline underline-offset-4 group-hover:decoration-2">{t.project.repository}</span>
+              </a>
+            )}
+            {links.live && (
+              <a href={links.live} class="group inline-flex items-center gap-1.5 text-primary">
+                <Icon name="external-link" class="size-4" />
+                <span class="underline underline-offset-4 group-hover:decoration-2">{t.project.live}</span>
+              </a>
+            )}
+          </p>
+        )
+      }
+    </div>
   </div>
-  <p class="mt-1 text-sm text-muted-foreground">{text('role', data.role)}</p>
-  <p class="mt-3 max-w-prose leading-7">{text('summary', data.summary)}</p>
-  <ul aria-label={t.project.technologies} class="mt-3 flex flex-wrap gap-x-1 text-sm text-muted-foreground">
-    {
-      data.technologies.map((technology, index) => (
-        <li>
-          {technology}
-          {index < data.technologies.length - 1 && <span aria-hidden="true">{t.listSeparator.trim()}</span>}
-        </li>
-      ))
-    }
-  </ul>
-  {
-    (links.repository || links.live) && (
-      <p class="mt-3 flex flex-wrap gap-x-5 text-sm">
-        {links.repository && (
-          <a href={links.repository} class="text-primary underline underline-offset-4 hover:decoration-2">
-            {t.project.repository}
-          </a>
-        )}
-        {links.live && (
-          <a href={links.live} class="text-primary underline underline-offset-4 hover:decoration-2">
-            {t.project.live}
-          </a>
-        )}
-      </p>
-    )
-  }
-</article>
+</Card>

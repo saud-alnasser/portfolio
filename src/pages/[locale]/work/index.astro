@@ -33,9 +33,15 @@ const experience = (await getCollection('experience')).sort((a, b) => byStartDes
 >
   <h1 class="text-3xl font-semibold tracking-tight sm:text-4xl">{t.pages.work.title}</h1>
 
+  {/*
+    Both sections are ordered lists laid out as a grid: one column on a phone,
+    two from 48rem up, so 19 projects are scanned rather than scrolled. The
+    grid is written on the list itself, so its items are its cards and the
+    reading order is the order the collection was sorted into.
+  */}
   <section aria-labelledby="projects" class="mt-12">
     <h2 id="projects" class="text-xl font-semibold tracking-tight">{t.sections.projects}</h2>
-    <ol class="mt-2 divide-y divide-border">
+    <ol data-grid="projects" class="mt-6 grid grid-cols-1 gap-4 md:grid-cols-2 md:gap-5">
       {
         projects.map((entry) => (
           <li>
@@ -48,7 +54,7 @@ const experience = (await getCollection('experience')).sort((a, b) => byStartDes
 
   <section aria-labelledby="experience" class="mt-16">
     <h2 id="experience" class="text-xl font-semibold tracking-tight">{t.sections.experience}</h2>
-    <ol class="mt-2 divide-y divide-border">
+    <ol data-grid="experience" class="mt-6 grid grid-cols-1 gap-4 md:grid-cols-2 md:gap-5">
       {
         experience.map((entry) => (
           <li>
