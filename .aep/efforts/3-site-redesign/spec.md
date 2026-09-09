@@ -38,7 +38,7 @@ The site reads as a modern, minimal, professional portfolio: the content is grou
 12. **Strings in both languages.** Every new interface string (the menu's name, the fold's labels, the overlay's controls, the CV's heading names where they change) is authored in both languages in the one strings file, and the Arabic is a draft until Saud reads it on the published site, as the first effort's assumption already states.
 13. **The profile page does not mention the pending certificate.** Saud asked on 2026-09-09 that the README, which GitHub shows as his profile, stop saying the degree's certificate is pending. The README's profile block is written from the profile summary, which the site's home page and the CV's summary also show, so the sentence about the degree's status leaves the summary in both languages. The status itself is untouched: the education entry still carries `certificate-pending`, and the education page, the CV, and the JSON Resume document still show it as it is, which is what the first effort's requirement 4 protects.
 
-# Acceptance criteria
+# Acceptance Criteria
 
 1. On every page, the theme control and the language control each contain an SVG icon and an accessible name; an accessibility audit of the header reports no control without a name. Switching the theme swaps the icon shown.
 2. Clicking or pressing Enter on the language control shows a list with "English" and "العربية", the current language marked with `aria-current` or the equivalent; choosing the other leads to the same route in that language, on every route. Escape and a click outside close it. With JavaScript disabled, the control still leads to the other language.
@@ -63,7 +63,7 @@ The site reads as a modern, minimal, professional portfolio: the content is grou
 - **The CV stays one column of real text**, as the first effort's evidence on parsers requires; the template is followed as far as that allows and no further.
 - **The palette's accent stays the site's.** The template's blue band is realised with the site's existing tokens or one added tint, so the CV reads as part of the site and both themes stay consistent.
 
-# Out of scope
+# Out of Scope
 
 - **A photograph.** The template has none, the first effort left it open, and a parser-safe CV is better without one.
 - **New content.** No project, course, or job is added or reworded; the redesign shows what the content source already holds, plus the certificate documents. The one wording change is the profile summary's last sentence, which requirement 13 removes. High school stays absent until its details exist.
