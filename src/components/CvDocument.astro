@@ -83,10 +83,23 @@ const projects = resume ? shownProjects.filter((entry) => onResume(entry.data)) 
 type ProjectSection = { id: 'projects'; entries: typeof shownProjects };
 type CertificateSection = { id: 'certifications' | 'courses'; heading: string; entries: typeof certificates };
 
+// A marked certificate keeps its own kind's heading on the resume, as it has
+// on the CV: a course completion listed under "Certifications" would claim
+// more than the entry says. Nothing is marked today, and both rows render
+// only when they hold something, so the resume shows neither until one is.
 const tail: (ProjectSection | CertificateSection)[] = resume
   ? [
       { id: 'projects', entries: projects },
-      { id: 'certifications', heading: t.cv.certifications, entries: certificates.filter((entry) => onResume(entry.data)) },
+      {
+        id: 'certifications',
+        heading: t.cv.certifications,
+        entries: certificates.filter((entry) => isCertification(entry.data) && onResume(entry.data)),
+      },
+      {
+        id: 'courses',
+        heading: t.cv.courses,
+        entries: certificates.filter((entry) => isCourse(entry.data) && onResume(entry.data)),
+      },
     ]
   : [
       {

@@ -28,6 +28,19 @@ blocked-by: [01]
   **`pnpm lighthouse` itself still exits non-zero on this host and the scores above did not come from it.** It audits all six pages and then dies in `chrome-launcher`'s `destroyTmp` with `EPERM` removing its own directory under the temp root, on every attempt: three by the implementer, including with `TMPDIR` and `TEMP` redirected, and one more by the orchestrator in a different worktree. The audits themselves complete, so the orchestrator ran the same six pages through the same Lighthouse version against the same static server, driving Chrome through Playwright instead of `chrome-launcher`, and read the scores off the results. The failure is in the launcher's cleanup on Windows, not in the site and not in `scripts/lighthouse.mjs`, and the same script passes in CI on Linux. Nothing in the repository was changed to chase it; it is carried to the close as a finding.
 - [x] `pnpm test:content` asserts the fixture project in eight outputs, the two resume pages included, and passes; `scripts/check-live.sh` and `docs/development.md` carry the four resume addresses (criterion 8, criterion 15). Verified 2026-09-10: the fixture project is found in the work page, the CV page, the resume page, and the JSON document in both languages, eight files and nowhere else, and the run ends `test-content-mechanism: passed`; the fixture certificate stays at six. `scripts/check-live.sh` asks for `/en/resume/`, `/ar/resume/`, `resume.en.pdf`, and `resume.ar.pdf`, and `docs/development.md` lists all four with the one-page rule.
 
+### The content levers pulled, recorded
+
+The spec's revised scope line requires each shortening to be recorded on the ticket that made it. Four texts were shortened to reach one page, all of them truthful against the entry they describe and none of them rewritten for style:
+
+| Entry | Before | After |
+| --- | --- | --- |
+| `projects/rentable.yaml`, summary | named Tauri 2, SvelteKit 2, Svelte 5, the local Turso replica, the sync behaviour, and the separate control plane over plain JSON | "An offline-first desktop tracker for rent payments, on Tauri, SvelteKit, and Turso." |
+| `projects/cachescribe.yaml`, summary | named namespaces, time to live, and pluggable hashing and serialisation | "An npm package: a cache that persists to the file system between runs. Archived." |
+| `experience/al-othaim-markets.yaml`, first highlight | named the headquarters offices and collecting, preparing, and installing equipment | "Replaced and deployed hardware at headquarters, and prepared it for joiners and leavers." |
+| `experience/al-othaim-markets.yaml`, fourth highlight | named custom SDB tickets in Microsoft Dynamics 365 and remote support and diagnostics | "Handled incidents and requests in Dynamics 365, Configuration Manager, and Nexthink." |
+
+Each is the content source's, so the work page, the CV, and the JSON documents carry the shortened text too. The Arabic of each was shortened beside its English.
+
 ## Relevant areas
 New `src/components/CvDocument.astro`, `src/pages/[locale]/cv.astro`, new `src/pages/[locale]/resume.astro`, `src/layouts/Base.astro`, `src/pages/[locale]/index.astro`, `src/styles/global.css` (`cv-compact`), `src/lib/i18n.ts`, `scripts/render-pdf.mjs`, `scripts/check-dist.mjs` (`cvPdf` to `documentPdfs`, `cvHazards`, new `resumePages`), `scripts/lighthouse.mjs`, `scripts/check-live.sh`, `scripts/test-content-mechanism.mjs`, `tests/pages.ts`, `tests/theme.spec.ts`, new `tests/resume.spec.ts`, `docs/development.md`.
 
