@@ -780,10 +780,8 @@ async function documentHazards() {
 }
 
 // Nothing the site publishes carries a contact detail. This is the check the
-// whole effort rests on, because the site is built from a public repository
-// onto static hosting: there is no server to hand one reader a file another
-// does not get, so the only thing that keeps an address or a number private
-// is that it is never built into a published file.
+// whole effort rests on, and docs/development.md says why the site works this
+// way.
 //
 // It reads the address from the content source rather than from a literal
 // here. A check that greps for an address the content no longer holds finds
@@ -816,14 +814,21 @@ async function noContactDetails() {
 
   // Every file, because the criterion says every file: the pages, the JSON
   // documents, the sitemap, the stylesheet, the bundled fonts, the certificate
-  // previews, and all 31 PDFs rather than the four documents by name.
+  // previews, and every PDF rather than the four documents by name.
   //
   // A font or an image is read as latin1 and asked only whether the address or
-  // a mailto: is in its bytes, both of which are exact strings that cannot
-  // match by accident. The phone rule is by shape rather than by value, and a
-  // shape has no business being run over compressed binary; the `identifiers`
-  // check above already refuses those patterns across every text file and every
-  // PDF for its own reason, so nothing is uncovered by the narrowing.
+  // a mailto: is in its bytes. Those are exact strings and cannot match by
+  // accident; the phone rule matches by shape, and a shape run over compressed
+  // binary matches noise. Measured rather than assumed on 2026-09-10: over the
+  // 29 non-text files this tree publishes, the shape rules hit once, inside
+  // NotoNaskhArabic-Bold.ttf, which is a font and not a student number.
+  //
+  // So the shape half of this check does not reach binary files, and nothing
+  // else covers them either: `identifiers` above reads the same text kinds and
+  // the PDFs. That is a real gap against the criterion's words and it is left
+  // open deliberately, because closing it means either a permanently failing
+  // check or an exemption list, and because no phone number is authored
+  // anywhere in this repository for a binary to carry.
   const textual = ['.html', '.json', '.xml', '.txt', '.css', '.js', '.svg', '.md'];
   const files = await walk(context.dist);
   let pdfs = 0;
@@ -845,7 +850,12 @@ async function noContactDetails() {
       rules = forbidden.filter((rule) => rule.exact);
     }
     const hit = rules.find((rule) => rule.test(text));
-    if (hit) throw new CheckFailure(name, `dist/${file} carries ${hit.what}`);
+    if (hit) {
+      // Which is worth the four words: a PDF is judged on the text it
+      // extracts, and every other file on the bytes it is.
+      const where = extension === '.pdf' ? `the text of dist/${file}` : `dist/${file}`;
+      throw new CheckFailure(name, `${where} carries ${hit.what}`);
+    }
   }
 
   // The README is what GitHub renders on the profile page, so it is published
@@ -854,8 +864,60 @@ async function noContactDetails() {
   const hit = forbidden.find((rule) => rule.test(readme));
   if (hit) throw new CheckFailure(name, `README.md carries ${hit.what}`);
 
-  const pdfNote = read === pdfs ? `, the text of ${pdfs} PDFs among them` : ` (pdftotext is not on the PATH, so ${pdfs} PDFs were not read)`;
+  const pdfNote =
+    pdfs === 0
+      ? ''
+      : read === pdfs
+        ? `, the text of ${pdfs} PDFs among them`
+        : ` (pdftotext is not on the PATH, so ${pdfs} PDFs were not read)`;
   return [`no contact details: no address, no mailto:, no number in ${files.length} published files${pdfNote}, or README.md`];
+}
+
+// The nationality is a fact for the two documents and for nothing else. The
+// JSON Resume documents are checked by key in `jsonResume` above; the pages
+// and the README are checked here, and by element rather than by string,
+// because the authored English value is "Saudi" and it occurs in "Saudi
+// Arabia", in a university's name, and in a project summary, all of them true
+// content. Rendered as its own item the value stands alone between its tags,
+// which is what the documents do and what nothing else may do.
+async function nationalityWhereItBelongs() {
+  const name = 'nationality';
+  const profile = parseYaml(await readFile(path.join(context.content, 'profile.yaml'), 'utf8')).profile;
+  const lines = [];
+
+  for (const locale of context.locales) {
+    const value = profile.nationality?.[locale] ?? profile.nationality?.en;
+    if (!value) {
+      throw new CheckFailure(name, `src/content/profile.yaml holds no nationality for ${locale}`);
+    }
+    const alone = `>${value}<`;
+
+    for (const document of documents) {
+      const route = `${locale}/${document}/index.html`;
+      const html = await readFile(path.join(context.dist, locale, document, 'index.html'), 'utf8');
+      if (!html.includes(alone)) {
+        throw new CheckFailure(name, `dist/${route} does not show the nationality as authored`);
+      }
+    }
+
+    const home = await readFile(path.join(context.dist, locale, 'index.html'), 'utf8');
+    if (home.includes(alone)) {
+      throw new CheckFailure(name, `dist/${locale}/index.html shows the nationality, which belongs to the two documents alone`);
+    }
+    lines.push(`nationality: ${locale} shows "${value}" on both documents and not on the home page`);
+  }
+
+  const readme = await readFile(path.join(root, 'README.md'), 'utf8');
+  const { current } = await readmeWithProfile();
+  const block = current.slice(current.indexOf('<!-- profile -->'));
+  for (const locale of context.locales) {
+    const value = profile.nationality?.[locale] ?? profile.nationality?.en;
+    if (new RegExp(`(^|[\\n:*\\-] *)${value}( *$|[\\n])`, 'm').test(block) || readme.includes(`Nationality`)) {
+      throw new CheckFailure(name, 'README.md carries the nationality, which belongs to the two documents alone');
+    }
+  }
+  lines.push('nationality: README.md carries none');
+  return lines;
 }
 
 // The README's profile block is written from the content source and the
@@ -870,7 +932,7 @@ async function readmeProfile() {
   return ['readme profile: README.md carries the profile as src/content/ states it'];
 }
 
-const checks = [jsonResume, documentPdfs, resumePages, localeTwins, hrefs, basePaths, metadata, sitemap, robots, identifiers, noContactDetails, gaps, noOverclaim, documentHazards, readmeProfile];
+const checks = [jsonResume, documentPdfs, resumePages, localeTwins, hrefs, basePaths, metadata, sitemap, robots, identifiers, noContactDetails, nationalityWhereItBelongs, gaps, noOverclaim, documentHazards, readmeProfile];
 
 for (const check of checks) {
   try {

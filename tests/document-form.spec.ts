@@ -139,6 +139,29 @@ for (const locale of locales) {
         expect(await slot(page, 'email')).toEqual({ text: '', hidden: true });
       });
 
+      test('shows the next reader nothing, even where afterprint never fires', async ({ page }) => {
+        // The browser this is about: one that runs the print and never fires
+        // afterprint, so the clear on the way out does not happen. Reopening
+        // the form has to start empty anyway, or the next person at this tab
+        // gets the last one's email and phone, on the document and in the
+        // fields. `afterprint` is deliberately not dispatched here, which is
+        // what makes this test about the clear on the way in.
+        await page.goto(url);
+        await settled(page);
+        await page.locator(control).click();
+        await page.locator('[data-document-field="email"]').fill('first@example.com');
+        await page.locator('[data-document-field="phone"]').fill(placeholder.phone);
+        await page.locator(generate).click();
+        expect((await slot(page, 'email')).text, 'the first reader generated').toBe('first@example.com');
+
+        await page.locator(control).click();
+        await expect(page.locator(dialog)).toHaveAttribute('open', '');
+        expect(await slot(page, 'email'), 'the email slot on reopening').toEqual({ text: '', hidden: true });
+        expect(await slot(page, 'phone'), 'the phone slot on reopening').toEqual({ text: '', hidden: true });
+        await expect(page.locator('[data-document-field="email"]'), 'the email field on reopening').toHaveValue('');
+        await expect(page.locator('[data-document-field="phone"]'), 'the phone field on reopening').toHaveValue('');
+      });
+
       test('dismisses on Escape, on the close control, and on the backdrop, returning focus each time', async ({
         page,
       }) => {

@@ -202,10 +202,11 @@ const nav = [
             var control = event.target.closest ? event.target.closest('[data-document-download]') : null;
             if (!control) return;
             event.preventDefault();
-            // Cleared on the way in as well as on the way out. The clear on
-            // the way out runs on afterprint, and a browser that does not fire
-            // it would otherwise leave one reader's details on the document
-            // and in the fields for the next reader of the same tab.
+            // The third of three clears, and the one that needs no event to
+            // fire: a dismissed dialog clears on close and a printed document
+            // clears on afterprint, but a browser that fires neither would
+            // otherwise hand the next reader of this tab the last one's
+            // details, on the document and in the fields.
             clear();
             opener = control;
             dialog.showModal();
