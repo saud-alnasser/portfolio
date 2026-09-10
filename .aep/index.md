@@ -91,7 +91,7 @@ Start at [[protocol]].
 | --- | --- | --- | --- | --- | --- |
 | 1-portfolio-site | implemented | [[efforts/1-portfolio-site/spec]] | 6 | 0 | 15 |
 | 3-site-redesign | implemented | [[efforts/3-site-redesign/spec]] | 0 | 1 | 8 |
-| 5-sections-and-resume | accepted | [[efforts/5-sections-and-resume/spec]] | 0 | 0 | 4 |
+| 5-sections-and-resume | accepted | [[efforts/5-sections-and-resume/spec]] | 0 | 0 | 5 |
 
 ## Tickets
 
@@ -124,5 +124,6 @@ Every task of every effort. The tracker carries the effort, never its tasks.
 | [[efforts/3-site-redesign/tickets/08-profile-summary]] feat(content): drop the degree sentence from the profile summary so the README stops repeating it | 3-site-redesign | resolved | — |
 | [[efforts/5-sections-and-resume/tickets/01-contract-and-predicate]] feat(content): a completion status on projects, a kind on certificates, a resume marker, and the one predicate every output reads | 5-sections-and-resume | resolved | — |
 | [[efforts/5-sections-and-resume/tickets/02-sections]] feat(site): experience before projects, courses and certifications as their own grids, and the home page's section index | 5-sections-and-resume | resolved | 01 |
-| [[efforts/5-sections-and-resume/tickets/03-documents]] feat(cv): one document component rendering the CV and a one-page resume, each as a page and a PDF | 5-sections-and-resume | open | 01 |
-| [[efforts/5-sections-and-resume/tickets/04-readme-and-summary]] docs(repo): the README links the CV page alone, and the profile summary names finished work only | 5-sections-and-resume | open | 01 |
+| [[efforts/5-sections-and-resume/tickets/03-documents]] feat(cv): one document component rendering the CV and a one-page resume, each as a page and a PDF | 5-sections-and-resume | resolved | 01 |
+| [[efforts/5-sections-and-resume/tickets/04-readme-and-summary]] docs(repo): the README links the CV page alone, and the profile summary names finished work only | 5-sections-and-resume | resolved | 01 |
+| [[efforts/5-sections-and-resume/tickets/05-what-the-effort-falsified]] fix(site): the CV stops calling itself one page, and the repository context catches up | 5-sections-and-resume | resolved | 03 |

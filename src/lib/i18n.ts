@@ -166,7 +166,7 @@ const en = {
   cv: {
     title: 'Curriculum vitae',
     description:
-      'The curriculum vitae of {name}: experience, education, skills, and certifications on one printable page, with PDF and JSON Resume downloads.',
+      'The curriculum vitae of {name}: the whole record of experience, education, skills, certifications, courses, and projects, with PDF and JSON Resume downloads.',
     // The accessible name of the row of links a document page opens with:
     // its own downloads and the other document.
     documents: 'Documents',
@@ -309,7 +309,7 @@ const ar: Strings = {
   cv: {
     title: 'السيرة الذاتية',
     description:
-      'سيرة {name} الذاتية: الخبرة العملية والتعليم والمهارات والشهادات في صفحة واحدة قابلة للطباعة، مع تنزيلها بصيغة PDF وبصيغة JSON Resume.',
+      'سيرة {name} الذاتية: السجل الكامل للخبرة العملية والتعليم والمهارات والشهادات والدورات والمشاريع، مع تنزيلها بصيغة PDF وبصيغة JSON Resume.',
     documents: 'المستندات',
     downloadPdf: 'تنزيل PDF',
     downloadJson: 'تنزيل JSON Resume',
