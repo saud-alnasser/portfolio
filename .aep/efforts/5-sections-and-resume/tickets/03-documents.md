@@ -11,7 +11,7 @@ blocked-by: [01]
 ## Acceptance Criteria
 - [ ] `/en/resume/` and `/ar/resume/` exist, `pnpm render:pdf` writes `dist/resume.en.pdf` and `dist/resume.ar.pdf` beside the CV PDFs, and each document page links its own PDF and the other document page; changing one fact in the content changes it on both pages with no second edit, tried once (criterion 8).
 - [ ] The CV pages show the summary, experience, education with the course list, key skills, certifications, courses, and every project the predicate admits, in that order and in the redesign's template layout; `tests/resume.spec.ts` asserts the order and the project count against the content, and the redesign's `cvHazards` and extraction checks still pass over the CV (criterion 9).
-- [ ] The resume pages show the summary, experience, education without the course list, the skills as one line per group, exactly the projects marked `resume: true`, and any certificate so marked, in that order; `tests/resume.spec.ts` asserts it against the content, and removing the mark from a project removes it from the resume with no other edit, tried once (criterion 10).
+- [ ] The resume pages show the summary, experience, education without the course list, the skills as one line per group, exactly the projects marked `resume: true`, and any certificate so marked, in that order, each project entry printing its name, period, role, and summary and no repository or technologies line; `tests/resume.spec.ts` asserts it against the content, and removing the mark from a project removes it from the resume with no other edit, tried once (criterion 10). No certificate is marked, which Saud settled on 2026-09-10, so the assertion is that the resume carries none.
 - [ ] The rendered resume PDF has exactly one page in each language at A4, and the render step's Letter render also has one; the render step fails with `resume-too-long` naming the locale and the paper when a page is forced over, tried once by lengthening a summary; `pnpm check:dist` (`resumePages`) fails on a two-page file, tried the same way (criterion 10).
 - [ ] The resume pages have no `<table>`, no `<img>`, and no fixed or absolute positioned element carrying content, and their contact block is inside `main`; the extraction check over `dist/resume.en.pdf` finds the name, the email, every experience entry's position, period, and organisation, and every education entry's degree, period, and institution, in reading order, and fails on a removed line, tried once (criterion 11).
 - [ ] Printed to A4 and to Letter from a browser, neither document clips text in either language, checked by eye and recorded (criterion 10).
@@ -24,14 +24,16 @@ New `src/components/CvDocument.astro`, `src/pages/[locale]/cv.astro`, new `src/p
 
 ## Constraints
 - The component's shape, the variant table, the document order, the compact rules, the addresses, and the page count mechanism are the plan's "Architecture" and "Interfaces": one component, `pdfjs-dist` for the count, 10pt as the resume's print size and no smaller.
-- If the resume does not fit at 10pt, the levers are content in the plan's order: project summaries, the placement's bullets, the summary's length. Trimming a summary is a content edit recorded in the ticket, never a smaller type size. If the Arabic resume cannot fit with the content trimmed, stop: that is the plan's named return-to-plan finding.
+- **How the resume reaches one page is the plan's "Making the resume fit one page", written on 2026-09-10 after the first build measured two pages.** The resume takes its own `@page` margins at 10mm all round, tighter gaps between its entries and under its headings, and a project entry that drops its repository and technologies lines, all on the resume variant alone; the content levers are pulled after those, only as far as the fit needs, in the plan's order. **The CV's page box, spacing, and project entries do not change.** 10pt stays the floor, and a smaller type size is not a lever at any point. The profile summary is ticket 04's text, now written, and is not re-cut for the fit.
 - The CV keeps its JSON Resume link and its layout; the extraction check's groups are unchanged and apply to both documents.
 - Letter spacing on the name stays at or under `0.025em`, as the redesign found `pdftotext -layout` needs.
 
 ## Notes
 The plan's technical approach step 3. Stacks on 01; independent of 02 and 04 except for the shared edits to `index.astro` and `i18n.ts` with 02, which the orchestrator reconciles.
 
-### Parked on 2026-09-10, on the one-page rule
+### Parked on 2026-09-10, on the one-page rule, and unparked the same day
+
+**Resolved by Saud on 2026-09-10**, who chose the resume's own page box and spacing over cutting an entry and over letting the resume run to two pages. The plan gained "Making the resume fit one page", the spec's two constraints on the resume's layout were revised with it, and the constraints above now carry the remedy. What follows is the record of the finding that produced it, kept because it is the evidence the decision was made on.
 
 **Not failed and not resolved.** Everything the ticket asks for is built and green except the fourth criterion, and that one cannot be met by building harder: **the resume renders to two pages at A4 and at Letter, in both languages**, at the 10pt the constraint fixes as the floor. The render step and the dist check both refuse it, which is the guard working rather than a defect.
 

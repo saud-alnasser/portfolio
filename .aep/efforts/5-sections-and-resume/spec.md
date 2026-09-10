@@ -67,8 +67,8 @@ The site is a set of sections, each a grid of cards: experience, then projects, 
 - **Everything the first two efforts constrain still binds:** free static hosting, one content source, truthful academic status, two languages with one set of facts, no tracking, no external request, progressive script, stacked changes through Graphite ([[efforts/1-portfolio-site/spec]] and [[efforts/3-site-redesign/spec]], "Constraints").
 - **Truthful in the other direction too.** A project marked finished is finished. The status is a claim on a hiring document, so an entry whose state is unknown is marked unfinished and left off until Saud says otherwise, because understating is recoverable and overstating is not.
 - **One selection, one place.** What the resume shows is a fact on each entry, never a list kept beside the content, so the resume can never name a project the content source dropped.
-- **The resume is one page, and the content bends to it, not the layout.** If the marked entries do not fit, the fix is fewer marked entries or shorter summaries, never a smaller type size below what the template reads at, because a parser and a reader both need the text as it is.
-- **Both documents keep the template.** The resume is the CV's layout with fewer sections, so the two read as one pair and the print and extraction rules the redesign wrote apply to both.
+- **The resume is one page, and the type size is what may not bend.** Revised on 2026-09-10, after the first build measured the resume at two pages in both languages and showed that cutting every multi-line paragraph in it still left it short: the original wording, that the content bends and the layout does not, cannot be met and was Saud's to change. What binds now is that the resume fits one page and its text stays at the size the template reads at, never smaller, because a parser and a reader both need the text as it is. How the fit is reached, the resume's own page box, its tighter entry spacing, a shorter project entry, and the content levers, is [[efforts/5-sections-and-resume/plan]]'s under "Making the resume fit one page".
+- **Both documents keep the template, and the resume may tighten it.** The resume is the CV's layout with fewer sections, so the two read as one pair, and the print and extraction rules the redesign wrote apply to both. Revised on 2026-09-10 with the constraint above: the resume may take its own page margins, its own spacing between entries, and a shorter project entry, and it does so without changing the CV. Every fact it drops that way is on the CV, which is the whole record.
 
 # Out of Scope
 
@@ -86,7 +86,7 @@ The site is a set of sections, each a grid of cards: experience, then projects, 
 - The sections live on the routes the redesign left: the home page holds the hero, the skills, and the index of sections; the work page holds experience then projects; the education page holds the studies timeline, the courses, and the certifications; the CV and the resume are two document routes. Saud chose this over one route per section on 2026-09-10, from the two shapes [[efforts/5-sections-and-resume/plan]] weighs, so every current address stays and the header keeps five links.
 - "Professional jobs" is the experience collection: the practical training placement is the one entry and stays there, marked training.
 - The 19 Code with Mosh and 7 SoloLearn completions are courses; the typing.com advanced assessment is the one certification. Saud reclassifies any entry by editing it.
-- The resume's first project set is rentable and cachescribe, which Saud named on 2026-09-10 as the finished, well-designed ones, and no certificate is marked for the resume until he marks one.
+- The resume's first project set is rentable and cachescribe, which Saud named on 2026-09-10 as the finished, well-designed ones. **No course and no certification is marked for the resume**, which Saud decided on 2026-09-10 when the question was put to him with the fit; the CV still lists all 27 and the education page still shows them, and marking one later is one field on its entry.
 - The status of every project, proposed from the request and confirmed by Saud on 2026-09-10; the content is authored to this table, and he changes any row by editing one field:
 
   | Project | Proposed | Why |
@@ -103,7 +103,7 @@ The site is a set of sections, each a grid of cards: experience, then projects, 
 
 # Open Questions
 
-- **Whether any course or certification belongs on the resume.** None is marked until Saud names one, and marking one is one field on its entry.
+None. The one this effort carried, whether any course or certification belongs on the resume, Saud answered on 2026-09-10: none, recorded in the assumptions above.
 
 # Risks
 
