@@ -685,8 +685,8 @@ async function noOverclaim() {
 // Neither document page carries the layout hazards resume parsers document:
 // no table, no image, and the contact block in the flow of the document
 // rather than in a positioned header or footer.
-async function cvHazards() {
-  const name = 'cv hazards';
+async function documentHazards() {
+  const name = 'document hazards';
   const lines = [];
   for (const document of documents) {
     for (const locale of context.locales) {
@@ -706,7 +706,7 @@ async function cvHazards() {
       if (!/mailto:/.test(main)) {
         throw new CheckFailure(name, `dist/${route} has no email link inside <main>; the contact block must be in the flow of the document`);
       }
-      lines.push(`cv hazards: ${locale}/${document}/ has no table or image, and its contact block is in the flow`);
+      lines.push(`document hazards: ${locale}/${document}/ has no table or image, and its contact block is in the flow`);
     }
   }
   return lines;
@@ -724,7 +724,7 @@ async function readmeProfile() {
   return ['readme profile: README.md carries the profile as src/content/ states it'];
 }
 
-const checks = [jsonResume, documentPdfs, resumePages, localeTwins, hrefs, basePaths, metadata, sitemap, robots, identifiers, gaps, noOverclaim, cvHazards, readmeProfile];
+const checks = [jsonResume, documentPdfs, resumePages, localeTwins, hrefs, basePaths, metadata, sitemap, robots, identifiers, gaps, noOverclaim, documentHazards, readmeProfile];
 
 for (const check of checks) {
   try {

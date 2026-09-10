@@ -10,8 +10,7 @@
 #
 # The root must serve the redirect page, each language its home, and the CV
 # and resume pages their downloads. Pages can take a moment to serve a fresh
-# deployment,
-# so each address is retried for up to two minutes before the script fails
+# deployment, so each address is retried for up to two minutes before it fails
 # naming the address and the status it got. A green run says the addresses
 # answer; on a deploy after the first, the CDN may still be answering from
 # the previous deployment for a short while, so it does not say this build

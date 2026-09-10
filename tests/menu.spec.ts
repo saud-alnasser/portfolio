@@ -4,12 +4,13 @@ import { strings } from '../src/lib/i18n';
 import { lowContrastPairs } from './contrast';
 import { at, control, menu, otherLocale, pageList } from './pages';
 
-// The language menu: it opens with a click and with Enter, lists both
-// languages with the current one marked, leads to the same route in the
-// other language from every page, and closes on Escape and on a click
-// outside. It is a native <details>, so with JavaScript disabled the list is
-// still reachable and its links still work; that context also checks that
-// every page's content is there without a script.
+// The header's two navigations. The site's own is the same links in the same
+// order on every page; the language menu opens with a click and with Enter,
+// lists both languages with the current one marked, leads to the same route
+// in the other language from every page, and closes on Escape and on a click
+// outside. The menu is a native <details>, so with JavaScript disabled the
+// list is still reachable and its links still work; that context also checks
+// that every page's content is there without a script.
 
 // The languages as the menu names them, in their own script.
 const names = { en: 'English', ar: 'العربية' } as const;

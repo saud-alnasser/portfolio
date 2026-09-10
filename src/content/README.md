@@ -95,10 +95,10 @@ One file per institution attended. The education page is one timeline in
 order of time: the institutions by `period.start`, with one node for the
 online-courses phase placed just before the most recent institution, so high
 school comes first, the online courses next, and university last. That node
-stands for every certificate, dated or not: it counts them, runs from the
-earliest dated one to the latest, and leads to the certificates, which are
-listed under their own heading below the timeline. The CV page keeps separate
-Education and Certifications sections.
+stands for the courses, dated or not: it counts them, runs from the earliest
+dated one to the latest, and leads to the courses grid below the timeline,
+where the certifications sit under their own heading beside it. The CV page
+keeps separate Education, Certifications, and Courses sections.
 
 | Field | Type | Per language | Meaning |
 | --- | --- | --- | --- |

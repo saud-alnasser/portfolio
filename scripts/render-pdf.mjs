@@ -19,8 +19,7 @@
 // time at Letter to a buffer and both renders are counted with pdfjs-dist.
 // Either running past one page fails the step naming the locale, the paper,
 // and the count, here rather than in a pull request: the remedy is content,
-// as .aep/efforts/5-sections-and-resume/spec.md constrains, never a smaller
-// type size.
+// as the effort's spec constrains, never a smaller type size.
 
 import { readFile, stat } from 'node:fs/promises';
 import { createRequire } from 'node:module';

@@ -158,8 +158,11 @@ for (const locale of locales) {
       await expect(entry.locator('h3')).toHaveText(project.name);
       await expect(entry.locator('p')).toHaveText([
         formatPeriod(locale, project.period),
-        project.role[locale],
-        project.summary[locale],
+        // The Arabic of a project field is optional in the contract, so the
+        // page falls back to the English (src/lib/localized.ts) and the
+        // expectation has to fall back with it, as line 56 does above.
+        project.role[locale] ?? project.role.en,
+        project.summary[locale] ?? project.summary.en,
       ]);
       await expect(entry, `${project.name} on the resume`).not.toContainText(t.project.technologies);
       await expect(entry.locator(`a[href="${project.links.repository}"]`)).toHaveCount(0);
