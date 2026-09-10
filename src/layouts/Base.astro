@@ -17,7 +17,7 @@ interface Props {
   path: string;
   // The width of the page: `grid` for a page laying cards in columns, 64rem;
   // `document` for the CV, which reads as one column of text, 48rem. The
-  // header, the content, and the footer share it.
+  // header and the content share it.
   column: 'document' | 'grid';
 }
 
@@ -325,13 +325,5 @@ const nav = [
     -->
     <slot name="dialog" />
 
-    <footer class:list={['mx-auto w-full px-6 pb-12 text-sm text-muted-foreground', width]}>
-      {/* No contact line. The site publishes no address and no number; a
-          reader who wants one types it into the form a document page offers,
-          and docs/development.md says why. */}
-      <div class="flex flex-wrap justify-end gap-x-8 gap-y-2 border-t border-border pt-6">
-        <span>{siteName}</span>
-      </div>
-    </footer>
   </body>
 </html>

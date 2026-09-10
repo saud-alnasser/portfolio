@@ -69,7 +69,6 @@ for (const route of ['/en/cv/', '/en/resume/'] as const) {
     // The chrome around the document, and the download control above it, are
     // off the page.
     await expect(page.locator('body > header')).toBeHidden();
-    await expect(page.locator('body > footer')).toBeHidden();
     await expect(page.locator('.cv-actions')).toBeHidden();
 
     // The heading bands are the one tint the template has, and a browser drops
