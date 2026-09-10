@@ -1,5 +1,5 @@
 ---
-status: draft
+status: accepted
 priority: high
 ---
 
@@ -52,7 +52,7 @@ The site is a set of sections, each a grid of cards: experience, then projects, 
 4. The navigation, the home page's section cards, the CV, and the resume each list experience before projects. The two are separate sections, each with its own heading and grid. The Al Othaim Markets entry renders in experience with its training wording.
 5. The courses section renders one card per course completion, in date order with undated ones last, each showing its name, its provider, and its date where known; a card whose entry names a document opens it in the overlay with the redesign's close, link, Escape, and focus behaviour. The online-courses node on the education timeline shows the count of the courses section and links to it.
 6. The certifications section renders one card per entry classified as a certification, with the same card behaviour. Reclassifying an entry in the content moves its card between the two sections with no other edit.
-7. Each of the six sections is reachable from the navigation on every page and renders its entries inside card elements; at 360 pixels every grid is one column and at 1440 two or more, with no horizontal scroll. The home page shows one card per section, and each count equals the number of entries that section renders.
+7. Each of the six sections is reachable from every page through the navigation and the page that holds it, and from the home page's section cards, each of which links to its section's heading; every section renders its entries inside card elements; at 360 pixels every grid is one column and at 1440 two or more, with no horizontal scroll. The home page shows one card per section, and each count equals the number of entries that section renders.
 8. The site has, in each language, a CV page and a resume page, a PDF for each written by the render step, and a section or control on the site that links to both and labels each. Changing a fact in the content source changes it on both pages and in both PDFs with no second edit.
 9. The English and Arabic CV pages show the summary, experience, education, skills, certifications, courses, and every finished project the projects section shows, in the redesign's template layout; the redesign's criteria 8 and 9 still hold for the CV.
 10. The resume page in each language shows the summary, the experience, the education, the key skills, and exactly the projects whose entries carry the resume marker, plus any certificate whose entry carries it; the rendered resume PDF has exactly one page in each language, and the dist check fails if it has more. Printed to A4 and to Letter from the browser, nothing is clipped. Removing the marker from a project removes it from the resume with no other edit.
@@ -83,7 +83,7 @@ The site is a set of sections, each a grid of cards: experience, then projects, 
 # Assumptions
 
 - The "What I work with" block stays in the README beneath the profile lines. Saud's request named the links and the email; it did not name the skills block, and on 2026-09-10 he confirmed the block stays.
-- Each section keeps its own route, reachable from the navigation, and the home page stays the index of sections, as the redesign left it. Whether experience and projects are two routes or one route with two sections in that order is the plan's, and the first effort's criterion 2, every section reachable from the navigation, still decides.
+- The sections live on the routes the redesign left: the home page holds the hero, the skills, and the index of sections; the work page holds experience then projects; the education page holds the studies timeline, the courses, and the certifications; the CV and the resume are two document routes. Saud chose this over one route per section on 2026-09-10, from the two shapes [[efforts/5-sections-and-resume/plan]] weighs, so every current address stays and the header keeps five links.
 - "Professional jobs" is the experience collection: the practical training placement is the one entry and stays there, marked training.
 - The 19 Code with Mosh and 7 SoloLearn completions are courses; the typing.com advanced assessment is the one certification. Saud reclassifies any entry by editing it.
 - The resume's first project set is rentable and cachescribe, which Saud named on 2026-09-10 as the finished, well-designed ones, and no certificate is marked for the resume until he marks one.

@@ -91,7 +91,7 @@ Start at [[protocol]].
 | --- | --- | --- | --- | --- | --- |
 | 1-portfolio-site | implemented | [[efforts/1-portfolio-site/spec]] | 6 | 0 | 15 |
 | 3-site-redesign | implemented | [[efforts/3-site-redesign/spec]] | 0 | 1 | 8 |
-| 5-sections-and-resume | draft | [[efforts/5-sections-and-resume/spec]] | 0 | 0 | 0 |
+| 5-sections-and-resume | accepted | [[efforts/5-sections-and-resume/spec]] | 0 | 0 | 0 |
 
 ## Tickets
 
