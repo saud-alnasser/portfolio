@@ -44,7 +44,13 @@ const standardFontDataUrl = `${path.dirname(require.resolve('pdfjs-dist/package.
 // written to. `pages` is what the document is allowed to run to.
 const documents = [
   { route: 'cv', file: 'cv', pages: null },
-  { route: 'resume', file: 'resume', pages: 1 },
+  // Two, not one. The document is one page under the fonts Windows resolves
+  // for the system stack and two under the Linux runner's, and it is the
+  // runner that renders what ships, so a one-page rule here was a rule about
+  // the renderer rather than about the document. Two is a budget and not a
+  // target: the resume is still the short document, and a third page is
+  // still refused (the effort's spec, requirement 10).
+  { route: 'resume', file: 'resume', pages: 2 },
 ];
 
 class RenderFailure extends Error {
@@ -120,12 +126,12 @@ async function render(browser, at, locale, output) {
     if (count > output.pages) {
       throw new RenderFailure(
         'resume-too-long',
-        `${locale} at ${paper} runs to ${count} pages, expected ${output.pages}; shorten the content, never the type size`,
+        `${locale} at ${paper} runs to ${count} pages, expected at most ${output.pages}; shorten the content, never the type size`,
       );
     }
   }
   const loaded = fonts.filter((face) => face.status === 'loaded').map((face) => `${face.family} ${face.weight}`);
-  const pages = counts.map(({ paper, count }) => `${count} page at ${paper}`).join(', ');
+  const pages = counts.map(({ paper, count }) => `${count} ${count === 1 ? 'page' : 'pages'} at ${paper}`).join(', ');
   return `${path.relative(root, file)}: ${size} bytes${pages ? `, ${pages}` : ''}${loaded.length > 0 ? `, fonts ${loaded.join(', ')}` : ''}`;
 }
 

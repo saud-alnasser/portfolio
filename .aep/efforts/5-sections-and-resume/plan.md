@@ -66,7 +66,19 @@ Letter binds, being 67px shorter than A4. **Cutting every multi-line paragraph i
 
 **A was recommended and chosen.** B and C were put to Saud beside it with their costs; D was named and not proposed, because the constraint rules it out and only Saud could lift it. The gain is budgeted as: the page box about 165px, the entry and heading gaps about 40px, the two dropped lines per project entry about 74px, and the plan's three content levers about 160px. The first three are the resume's alone; the content levers are pulled only as far as the fit needs, and the profile summary among them is ticket 04's text, which is now written and is not re-cut for this.
 
-**What stays fixed.** 10pt is still the floor. The extraction check, the hazard check, and the page count still run over the resume, and the one-page rule of requirement 10 is unchanged: this section is how it is met, not a relaxation of it.
+**What stays fixed.** 10pt is still the floor. The extraction check, the hazard check, and the page count still run over the resume.
+
+### The one-page target did not survive the runner
+
+**Added on 2026-09-10, after the integration workflow refused the branch.** The remedy above reached one page at both papers in both languages on the machine it was built on, and the same commit produced `render-pdf: resume-too-long: en at Letter runs to 2 pages` on the Linux runner. Nothing about the document differed. What differed is the font: `--font-sans` is the system stack, which Windows resolves to Segoe UI for Latin text and the runner resolves to whatever its image ships, and the English resume cleared Letter by about 16 pixels, under one line, so the wider metrics took it over. The CV showed the same difference harmlessly, at 67898 bytes there against 76628 here.
+
+**What this means for any page-count rule keyed on the system stack:** it is a rule about the rendering machine, not about the document, and it can only be verified where the document is actually rendered. The deploy workflow runs the same render step on the same runner, so the failure would have stopped the site updating rather than merely failing a check.
+
+| | Advantages | Disadvantages | Risks | Maintenance |
+| --- | --- | --- | --- | --- |
+| **Two pages instead of one** (chosen by Saud on 2026-09-10) | nothing to build and no new file; the resume is still the short document beside a five-page CV, and a third page is still refused; the fit work already done keeps it near one page wherever the fonts are narrow | requirement 10 and criterion 10 are rewritten, and the one-page resume was the shape the effort set out to deliver; the document may be one page on one machine and two on another, which is a thing to explain rather than a property to state | none beyond the wider budget | none |
+| A bundled Latin face for printing, beside the Naskh face the site already bundles | the metrics become identical on every machine, so the budget is a property of the document; one page becomes sayable again; the mechanism already exists in the stylesheet, with a unicode-range | one more font file and a request when printing; the printed documents stop matching the system font the site reads in; the first effort's "one family: the system stack, which needs no request" is revised | a licence and a subset to keep | one font file |
+| Trim further against the runner's fonts | no new file and no rule change | those metrics cannot be measured from a developer's machine without a container, so the loop runs through CI; the fit stays hostage to the runner image, which can change under it | the deploy breaks again on an image update, and the site stops updating | a fragile margin to defend |
 
 # Components
 
@@ -187,7 +199,7 @@ Every current address stays under option B. The JSON Resume documents change onl
 | 7 | the per-page specs assert grid columns at 360 and 1440 as today; `tests/home.spec.ts` asserts eight cards with counts from the collections and the anchors they link to; `tests/layout.spec.ts` covers the new route |
 | 8 | `tests/resume.spec.ts` asserts both pages exist, each links the other and its PDF; `pnpm render:pdf` writes four files; the content mechanism test proves a content change reaches both pages and both PDFs' source pages |
 | 9 | `tests/resume.spec.ts` asserts the CV page's sections in order (summary, experience, education, skills, certifications, courses, projects) and that its project count is the shown set; the redesign's hazard and extraction checks, now `documentHazards` and `documentPdfs`, still run over it |
-| 10 | `tests/resume.spec.ts` asserts the resume's sections, that its projects are exactly the `resume: true` set and its certificates the marked set; `pnpm render:pdf` fails past one page at A4 or Letter; `pnpm check:dist` (`resumePages`) fails past one page; A4 and Letter printed from a browser by hand, as the first effort did |
+| 10 | `tests/resume.spec.ts` asserts the resume's sections, that its projects are exactly the `resume: true` set and its certificates the marked set; `pnpm render:pdf` fails past two pages at A4 or Letter; `pnpm check:dist` (`resumePages`) fails past two; A4 and Letter printed from a browser by hand, as the first effort did |
 | 11 | `pnpm check:dist` (`documentHazards` over both pages, `documentPdfs` over both English PDFs); a deliberate removal of one expected line to see the resume check fail, recorded in the ticket |
 | 12 | `pnpm check:dist` (`jsonResume`), which compares the document's sections with the shown set through the predicate |
 | 13 | `pnpm check:dist` (`readmeProfile`); the ticket greps the README for `.pdf` and `resume.json` and expects nothing |

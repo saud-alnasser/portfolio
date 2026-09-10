@@ -98,7 +98,7 @@ const en = {
     certifications: 'Credentials that are not course completions.',
     skills: 'What I work with, higher up this page.',
     cv: 'The whole record: experience, education, projects, courses, certifications, and skills.',
-    resume: 'One page to send with an application: the summary, the work, and selected projects.',
+    resume: 'The short one to send with an application: the summary, the work, and selected projects.',
     // What a section card says it holds: "19 projects", "26 courses". The
     // count comes from the collection the section renders, never from this
     // file. {count} is the number and {noun} the form of the section's noun
@@ -185,7 +185,7 @@ const en = {
   resume: {
     title: 'Resume',
     description:
-      'The one-page resume of {name}: the summary, experience, education, key skills, and selected projects, with a PDF download.',
+      'The short resume of {name}: the summary, experience, education, key skills, and selected projects, with a PDF download.',
     cvLink: 'View the full CV',
   },
   period: {
@@ -248,7 +248,7 @@ const ar: Strings = {
     certifications: 'شهادات ليست إتمام دورات.',
     skills: 'ما أعمل به، أعلى هذه الصفحة.',
     cv: 'السجل الكامل: الخبرة العملية والتعليم والمشاريع والدورات والشهادات والمهارات.',
-    resume: 'صفحة واحدة لمرافقة طلب التوظيف: الملخص والخبرة العملية ومشاريع مختارة.',
+    resume: 'النسخة المختصرة لمرافقة طلب التوظيف: الملخص والخبرة العملية ومشاريع مختارة.',
     counts: {
       line: '{count} {noun}',
       // The counted noun of each section, in the forms Arabic gives each
@@ -323,7 +323,7 @@ const ar: Strings = {
   resume: {
     title: 'السيرة المختصرة',
     description:
-      'السيرة المختصرة لـ{name} في صفحة واحدة: الملخص والخبرة العملية والتعليم والمهارات الأساسية ومشاريع مختارة، مع تنزيلها بصيغة PDF.',
+      'السيرة المختصرة لـ{name}: الملخص والخبرة العملية والتعليم والمهارات الأساسية ومشاريع مختارة، مع تنزيلها بصيغة PDF.',
     cvLink: 'عرض السيرة الذاتية الكاملة',
   },
   period: {
