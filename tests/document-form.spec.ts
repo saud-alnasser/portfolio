@@ -43,6 +43,10 @@ const settled = (page: Page) => page.evaluate(() => Promise.all(document.getAnim
 
 // Counts the print calls instead of making them, and lets a test fire the
 // afterprint the browser would fire once a reader is done with the dialog.
+//
+// The count lands a task after the dialog's `open` attribute goes, because
+// printing happens in the close handler and `close()` removes the attribute
+// synchronously. Anything asserting on this counter polls for it.
 async function stubPrint(page: Page) {
   await page.addInitScript(() => {
     (window as any).__prints = 0;
@@ -152,7 +156,13 @@ for (const locale of locales) {
         await page.locator(generate).click();
 
         await expect(page.locator(dialog)).not.toHaveAttribute('open');
-        expect(await prints(page), `window.print() on ${url}`).toBe(1);
+        // Polled rather than read once. `dialog.close()` removes the attribute
+        // above synchronously and queues the close event, so that assertion can
+        // resolve a task before the handler that prints has run, and a one-shot
+        // read then sees zero. It is the lighter of the two documents that loses
+        // that race, which is why it showed up on the resume pages and on the
+        // runner rather than here.
+        await expect.poll(() => prints(page), { message: `window.print() on ${url}` }).toBe(1);
 
         // In the contact line, in order, at the position the email held
         // before this effort: the two slots come before the nationality.
