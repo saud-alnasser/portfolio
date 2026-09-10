@@ -1,6 +1,11 @@
 ---
-// A certificate card. Where the entry names a document, the whole card is a
-// link to that PDF, so with no script a click opens the document itself; the
+// A certificate card, for a course completion or for a certification: the
+// entry's `kind` decides which grid on the education page holds it and is
+// what the card says it is, so a reclassification in the content moves the
+// card and nothing else changes.
+//
+// Where the entry names a document, the whole card is a link
+// to that PDF, so with no script a click opens the document itself; the
 // inline script in the base layout turns the same click into the page's one
 // dialog, using the preview, the caption, and the address the card carries on
 // its data attributes. Where the entry names no document there is nothing to
@@ -62,7 +67,7 @@ const caption = `${name}${t.listSeparator}${data.issuer}`;
   as={address ? undefined : 'article'}
   href={address}
   class="group h-full"
-  data-entry="certificate"
+  data-entry={data.kind}
   data-document={address}
   data-preview={preview?.src}
   data-preview-width={preview ? String(preview.width) : undefined}

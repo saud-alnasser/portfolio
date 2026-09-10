@@ -105,6 +105,43 @@ test.describe('the work page', () => {
       }
     });
 
+    test(`${url} puts the experience grid before the projects grid`, async ({ page }) => {
+      // Requirement 4: a hiring reader looks for employment first, so each
+      // section is a heading with the id the home page's card links to, and
+      // experience comes first. Read from the document rather than from the
+      // template, so a reordering of the source shows up here.
+      await page.goto(url);
+      const order = await page.evaluate(() => {
+        const nodes = Array.from(document.querySelectorAll('main, main *'));
+        const at = (selector: string) => {
+          const element = document.querySelector(selector);
+          return element ? nodes.indexOf(element) : -1;
+        };
+        return {
+          experienceHeading: at('h2#experience'),
+          experienceGrid: at('[data-grid="experience"]'),
+          projectsHeading: at('h2#projects'),
+          projectsGrid: at('[data-grid="projects"]'),
+        };
+      });
+
+      for (const [what, position] of Object.entries(order)) {
+        expect(position, `${what} on ${url}`).toBeGreaterThanOrEqual(0);
+      }
+      expect(order.experienceHeading, `the experience heading comes before its grid on ${url}`).toBeLessThan(
+        order.experienceGrid,
+      );
+      expect(order.experienceGrid, `the experience grid comes before the projects heading on ${url}`).toBeLessThan(
+        order.projectsHeading,
+      );
+      expect(order.projectsHeading, `the projects heading comes before its grid on ${url}`).toBeLessThan(
+        order.projectsGrid,
+      );
+
+      await expect(page.locator('h2#experience')).toHaveText(strings[locale].sections.experience);
+      await expect(page.locator('h2#projects')).toHaveText(strings[locale].sections.projects);
+    });
+
     test(`${url} shows each card's name, period, and meta line`, async ({ page }) => {
       await page.goto(url);
       const card = page.locator('[data-entry="experience"]').first();

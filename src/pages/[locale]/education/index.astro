@@ -9,6 +9,7 @@ import Icon from '../../../components/Icon.astro';
 import { fill, formatPeriod, locales, plural, strings, type Locale } from '../../../lib/i18n';
 import { localized } from '../../../lib/localized';
 import { byDateAscending, byStartAscending } from '../../../lib/order';
+import { isCertification, isCourse } from '../../../lib/shown';
 
 export function getStaticPaths() {
   return locales.map((l) => ({ params: { locale: l.code } }));
@@ -21,7 +22,15 @@ const profile = (await getEntry('profile', 'profile'))!;
 const name = localized(locale, 'profile', profile.id)('name', profile.data.name);
 
 const education = (await getCollection('education')).sort((a, b) => byStartAscending(a.data, b.data));
+
+// The certificates collection is two sections of this page, told apart by the
+// one field its entries carry (src/lib/shown.ts): a course completion and a
+// credential that is not one. Both are sorted the same way, by date with the
+// undated last, so reclassifying an entry moves its card between the grids
+// and changes nothing else.
 const certificates = (await getCollection('certificates')).sort((a, b) => byDateAscending(a.data, b.data));
+const courses = certificates.filter(({ data }) => isCourse(data));
+const certifications = certificates.filter(({ data }) => isCertification(data));
 
 // The timeline is the institutions in order of time, by their start, with one
 // node for the online-courses phase in the place the undated certificates used
@@ -32,16 +41,17 @@ const certificates = (await getCollection('certificates')).sort((a, b) => byDate
 type Item = { kind: 'education'; entry: CollectionEntry<'education'> } | { kind: 'courses' };
 
 const items: Item[] = education.map((entry): Item => ({ kind: 'education', entry }));
-if (certificates.length > 0) items.splice(Math.max(items.length - 1, 0), 0, { kind: 'courses' });
+if (courses.length > 0) items.splice(Math.max(items.length - 1, 0), 0, { kind: 'courses' });
 
-// The node stands for every certificate, dated or not: it counts them all and
-// runs from the earliest dated one to the latest. The certificates themselves
-// are below the timeline, under the heading it links to.
-const dated = certificates.filter((entry) => entry.data.date);
+// The node stands for the courses section, dated entries and undated alike:
+// it counts every course and runs from the earliest dated one to the latest.
+// The courses themselves are below the timeline, under the heading it links
+// to.
+const dated = courses.filter((entry) => entry.data.date);
 const period = dated.length > 0 ? { start: dated[0].data.date!, end: dated[dated.length - 1].data.date! } : undefined;
 const count = fill(t.education.onlineCourses.count, {
-  count: String(certificates.length),
-  noun: plural(locale, certificates.length, t.education.onlineCourses.noun),
+  count: String(courses.length),
+  noun: plural(locale, courses.length, t.education.onlineCourses.noun),
 });
 ---
 
@@ -73,7 +83,7 @@ const count = fill(t.education.onlineCourses.count, {
             {item.kind === 'education' ? (
               <Education locale={locale} entry={item.entry} />
             ) : (
-              <Card href="#certificates" data-courses-node>
+              <Card href="#courses" data-courses-node>
                 {period && <p class="text-sm text-muted-foreground tabular-nums">{formatPeriod(locale, period)}</p>}
                 <h3 class="mt-1 text-lg font-semibold tracking-tight">{t.education.onlineCourses.name}</h3>
                 <p class="mt-1">{count}</p>
@@ -90,15 +100,33 @@ const count = fill(t.education.onlineCourses.count, {
   </section>
 
   {/*
-    The certificates as a grid of cards, in the same order the timeline node
-    counts them: one column on a phone, two from 48rem up. The anchor stays on
-    the heading, so an inbound link to #certificates still lands here.
+    The courses as a grid of cards, in the same order the timeline node counts
+    them: one column on a phone, two from 48rem up. The heading carries the
+    anchor the node leads to.
+  */}
+  <section aria-labelledby="courses" class="mt-16">
+    <h2 id="courses" class="text-xl font-semibold tracking-tight">{t.sections.courses}</h2>
+    <ul data-grid="courses" class="mt-6 grid grid-cols-1 gap-4 md:grid-cols-2 md:gap-5">
+      {
+        courses.map((entry) => (
+          <li>
+            <Certificate locale={locale} entry={entry} />
+          </li>
+        ))
+      }
+    </ul>
+  </section>
+
+  {/*
+    The certifications, the same grid of the same cards. Its heading keeps the
+    id the certificates section had, so an inbound link to #certificates still
+    lands on a credential rather than on nothing.
   */}
   <section aria-labelledby="certificates" class="mt-16">
-    <h2 id="certificates" class="text-xl font-semibold tracking-tight">{t.sections.certificates}</h2>
-    <ul data-grid="certificates" class="mt-6 grid grid-cols-1 gap-4 md:grid-cols-2 md:gap-5">
+    <h2 id="certificates" class="text-xl font-semibold tracking-tight">{t.sections.certifications}</h2>
+    <ul data-grid="certifications" class="mt-6 grid grid-cols-1 gap-4 md:grid-cols-2 md:gap-5">
       {
-        certificates.map((entry) => (
+        certifications.map((entry) => (
           <li>
             <Certificate locale={locale} entry={entry} />
           </li>

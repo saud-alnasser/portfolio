@@ -181,14 +181,14 @@ async function assertProjectLinked() {
 
 // The certificate's card on the education page is neither a link nor a
 // button and carries no document, because the entry names none. The card is
-// the nearest element before the name that is marked as a certificate entry;
-// its opening tag says what it is.
+// the nearest element before the name that is marked as a course entry, the
+// kind the fixture carries; its opening tag says what it is.
 async function assertCardUnopenable() {
   for (const locale of ['en', 'ar']) {
     const file = `${locale}/education/index.html`;
     const html = await readFile(path.join(dist, file), 'utf8');
     const at = html.indexOf(certificate.name);
-    const marker = html.lastIndexOf('data-entry="certificate"', at);
+    const marker = html.lastIndexOf('data-entry="course"', at);
     if (at === -1 || marker === -1) throw new Failure('fixture-missing', `dist/${file} has no certificate card named "${certificate.name}"`);
     const tag = html.slice(html.lastIndexOf('<', marker), html.indexOf('>', marker) + 1);
     const element = /^<([a-z0-9-]+)/i.exec(tag)?.[1]?.toLowerCase();
