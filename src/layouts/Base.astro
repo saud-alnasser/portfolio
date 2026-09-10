@@ -227,10 +227,12 @@ const nav = [
     <slot name="dialog" />
 
     <footer class:list={['mx-auto w-full px-6 pb-12 text-sm text-muted-foreground', width]}>
-      <div class="flex flex-wrap justify-between gap-x-8 gap-y-2 border-t border-border pt-6">
-        <a href={`mailto:${profile.data.email}`} class="hover:text-primary motion-safe:transition-colors">
-          {profile.data.email}
-        </a>
+      {/* No contact line. The site publishes no address and no number: it is
+          built from a public repository onto static hosting, so anything it
+          renders is readable by anyone, and the only thing that keeps a
+          contact detail private is that it is never built in. A reader who
+          wants one types it into the form on a document page. */}
+      <div class="flex flex-wrap justify-end gap-x-8 gap-y-2 border-t border-border pt-6">
         <span>{siteName}</span>
       </div>
     </footer>

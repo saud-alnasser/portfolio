@@ -205,7 +205,7 @@ async function documentPdfs() {
 
   // What an English document page prints, from the content it prints it from,
   // in the order it prints it (src/components/CvDocument.astro): the name,
-  // the email, then each experience entry's position with its period and its
+  // then each experience entry's position with its period and its
   // organisation beneath, then each education entry's degree with its period
   // and its institution beneath.
   //
@@ -223,7 +223,10 @@ async function documentPdfs() {
     // PDF whatever the content file says; it is the one item compared
     // without case.
     { items: [profile.name[locale]], caseless: true },
-    { items: [profile.email] },
+    // The email was the second group and the document no longer prints it, so
+    // the published PDFs anchor on the name alone. What replaces it is an
+    // extraction over a document produced through the download form, where a
+    // contact line still exists; that is the effort's last ticket.
   ];
   for (const entry of experience) {
     expected.push({ items: [entry.position[locale], formatPeriod(locale, entry.period)] });
@@ -707,9 +710,13 @@ async function documentHazards() {
           throw new CheckFailure(name, `dist/${route} contains a <${tag}> element`);
         }
       }
+      // The contact block used to prove itself by its `mailto:`. The document
+      // publishes no address now, so the proof is the block's own marker: a
+      // contact list inside <main> is in the flow, and one moved into a
+      // positioned header or footer is not, which is the hazard.
       const main = html.match(/<main[\s>][\s\S]*?<\/main>/i)?.[0] ?? '';
-      if (!/mailto:/.test(main)) {
-        throw new CheckFailure(name, `dist/${route} has no email link inside <main>; the contact block must be in the flow of the document`);
+      if (!/data-cv-contact/.test(main)) {
+        throw new CheckFailure(name, `dist/${route} has no [data-cv-contact] inside <main>; the contact block must be in the flow of the document`);
       }
       lines.push(`document hazards: ${locale}/${document}/ has no table or image, and its contact block is in the flow`);
     }

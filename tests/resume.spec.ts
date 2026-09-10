@@ -28,6 +28,7 @@ function entries(collection: string): any[] {
     .map((file) => parseYaml(readFileSync(path.join(dir, file), 'utf8')));
 }
 
+const profile = parseYaml(readFileSync(path.join(content, 'profile.yaml'), 'utf8')).profile;
 const projects = entries('projects').filter((data) => isShown(data));
 const certificates = entries('certificates');
 
@@ -203,6 +204,45 @@ for (const locale of locales) {
         const nav = page.getByRole('navigation', { name: strings[locale].nav.label }).locator('ul').first();
         await expect(nav.locator(`a[href="${at(`/${locale}/cv/`)}"]`)).toHaveCount(1);
         await expect(nav.locator(`a[href="${at(`/${locale}/resume/`)}"]`)).toHaveCount(1);
+      });
+
+      test('carries a contact line with the nationality and no contact detail', async ({ page }) => {
+        await page.goto(route);
+        const contact = page.locator('[data-cv-contact]');
+        await expect(contact).toHaveCount(1);
+
+        // The nationality is what a Saudi employer's eligibility gate reads,
+        // and it is authored on the profile rather than inferred from the
+        // location.
+        await expect(contact).toContainText(profile.nationality[locale] ?? profile.nationality.en);
+        await expect(contact).toContainText(profile.location[locale] ?? profile.location.en);
+
+        // Nothing published carries an address or a number. The two slots the
+        // download form fills are present, empty, and hidden, which is the
+        // state a published document is in and the state the page returns to
+        // after one is generated.
+        expect(await contact.innerText()).not.toContain(profile.email);
+        await expect(page.locator('a[href^="mailto:"]')).toHaveCount(0);
+        for (const slot of ['email', 'phone']) {
+          const item = contact.locator(`[data-contact-slot="${slot}"]`);
+          await expect(item, `the ${slot} slot`).toHaveCount(1);
+          await expect(item).toBeHidden();
+          expect(await item.locator('span').first().textContent()).toBe('');
+        }
+      });
+
+      test('separates the contact line with a bar after every item but the last', async ({ page }) => {
+        await page.goto(route);
+        // The bars are trailing, so hiding the two slots at the head of the
+        // line cannot strand one. What that has to hold on paper, in both
+        // directions, is no leading bar and no doubled bar: exactly one fewer
+        // visible bar than there are visible items.
+        const items = page.locator('[data-cv-contact] > li:not([hidden])');
+        const bars = page.locator('[data-cv-contact] > li:not([hidden]) > [aria-hidden="true"]:visible');
+        await expect(bars).toHaveCount((await items.count()) - 1);
+
+        const last = page.locator('[data-cv-contact] > li:not([hidden])').last();
+        await expect(last.locator('[aria-hidden="true"]')).toBeHidden();
       });
     });
   }

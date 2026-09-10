@@ -28,12 +28,12 @@ const location = text('location', profile.data.location);
 const cv = withBase(`/${locale}/cv/`);
 const resume = withBase(`/${locale}/resume/`);
 
-// The contact details as actions rather than a table: the label is what the
-// visitor reads and the address is in the link, so the page never repeats the
-// footer's email line. A profile takes its network's mark where the icon set
-// has one and the external link icon where it does not (src/lib/networks.ts).
-const actions: { key: string; href: string; icon: 'mail' | 'file' | ProfileIcon; label: string }[] = [
-  { key: 'email', href: `mailto:${profile.data.email}`, icon: 'mail', label: t.home.email },
+// Where a visitor can go, as actions rather than a table. No email and no
+// phone number: the site publishes neither, anywhere, and a reader who wants
+// a document carrying them types them into the form a document page offers.
+// A profile takes its network's mark where the icon set has one and the
+// external link icon where it does not (src/lib/networks.ts).
+const actions: { key: string; href: string; icon: 'file' | ProfileIcon; label: string }[] = [
   ...profile.data.profiles.map((p) => ({
     key: p.network.toLowerCase(),
     href: p.url,

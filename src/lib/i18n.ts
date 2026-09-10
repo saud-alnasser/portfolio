@@ -84,7 +84,6 @@ const en = {
   },
   home: {
     contact: 'Contact',
-    email: 'Email',
     location: 'Location',
     sections: 'On this site',
     // One line per section card, saying what that section holds. The card
@@ -238,7 +237,6 @@ const ar: Strings = {
   },
   home: {
     contact: 'التواصل',
-    email: 'البريد الإلكتروني',
     location: 'الموقع الجغرافي',
     sections: 'في هذا الموقع',
     experience: 'الوظائف والتدريب العملي.',

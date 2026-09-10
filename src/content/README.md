@@ -41,9 +41,9 @@ people; where the two disagree, the code is right and this file is corrected.
 
 One file, `src/content/profile.yaml`, with a single top-level key `profile:`
 holding the person. The profile block of the repository's `README.md`,
-between the `<!-- profile -->` markers, is written from `summary`, `email`,
-and `profiles` here and from the skill groups by `pnpm readme`, so who Saud
-is stays authored once; the dist check fails when the README is behind.
+between the `<!-- profile -->` markers, is written from `summary` and
+`profiles` here and from the skill groups by `pnpm readme`, so who Saud is
+stays authored once; the dist check fails when the README is behind.
 
 | Field | Type | Per language | Meaning |
 | --- | --- | --- | --- |
