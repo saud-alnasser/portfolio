@@ -1,5 +1,5 @@
 ---
-status: open
+status: resolved
 blocked-by: [02]
 ---
 
@@ -9,9 +9,9 @@ blocked-by: [02]
 The two places a later reader will look both say what is now true. `docs/development.md` names the address that opens the form and says the render step navigates there, so the one person who has to remember it can find it. Effort 7's spec keeps its own text as the record of what it built and gains a line pointing here, so nobody reads its requirement 3 as current.
 
 ## Acceptance Criteria
-- [ ] `docs/development.md` names the marked address in the paragraph that already describes the form, and says the render step navigates to it (criterion 9).
-- [ ] `.aep/efforts/7-document-downloads-and-contact-details/spec.md` carries a line at its requirement 3 naming this effort as what changed it, and its `status:` and the rest of its text are untouched (criterion 8).
-- [ ] `pnpm check` and the integration gate pass, and `node .aep/scripts/validate.mjs` reports no failures (criterion 9).
+- [x] `docs/development.md` names the marked address in the paragraph that already describes the form, and says the render step navigates to it (criterion 9).
+- [x] `.aep/efforts/7-document-downloads-and-contact-details/spec.md` carries a line at its requirement 3 naming this effort as what changed it, and its `status:` and the rest of its text are untouched (criterion 8).
+- [x] `pnpm check` and the integration gate pass, and `node .aep/scripts/validate.mjs` reports no failures (criterion 9).
 
 ## Relevant areas
 `docs/development.md`, the paragraph beginning "A reader who wants a document carrying contact details" and the one after it about `pnpm render:pdf` and `.artifacts/`. `.aep/efforts/7-document-downloads-and-contact-details/spec.md`, requirement 3 and nothing else in it.

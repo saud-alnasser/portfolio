@@ -57,8 +57,29 @@ contact line of the page they are already looking at, the page prints itself,
 and the reader saves the result as a PDF. Nothing is stored and nothing is
 sent.
 
+**That form opens at one address: the document page's own with `#me` on the
+end**, as in `/en/cv/#me`, `/ar/cv/#me`, `/en/resume/#me` and
+`/ar/resume/#me`. Everywhere else a click on the download control downloads
+the published PDF, which is what the icon says and what every reader of the
+site gets. The form asks for an email address and a phone number that the
+site publishes nowhere, so the one person who has anything to type into it is
+the person whose details they are, and the marked address is what he
+bookmarks. The token is written once in `scripts/form-marker.mjs`, and once
+more in the inline script in `src/layouts/Base.astro`, which cannot import it.
+
+It is a marker and not a lock. The dialog's markup and that script ship to
+every reader and the token is in the source of a public repository: what the
+address removes is a dialog in a visitor's way and the one-click path to a
+document in Saud's name carrying somebody else's number. Nothing about it is
+remembered either, by design, so a bookmark or a typed fragment is the whole
+of how it is reached. Reading the address is also deliberately done once, when
+the script binds, and latched: the skip link at the top of every page points
+at `#content`, so a reader using a keyboard replaces the fragment before
+reaching the control.
+
 `pnpm render:pdf` produces that document too, once per document per language,
-by driving the same form, and writes it to **`.artifacts/`**. That directory is
+by **navigating to the marked address** and driving the same form, and writes
+it to **`.artifacts/`**. That directory is
 gitignored and outside `dist/`, deliberately: the deploy uploads `dist/` and
 nothing else, so a document carrying contact details written there would
 publish the very thing this arrangement exists to keep out. The filled copies
