@@ -64,7 +64,7 @@ nothing else, so a document carrying contact details written there would
 publish the very thing this arrangement exists to keep out. The filled copies
 exist so the extraction check and the page budget run over the document a
 reader actually gets; the placeholder values they carry are in
-`scripts/placeholders.mjs`, obviously not real, and written once because both
+`scripts/placeholder.mjs`, obviously not real, and written once because both
 the render step and the check read them.
 
 The certificate previews are committed with their PDFs, so `pnpm

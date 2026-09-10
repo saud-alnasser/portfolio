@@ -1,11 +1,9 @@
 ---
 // The form a document page opens instead of downloading, where the browser
-// runs script. The site publishes no email address and no phone number: it is
-// built from a public repository onto static hosting, so there is no server to
-// hand one reader a file another does not get, and the only thing that keeps a
-// contact detail private is that it is never built in. A reader who wants a
-// document carrying theirs types it here, and the document is made in their own
-// browser by printing the page they are already looking at.
+// runs script. A reader who wants a document carrying contact details types
+// them here, and the document is made in their own browser by printing the page
+// they are already looking at; docs/development.md says why the site publishes
+// none of its own.
 //
 // It is a native <dialog>, which gives Escape, the focus trap, and the backdrop
 // for nothing, and it renders outside <main> because a transform on an ancestor
@@ -58,6 +56,12 @@ const field = 'mt-1 w-full rounded-md border border-border bg-background px-3 py
 
       <div>
         <label for="document-form-email" class="font-medium">{t.cv.form.email}</label>
+        {/* `autocomplete` is what WCAG 1.3.5 asks for on a field about the
+            person filling it in, and it is also an invitation to the reader's
+            own browser to remember what was typed. That store is the browser's
+            rather than the site's, which stores nothing, but the effect for the
+            next person at the same machine is similar; it is kept because
+            losing it costs an accessibility criterion. */}
         <input id="document-form-email" data-document-field="email" type="email" name="email" autocomplete="email" class={field} />
       </div>
 

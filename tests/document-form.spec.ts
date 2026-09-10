@@ -6,7 +6,7 @@ import { expect, test, type Page } from '@playwright/test';
 import { parse as parseYaml } from 'yaml';
 import { lowContrastPairs } from './contrast';
 import { at, locales } from './pages';
-import { placeholder } from '../scripts/placeholders.mjs';
+import { placeholder } from '../scripts/placeholder.mjs';
 import { strings } from '../src/lib/i18n';
 
 // The form a document page opens instead of downloading, and the document it
@@ -15,7 +15,7 @@ import { strings } from '../src/lib/i18n';
 // the reader's own browser: the values go into the two hidden slots the
 // contact line already has, the page is printed, and the slots are emptied.
 //
-// The phone number comes from scripts/placeholders.mjs rather than being
+// The phone number comes from scripts/placeholder.mjs rather than being
 // written out here: a Saudi mobile in the source is what scripts/identifiers.mjs
 // exists to find, and this repository's history is scanned for one.
 //

@@ -2,8 +2,8 @@
 import { getEntry } from 'astro:content';
 import Base from '../../layouts/Base.astro';
 import CvDocument from '../../components/CvDocument.astro';
+import DocumentDownload from '../../components/DocumentDownload.astro';
 import DocumentForm from '../../components/DocumentForm.astro';
-import Icon from '../../components/Icon.astro';
 import { fill, locales, strings, type Locale } from '../../lib/i18n';
 import { localized } from '../../lib/localized';
 import { withBase } from '../../lib/paths';
@@ -33,10 +33,6 @@ const profile = (await getEntry('profile', 'profile'))!;
 const name = localized(locale, 'profile', profile.id)('name', profile.data.name);
 
 const pdf = withBase(`/resume.${locale}.pdf`);
-
-// The control's name, which is also its tooltip, so the two agree: the words
-// a screen reader announces are the words that appear on hover.
-const download = fill(t.cv.downloadPdf, { document: t.resume.title });
 ---
 
 <Base
@@ -46,24 +42,7 @@ const download = fill(t.cv.downloadPdf, { document: t.resume.title });
   path="/resume/"
   column="document"
 >
-  <!--
-    The one control this page opens with, the CV page's control pointed at
-    this document. It is a link rather than a button because with no script it
-    has to download the published PDF on its own; `data-document-download` is
-    the hook the form attaches to later, and nothing is bound to it here.
-  -->
-  <nav aria-label={t.cv.documents} class="cv-actions mb-10 flex flex-wrap gap-2">
-    <a
-      href={pdf}
-      download
-      data-document-download
-      title={download}
-      class="inline-flex items-center rounded-md border border-border bg-card p-2 hover:border-primary hover:text-primary motion-safe:transition-colors"
-    >
-      <Icon name="download" class="size-5" />
-      <span class="sr-only">{download}</span>
-    </a>
-  </nav>
+  <DocumentDownload locale={locale} pdf={pdf} document={t.resume.title} />
 
   <CvDocument locale={locale} variant="resume" />
 

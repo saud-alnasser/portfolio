@@ -71,9 +71,12 @@ const nav = [
       The only script on the site. It applies a stored theme before first
       paint, so the page never flashes the other palette, wires the theme
       control once the document is parsed, closes the language menu on Escape
-      and on a click outside it, and opens a certificate card in the page's
-      dialog. The menu itself opens and closes without it, and a certificate
-      card without it is the link to its PDF that it already is.
+      and on a click outside it, opens a certificate card in the page's
+      dialog, and turns a document page's download control into the form that
+      fills the contact line and prints. The last three all work without it:
+      the menu opens and closes on its own, a certificate card is the link to
+      its PDF that it already is, and the download control is the link to the
+      published PDF that it already is.
     -->
     <script is:inline>
       (function () {
@@ -153,12 +156,11 @@ const nav = [
         }
 
         // Turns the download control on a document page into the form that
-        // fills the document's contact line, then prints it. The site
-        // publishes no contact detail, so this is the only path that produces
-        // a document carrying one, and it produces it in the reader's own
-        // browser: the values are written into the two hidden slots the
-        // contact line already has, the page is printed, and the slots are
-        // emptied again. Nothing is stored and nothing is sent.
+        // fills the document's contact line, then prints it. The values go
+        // into the two hidden slots the contact line already has, the page is
+        // printed, and the slots are emptied again; docs/development.md says
+        // why the document is made here rather than published. Nothing is
+        // stored and nothing is sent.
         //
         // Without this the control is the link to the published PDF it
         // already is, which is what a reader with no script gets, and a
@@ -200,6 +202,11 @@ const nav = [
             var control = event.target.closest ? event.target.closest('[data-document-download]') : null;
             if (!control) return;
             event.preventDefault();
+            // Cleared on the way in as well as on the way out. The clear on
+            // the way out runs on afterprint, and a browser that does not fire
+            // it would otherwise leave one reader's details on the document
+            // and in the fields for the next reader of the same tab.
+            clear();
             opener = control;
             dialog.showModal();
           });
@@ -318,11 +325,9 @@ const nav = [
     <slot name="dialog" />
 
     <footer class:list={['mx-auto w-full px-6 pb-12 text-sm text-muted-foreground', width]}>
-      {/* No contact line. The site publishes no address and no number: it is
-          built from a public repository onto static hosting, so anything it
-          renders is readable by anyone, and the only thing that keeps a
-          contact detail private is that it is never built in. A reader who
-          wants one types it into the form on a document page. */}
+      {/* No contact line. The site publishes no address and no number; a
+          reader who wants one types it into the form a document page offers,
+          and docs/development.md says why. */}
       <div class="flex flex-wrap justify-end gap-x-8 gap-y-2 border-t border-border pt-6">
         <span>{siteName}</span>
       </div>

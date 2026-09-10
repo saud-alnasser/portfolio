@@ -21,7 +21,7 @@ Two guarantees become checks the build runs. `scripts/check-dist.mjs` gains `noC
 
 ## Constraints
 - A generated document must never be written into `dist/`. `dist/` is what the deploy uploads (`.github/workflows/deploy.yml:78`), so a filled document written there would publish the contact details this whole effort exists to keep out. `.artifacts/` is new for exactly this reason.
-- The placeholder values are `check@example.com` and a Saudi mobile that is all zeros after the prefix, obviously not real, so a filled artifact that escapes is embarrassing rather than harmful. The number is assembled rather than written out, in `scripts/placeholders.mjs`: written out, it is exactly what `scripts/identifiers.mjs` refuses and what the history scan looks for.
+- The placeholder values are `check@example.com` and a Saudi mobile that is all zeros after the prefix, obviously not real, so a filled artifact that escapes is embarrassing rather than harmful. The number is assembled rather than written out, in `scripts/placeholder.mjs`: written out, it is exactly what `scripts/identifiers.mjs` refuses and what the history scan looks for.
 - `noContactDetails` reads the email from the content source rather than a literal, which is what keeps it true if the address ever changes. The plan names the failure mode this avoids.
 - This ticket adds checks; it does not change what the site renders. A check that needs the site changed to pass is a finding to raise, not a change to make here.
 

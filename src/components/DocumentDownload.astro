@@ -1,0 +1,42 @@
+---
+// The one control a document page opens with: an icon, no visible text, and an
+// accessible name that says which document it downloads. Both document pages
+// render this, and they differ only in the file behind it, which is why it is a
+// component rather than the same twelve lines written twice.
+//
+// A link rather than a button, and that is load-bearing rather than a matter of
+// taste: with no script it has to download the published PDF on its own, which
+// is what the site's no-script guarantee rests on, and a button with no script
+// does nothing. The `data-document-download` hook is what the inline script in
+// the base layout binds to; nothing is bound to it here.
+
+import Icon from './Icon.astro';
+import { fill, strings, type Locale } from '../lib/i18n';
+
+interface Props {
+  locale: Locale;
+  // The published PDF of the page this control sits on, already joined to the
+  // site's base path.
+  pdf: string;
+  // The title of that document, which the accessible name and the tooltip both
+  // name so a reader hears and sees the same words.
+  document: string;
+}
+
+const { locale, pdf, document: name } = Astro.props;
+const t = strings[locale];
+const label = fill(t.cv.downloadPdf, { document: name });
+---
+
+<nav aria-label={t.cv.documents} class="cv-actions mb-10 flex flex-wrap gap-2">
+  <a
+    href={pdf}
+    download
+    data-document-download
+    title={label}
+    class="inline-flex items-center rounded-md border border-border bg-card p-2 hover:border-primary hover:text-primary motion-safe:transition-colors"
+  >
+    <Icon name="download" class="size-5" />
+    <span class="sr-only">{label}</span>
+  </a>
+</nav>

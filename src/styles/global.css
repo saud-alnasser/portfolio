@@ -207,16 +207,25 @@ details[open] > summary .fold-chevron {
   display: none;
 }
 
-/* An empty slot is hidden, and the utility that lays the filled ones out as a
-   row would otherwise win over the `hidden` attribute: a class beats the user
-   agent's own rule for it. */
+/* An empty slot is hidden. Tailwind's own preflight already forces this with
+   an important declaration, so the rule is belt and braces rather than the
+   thing doing the work; it is kept because a `flex` utility on an element that
+   can carry `hidden` is a trap worth closing locally, and checked rather than
+   assumed on 2026-09-10. */
 .cv-contact > li[hidden] {
   display: none;
 }
 
 /* A section heading's band. `print-color-adjust: exact` is what carries it
-   onto paper: a browser drops background colours when printing unless the
-   page insists, and the PDF the render step writes is a print. */
+   onto paper: a browser drops background colours when printing unless the page
+   insists, and the PDF the render step writes is a print.
+
+   Measured in Chromium on 2026-09-10, because a reader's own print dialog has
+   a background-graphics setting and it was not obvious which wins: the band's
+   tint is painted with that setting on and with it off, so the declaration
+   overrides the reader rather than deferring to them. Firefox and Safari were
+   not measured. Either answer was acceptable, since the band is the template's
+   one tint and the document reads and parses without it. */
 .cv-band {
   background-color: var(--band);
   -webkit-print-color-adjust: exact;

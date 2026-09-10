@@ -17,7 +17,7 @@ import { promisify } from 'node:util';
 import { getDocument } from 'pdfjs-dist/legacy/build/pdf.mjs';
 import { parse as parseYaml } from 'yaml';
 import { identifiersIn } from './identifiers.mjs';
-import { placeholder } from './placeholders.mjs';
+import { placeholder } from './placeholder.mjs';
 import { readmeWithProfile } from './readme-profile.mjs';
 // The site's own date wording and orders, so the expectation reads exactly
 // what the CV page printed. Node strips the types on import.
@@ -145,6 +145,16 @@ async function jsonResume() {
       }
     }
 
+    // The nationality is a fact for the two documents and for nothing else,
+    // so it may not appear as a field here. Asserted as the absence of a key
+    // rather than of a string: the authored English value is "Saudi", which
+    // occurs in this document inside "Saudi Arabia", "Saudi Electronic
+    // University", and a project summary, all of them true content.
+    const keys = JSON.stringify(resume).match(/"nationality"/g);
+    if (keys) {
+      throw new CheckFailure(name, `${locale}: the document carries a nationality field, which belongs to the two documents alone`);
+    }
+
     if (resume.basics?.url !== context.siteRoot) {
       throw new CheckFailure(name, `${locale}: basics.url is ${JSON.stringify(resume.basics?.url)}, expected the site's root ${context.siteRoot}`);
     }
@@ -228,9 +238,9 @@ async function documentPdfs() {
     // without case.
     { items: [profile.name[locale]], caseless: true },
     // The email was the second group and the document no longer prints it, so
-    // the published PDFs anchor on the name alone. What replaces it is an
-    // extraction over a document produced through the download form, where a
-    // contact line still exists; that is the effort's last ticket.
+    // the published PDFs anchor on the name alone. The contact line is checked
+    // over the filled documents below, which are the only copies that have
+    // one.
   ];
   for (const entry of experience) {
     expected.push({ items: [entry.position[locale], formatPeriod(locale, entry.period)] });
@@ -780,9 +790,8 @@ async function documentHazards() {
 // nothing and reports success, and the failure would be invisible; reading it
 // from src/content/profile.yaml is what keeps this true if the address ever
 // changes, and an empty field fails loudly rather than quietly matching
-// nothing. Phone shapes come from scripts/identifiers.mjs, which is where
-// this repository writes them once, and the `identifiers` check above already
-// refuses them in dist/ for its own reason.
+// nothing. Phone shapes come from scripts/identifiers.mjs, which is where this
+// repository writes them once.
 async function noContactDetails() {
   const name = 'no contact details';
   const profile = parseYaml(await readFile(path.join(context.content, 'profile.yaml'), 'utf8')).profile;
@@ -797,32 +806,46 @@ async function noContactDetails() {
   // A published file may carry neither the address itself nor a link that
   // would reveal it, and a phone number is refused by shape because none is
   // ever authored.
+  // `exact` marks the two rules that look for a literal string, which are the
+  // two safe to run over bytes that are not text.
   const forbidden = [
-    { what: `the email address ${email}`, test: (text) => text.includes(email) },
-    { what: 'a mailto: link', test: (text) => text.includes('mailto:') },
+    { what: `the email address ${email}`, exact: true, test: (text) => text.includes(email) },
+    { what: 'a mailto: link', exact: true, test: (text) => text.includes('mailto:') },
     { what: 'something shaped like a phone number', test: (text) => identifiersIn(text).length > 0 },
   ];
 
-  const textual = ['.html', '.json', '.xml', '.txt'];
-  const files = (await walk(context.dist)).filter((file) => textual.includes(path.extname(file)));
-  for (const file of files) {
-    const text = await readFile(path.join(context.dist, file), 'utf8');
-    const hit = forbidden.find((rule) => rule.test(text));
-    if (hit) throw new CheckFailure(name, `dist/${file} carries ${hit.what}`);
-  }
-
-  // The published PDFs, which is where a contact line would be if the
-  // document still printed one.
+  // Every file, because the criterion says every file: the pages, the JSON
+  // documents, the sitemap, the stylesheet, the bundled fonts, the certificate
+  // previews, and all 31 PDFs rather than the four documents by name.
+  //
+  // A font or an image is read as latin1 and asked only whether the address or
+  // a mailto: is in its bytes, both of which are exact strings that cannot
+  // match by accident. The phone rule is by shape rather than by value, and a
+  // shape has no business being run over compressed binary; the `identifiers`
+  // check above already refuses those patterns across every text file and every
+  // PDF for its own reason, so nothing is uncovered by the narrowing.
+  const textual = ['.html', '.json', '.xml', '.txt', '.css', '.js', '.svg', '.md'];
+  const files = await walk(context.dist);
+  let pdfs = 0;
   let read = 0;
-  for (const document of documents) {
-    for (const locale of context.locales) {
-      const relative = `${document}.${locale}.pdf`;
-      const text = await extractText(path.join(context.dist, relative));
-      if (text === null) break;
+  for (const file of files) {
+    const full = path.join(context.dist, file);
+    const extension = path.extname(file);
+    let text;
+    let rules = forbidden;
+    if (extension === '.pdf') {
+      pdfs += 1;
+      text = await extractText(full);
+      if (text === null) continue;
       read += 1;
-      const hit = forbidden.find((rule) => rule.test(text));
-      if (hit) throw new CheckFailure(name, `the text of dist/${relative} carries ${hit.what}`);
+    } else if (textual.includes(extension)) {
+      text = await readFile(full, 'utf8');
+    } else {
+      text = await readFile(full, 'latin1');
+      rules = forbidden.filter((rule) => rule.exact);
     }
+    const hit = rules.find((rule) => rule.test(text));
+    if (hit) throw new CheckFailure(name, `dist/${file} carries ${hit.what}`);
   }
 
   // The README is what GitHub renders on the profile page, so it is published
@@ -831,7 +854,7 @@ async function noContactDetails() {
   const hit = forbidden.find((rule) => rule.test(readme));
   if (hit) throw new CheckFailure(name, `README.md carries ${hit.what}`);
 
-  const pdfNote = read === documents.length * context.locales.length ? `, ${read} published PDFs` : ' (pdftotext is not on the PATH, so the PDFs were not read)';
+  const pdfNote = read === pdfs ? `, the text of ${pdfs} PDFs among them` : ` (pdftotext is not on the PATH, so ${pdfs} PDFs were not read)`;
   return [`no contact details: no address, no mailto:, no number in ${files.length} published files${pdfNote}, or README.md`];
 }
 

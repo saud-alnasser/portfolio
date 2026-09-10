@@ -166,11 +166,9 @@ for (const locale of locales) {
     });
 
     test('carries no contact detail anywhere on the page', async ({ page }) => {
-      // The site publishes no address and no number, the footer included. It
-      // is built from a public repository onto static hosting, so anything a
-      // page renders is readable by anyone; a reader who wants a document
-      // carrying contact details types them into the form a document page
-      // offers, and only that document has them.
+      // The site publishes no address and no number, the footer included.
+      // docs/development.md says why, and what a reader who wants one does
+      // instead.
       await page.goto(at(`/${locale}/`));
       const text = await page.locator('body').innerText();
       expect(text, `the email address anywhere on /${locale}/`).not.toContain(profile.email);
