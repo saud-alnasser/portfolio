@@ -1,13 +1,14 @@
 # Hi, I'm Saud 👋
 
 <!-- profile -->
-Software developer in Riyadh, working mostly in Rust and TypeScript: an
-offline-first desktop rent tracker, a Discord bot framework, a statically
-typed programming language, and an engineering protocol for AI-assisted
-software work.
+Software developer in Riyadh, working mostly in Rust and TypeScript. Built
+an offline-first desktop rent tracker on Tauri and SvelteKit, and published
+an npm package that keeps a cache on the file system between runs of a
+program. With a team of six, built a bilingual e-ticketing and fan loyalty
+platform for Saudi football as a Saudi Electronic University senior project.
 
 - 🌐 Portfolio: [saud-alnasser.github.io/saud-alnasser/](https://saud-alnasser.github.io/saud-alnasser/en/) · [بالعربية](https://saud-alnasser.github.io/saud-alnasser/ar/)
-- 📄 CV: [read it](https://saud-alnasser.github.io/saud-alnasser/en/cv/) · [PDF](https://saud-alnasser.github.io/saud-alnasser/cv.en.pdf) · [JSON Resume](https://saud-alnasser.github.io/saud-alnasser/en/resume.json)
+- 📄 CV: [read it](https://saud-alnasser.github.io/saud-alnasser/en/cv/)
 - ✉️ Email: [saud4services@gmail.com](mailto:saud4services@gmail.com)
 
 ## 🧰 What I work with
