@@ -723,9 +723,10 @@ async function gaps() {
   return [gapReport()];
 }
 
-// Nothing on the site claims more than the content states about a degree: the
-// words "graduated" and "awarded" appear on no page, because the only degree
-// is course work completed with the certificate pending.
+// Nothing on the site claims more than the content states about a degree. The
+// site renders the status as authored and never reaches past it, so the words
+// "graduated" and "awarded" appear on no page: they name a ceremony and a
+// conferral, and no value in the status vocabulary claims either.
 async function noOverclaim() {
   const name = 'no overclaim';
   const words = /\b(graduated|awarded)\b/i;
@@ -733,7 +734,7 @@ async function noOverclaim() {
   for (const file of files) {
     const html = await readFile(path.join(context.dist, file), 'utf8');
     const hit = html.match(words);
-    if (hit) throw new CheckFailure(name, `dist/${file} contains "${hit[0]}", which claims more than a pending certificate`);
+    if (hit) throw new CheckFailure(name, `dist/${file} contains "${hit[0]}", which claims more than the authored status`);
   }
   return [`no overclaim: neither "graduated" nor "awarded" in ${files.length} pages`];
 }

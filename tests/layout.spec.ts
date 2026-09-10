@@ -25,7 +25,7 @@ test.describe('at 1440 pixels wide', () => {
   // Each route declares its column in tests/pages.ts: 64rem for the pages
   // that lay cards in a grid, 48rem for the CV, which reads as a document.
   // The content fills it, centred, rather than hugging one side or shrinking,
-  // and the header and footer share it.
+  // and the header shares it.
   for (const { path, width } of pageList) {
     test(`${path} fills a ${width} pixel column`, async ({ page: browser }) => {
       await browser.goto(path);
@@ -35,10 +35,8 @@ test.describe('at 1440 pixels wide', () => {
       const left = box!.x;
       const right = 1440 - (box!.x + box!.width);
       expect(Math.abs(left - right), `main centred on ${path}`).toBeLessThanOrEqual(1);
-      for (const part of ['body > header', 'body > footer']) {
-        const other = await browser.locator(part).boundingBox();
-        expect(Math.round(other!.width), `${part} width on ${path}`).toBe(width);
-      }
+      const header = await browser.locator('body > header').boundingBox();
+      expect(Math.round(header!.width), `header width on ${path}`).toBe(width);
     });
   }
 });

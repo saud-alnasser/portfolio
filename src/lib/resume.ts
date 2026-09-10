@@ -91,8 +91,8 @@ function mapEducation(entry: Education, locale: Locale) {
     area: text('area', data.area),
     studyType: text('studyType', data.studyType),
     startDate: data.period.start,
-    // For a pending certificate this is the completion term of the course work,
-    // and `status` below says the certificate is not yet issued.
+    // The term the course work finished in; `status` below says where the
+    // certificate stands.
     endDate: data.period.end,
     courses: data.courses?.length
       ? data.courses.map((course: Localized, i: number) => text(`courses[${i}]`, course))
