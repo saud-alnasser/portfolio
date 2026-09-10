@@ -1,8 +1,11 @@
 // Writes the profile block of README.md, the page GitHub shows for the
-// account, from the content source and the site config: the summary, the
-// site and CV addresses, the contact, and the skill groups. Who Saud is stays
-// authored once, in src/content/, and the profile page repeats it without a
-// second hand-written copy. Run after editing the profile or the skills:
+// account, from the content source and the site config: the summary, and the
+// addresses of the three things a reader came for, the site, the CV, and the
+// resume, each in both languages. Who Saud is stays authored once, in
+// src/content/, and the profile page repeats it without a second hand-written
+// copy. The skills, the projects, and the rest of the record are on the site;
+// the README points at it rather than growing a copy. Run after editing the
+// profile:
 //
 //   pnpm readme           # rewrites the block between the markers
 //   pnpm readme --check   # exits non-zero when the README is behind
@@ -11,12 +14,11 @@
 // everything outside the markers is written by hand. The dist check runs the
 // check, so CI fails when the content changed and the README did not.
 
-import { readdir, readFile, writeFile } from 'node:fs/promises';
+import { readFile, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { parse as parseYaml } from 'yaml';
 import { base, site } from '../astro.config.mjs';
-import { byOrderThenName } from '../src/lib/order.ts';
 import { joinBase } from '../src/lib/paths.ts';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
@@ -44,30 +46,26 @@ function wrap(text, width = 76) {
 // A full address on the site, from the same `site` and `base` the build uses.
 const at = (sitePath) => new URL(joinBase(base, sitePath), site).href;
 
+// The three things the README links to, in the order a reader wants them: the
+// site first, then the long document, then the short one.
+const links = [
+  { emoji: '🌐', label: 'Portfolio', path: '' },
+  { emoji: '📄', label: 'CV', path: 'cv/' },
+  { emoji: '📃', label: 'Resume', path: 'resume/' },
+];
+
 // The block as the content says it should read.
 export async function renderProfile() {
   const { profile } = parseYaml(await readFile(path.join(content, 'profile.yaml'), 'utf8'));
-  const skillsDir = path.join(content, 'skills');
-  const skills = [];
-  for (const file of (await readdir(skillsDir)).filter((name) => name.endsWith('.yaml')).sort()) {
-    skills.push(parseYaml(await readFile(path.join(skillsDir, file), 'utf8')));
-  }
-  skills.sort(byOrderThenName);
 
-  const home = at('/');
   const lines = [
     open,
     wrap(profile.summary.en),
     '',
-    `- 🌐 Portfolio: [${home.replace(/^https?:\/\//, '')}](${at('/en/')}) · [بالعربية](${at('/ar/')})`,
-    `- 📄 CV: [read it](${at('/en/cv/')})`,
-    ...profile.profiles
-      .filter((entry) => entry.network !== 'GitHub')
-      .map((entry) => `- 🔗 ${entry.network}: [${entry.username}](${entry.url})`),
-    '',
-    '## 🧰 What I work with',
-    '',
-    ...skills.map((group) => `- **${group.name.en}:** ${group.keywords.join(', ')}`),
+    ...links.map(
+      ({ emoji, label, path: page }) =>
+        `- ${emoji} **${label}** — [English](${at(`/en/${page}`)}) · [العربية](${at(`/ar/${page}`)})`,
+    ),
     close,
   ];
   return lines.join('\n');
