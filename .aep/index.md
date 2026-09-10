@@ -92,7 +92,7 @@ Start at [[protocol]].
 | 1-portfolio-site | implemented | [[efforts/1-portfolio-site/spec]] | 6 | 0 | 15 |
 | 3-site-redesign | implemented | [[efforts/3-site-redesign/spec]] | 0 | 1 | 8 |
 | 5-sections-and-resume | implemented | [[efforts/5-sections-and-resume/spec]] | 0 | 0 | 6 |
-| 7-document-downloads-and-contact-details | draft | [[efforts/7-document-downloads-and-contact-details/spec]] | 1 | 0 | 0 |
+| 7-document-downloads-and-contact-details | accepted | [[efforts/7-document-downloads-and-contact-details/spec]] | 1 | 0 | 0 |
 
 ## Tickets
 
