@@ -83,7 +83,7 @@ for (const locale of locales) {
 
         // Every entry of this kind, and nothing of the other kind.
         expect(found.map((card) => card.name).sort(), `the ${grid} cards on ${url}`).toEqual(
-          entries.map((entry) => entry.name[locale]).sort(),
+          entries.map((entry) => entry.name[locale] ?? entry.name.en).sort(),
         );
         const kind = grid === 'courses' ? 'course' : 'certification';
         for (const [index, card] of found.entries()) {
@@ -92,7 +92,7 @@ for (const locale of locales) {
 
         // In date order, with the undated last: the dates the cards carry, in
         // the order they are laid out, are the dates the content sorts into.
-        const dateOf = (name: string) => entries.find((entry) => entry.name[locale] === name)?.date;
+        const dateOf = (name: string) => entries.find((entry) => (entry.name[locale] ?? entry.name.en) === name)?.date;
         expect(
           found.map((card) => dateOf(card.name)),
           `the ${grid} cards on ${url} in date order, the undated last`,
@@ -101,7 +101,7 @@ for (const locale of locales) {
         // What a card says: its name, its issuer, and its date where the
         // entry has one.
         for (const [index, card] of found.entries()) {
-          const entry = entries.find((candidate) => candidate.name[locale] === card.name)!;
+          const entry = entries.find((candidate) => (candidate.name[locale] ?? candidate.name.en) === card.name)!;
           expect(card.text, `the issuer on card ${index} of the ${grid} grid on ${url}`).toContain(entry.issuer);
           if (entry.date) {
             expect(card.text, `the date on card ${index} of the ${grid} grid on ${url}`).toContain(

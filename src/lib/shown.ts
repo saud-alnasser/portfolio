@@ -1,7 +1,7 @@
-// Whether an entry appears, decided once for every output: the pages, the CV
-// page, the JSON Resume document, the dist check, the content mechanism
-// test, and the browser tests all read these rather than each keeping a copy
-// of the condition. The scripts and the tests import this file the way they
+// Whether an entry appears, decided once for every output: the pages, the
+// document component behind the CV and the resume, the JSON Resume document,
+// the dist check, the content mechanism test, and the browser tests all read
+// these rather than each keeping a copy of the condition. The scripts and the tests import this file the way they
 // import order.ts, with Node stripping the types, so nothing here may need a
 // runtime import: the vocabularies come in as types only.
 

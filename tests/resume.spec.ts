@@ -31,24 +31,41 @@ function entries(collection: string): any[] {
 const projects = entries('projects').filter((data) => isShown(data));
 const certificates = entries('certificates');
 
-const expected = {
+// What each document holds, counted from the content the way the site counts
+// it. The CV takes every entry its kind admits; the resume takes only what an
+// entry marks for it, and a marked course keeps the courses heading rather
+// than being listed as a credential it is not.
+const held = {
   cv: {
-    sections: ['summary', 'experience', 'education', 'skills', 'certifications', 'courses', 'projects'],
     projects: projects.length,
     certifications: certificates.filter((data) => isCertification(data)).length,
     courses: certificates.filter((data) => isCourse(data)).length,
   },
   resume: {
-    // A marked certificate is optional and none is marked today, so the
-    // section is expected only when the content carries one.
-    sections: ['summary', 'experience', 'education', 'skills', 'projects'].concat(
-      certificates.some((data) => onResume(data)) ? ['certifications'] : [],
-    ),
     projects: projects.filter((data) => onResume(data)).length,
-    certifications: certificates.filter((data) => onResume(data)).length,
-    courses: 0,
+    certifications: certificates.filter((data) => isCertification(data) && onResume(data)).length,
+    courses: certificates.filter((data) => isCourse(data) && onResume(data)).length,
   },
+};
+
+// The order each document prints its last three sections in: the CV leads
+// with the credentials it holds and ends on the projects, the resume leads
+// with the projects. A section renders only where it holds something, so the
+// expectation drops an empty one, which is what lets reclassifying the one
+// certification as a course (criterion 6) or marking a course for the resume
+// move the bands here as well as the cards.
+const tailOrder = {
+  cv: ['certifications', 'courses', 'projects'],
+  resume: ['projects', 'certifications', 'courses'],
 } as const;
+
+const sectionsExpected = (variant: 'cv' | 'resume') => [
+  'summary',
+  'experience',
+  'education',
+  'skills',
+  ...tailOrder[variant].filter((id) => held[variant][id] > 0),
+];
 
 // The course list under an education entry, in one language: the block the CV
 // keeps and the resume drops. Each course is authored as an { en, ar } map.
@@ -72,12 +89,12 @@ for (const locale of locales) {
 
       test('prints its sections in the order the template fixes', async ({ page }) => {
         await page.goto(route);
-        expect(await sectionsOf(page), `the sections of ${route}`).toEqual([...expected[variant].sections]);
+        expect(await sectionsOf(page), `the sections of ${route}`).toEqual(sectionsExpected(variant));
       });
 
       test('carries exactly the entries the content marks for it', async ({ page }) => {
         await page.goto(route);
-        const counts = expected[variant];
+        const counts = held[variant];
         await expect(page.locator('[data-cv-section="projects"] > ol > li')).toHaveCount(counts.projects);
         await expect(page.locator('[data-cv-section="certifications"] > ul > li')).toHaveCount(counts.certifications);
         await expect(page.locator('[data-cv-section="courses"] > ul > li')).toHaveCount(counts.courses);
@@ -160,7 +177,7 @@ for (const locale of locales) {
         formatPeriod(locale, project.period),
         // The Arabic of a project field is optional in the contract, so the
         // page falls back to the English (src/lib/localized.ts) and the
-        // expectation has to fall back with it, as line 56 does above.
+        // expectation has to fall back with it, as `courseNames` does above.
         project.role[locale] ?? project.role.en,
         project.summary[locale] ?? project.summary.en,
       ]);

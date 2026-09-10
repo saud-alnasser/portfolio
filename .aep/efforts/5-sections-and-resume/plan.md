@@ -87,7 +87,7 @@ Letter binds, being 67px shorter than A4. **Cutting every multi-line paragraph i
 | `src/lib/i18n.ts` | the new strings, both languages: `nav.resume`; `sections.courses`, `sections.certifications`; `home.counts.nouns.courses`, `.certifications`, `.skills`; `home.experience`, `.projects`, `.courses`, `.certifications`, `.skills`, `.resume`; `education.onlineCourses.noun` reworded to courses and `.link` to "View the courses"; `cv.courses`, `cv.resumeLink`, `resume.title`, `resume.description`, `resume.cvLink` |
 | `src/styles/global.css` | the `cv-compact` print rules: 10pt, the tighter bands, the resume's own `@page` margins at 10mm, and the tighter gaps between entries and under headings |
 | `scripts/render-pdf.mjs` | renders `cv` and `resume` per language, writes `resume.<locale>.pdf`, counts the resume's pages at A4 and at Letter and fails past one |
-| `scripts/check-dist.mjs` | `jsonResume` and `visibleEntries` read the predicate; `cvPdf` becomes `documentPdfs` over both English PDFs with the same groups; `cvHazards` runs over both pages; a `resumePages` check counts the A4 file's pages; `readmeProfile` unchanged |
+| `scripts/check-dist.mjs` | `jsonResume` and `visibleEntries` read the predicate; `cvPdf` becomes `documentPdfs` over both English PDFs with the same groups; `documentHazards`, renamed from `cvHazards`, runs over both pages; a `resumePages` check counts the A4 file's pages; `readmeProfile` unchanged |
 | `scripts/readme-profile.mjs` | the CV line carries one link, to `/en/cv/` |
 | `scripts/check-live.sh` | asks for `/en/resume/`, `/ar/resume/`, `resume.en.pdf`, `resume.ar.pdf` |
 | `scripts/lighthouse.mjs` | audits the two resume pages too |
@@ -161,7 +161,7 @@ Under Graphite each step is a branch on the effort branch; 2, 3, and 4 may proce
 
 # Integration
 
-- `scripts/check-dist.mjs`: `visibleEntries` parses each file and applies `isShown` for projects, so `jsonResume` expects exactly the shown set; `cvPdf` is generalised to both English PDFs; `cvHazards` reads `cv/index.html` and `resume/index.html`; `resumePages` is new; `identifiers` already walks every PDF under `dist/`, the two new ones included; `gaps` skips a project the predicate hides, as it skips a hidden one today.
+- `scripts/check-dist.mjs`: `visibleEntries` parses each file and applies `isShown` for projects, so `jsonResume` expects exactly the shown set; `cvPdf` is generalised to both English PDFs; `cvHazards` becomes `documentHazards` and reads `cv/index.html` and `resume/index.html`; `resumePages` is new; `identifiers` already walks every PDF under `dist/`, the two new ones included; `gaps` skips a project the predicate hides, as it skips a hidden one today.
 - `scripts/test-content-mechanism.mjs`: the fixture project carries `status: completed` and `resume: true`, so its outputs are the work page, the CV page, the resume page, and the JSON document in both languages, eight files; the fixture certificate carries `kind: course` and no `resume`, so its outputs are the education page, the CV page, and the JSON document, six files, and the unopenable-card assertion looks for `data-entry="course"`.
 - `scripts/lighthouse.mjs`: `/en/resume/` and `/ar/resume/` join the list; `lighthouserc.json` is unchanged.
 - `scripts/check-live.sh` and `docs/development.md`: the four resume addresses.
@@ -186,9 +186,9 @@ Every current address stays under option B. The JSON Resume documents change onl
 | 6 | `tests/certificates.spec.ts` over `[data-grid="certifications"]`; reclassifying one entry and rebuilding, done once in the ticket |
 | 7 | the per-page specs assert grid columns at 360 and 1440 as today; `tests/home.spec.ts` asserts eight cards with counts from the collections and the anchors they link to; `tests/layout.spec.ts` covers the new route |
 | 8 | `tests/resume.spec.ts` asserts both pages exist, each links the other and its PDF; `pnpm render:pdf` writes four files; the content mechanism test proves a content change reaches both pages and both PDFs' source pages |
-| 9 | `tests/resume.spec.ts` asserts the CV page's sections in order (summary, experience, education, skills, certifications, courses, projects) and that its project count is the shown set; the redesign's `cvHazards` and `cvPdf` checks still run over it |
+| 9 | `tests/resume.spec.ts` asserts the CV page's sections in order (summary, experience, education, skills, certifications, courses, projects) and that its project count is the shown set; the redesign's hazard and extraction checks, now `documentHazards` and `documentPdfs`, still run over it |
 | 10 | `tests/resume.spec.ts` asserts the resume's sections, that its projects are exactly the `resume: true` set and its certificates the marked set; `pnpm render:pdf` fails past one page at A4 or Letter; `pnpm check:dist` (`resumePages`) fails past one page; A4 and Letter printed from a browser by hand, as the first effort did |
-| 11 | `pnpm check:dist` (`cvHazards` over both pages, `documentPdfs` over both English PDFs); a deliberate removal of one expected line to see the resume check fail, recorded in the ticket |
+| 11 | `pnpm check:dist` (`documentHazards` over both pages, `documentPdfs` over both English PDFs); a deliberate removal of one expected line to see the resume check fail, recorded in the ticket |
 | 12 | `pnpm check:dist` (`jsonResume`), which compares the document's sections with the shown set through the predicate |
 | 13 | `pnpm check:dist` (`readmeProfile`); the ticket greps the README for `.pdf` and `resume.json` and expects nothing |
 | 14 | `pnpm check` (the `Strings` type refuses a key missing from `ar`); the gap line in `pnpm check:dist`; `pnpm lighthouse` over six pages; `tests/contrast.spec.ts`, `layout.spec.ts`, `theme.spec.ts`, `menu.spec.ts` over the new route; the no-script context in `menu.spec.ts` asserts the resume page's `main` text |

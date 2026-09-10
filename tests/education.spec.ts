@@ -137,9 +137,16 @@ for (const locale of locales) {
       ] as const) {
         const list = page.locator(`[data-grid="${grid}"] > li`);
         await expect(list, `the ${grid} grid on ${url}`).toHaveCount(expected.length);
+        // Reclassifying every entry of one kind empties that grid, which
+        // criterion 6 allows, and an empty grid has no first or last card to
+        // read. The count above is the whole assertion in that case.
+        if (expected.length === 0) continue;
         const ordered = [...expected].sort(byDateAscending);
-        await expect(list.first()).toContainText(ordered[0].name[locale]);
-        await expect(list.last()).toContainText(ordered[ordered.length - 1].name[locale]);
+        // The Arabic of a certificate's name is optional in the contract, so
+        // the page falls back to the English and the expectation follows it.
+        const nameOf = (entry: (typeof ordered)[number]) => entry.name[locale] ?? entry.name.en;
+        await expect(list.first()).toContainText(nameOf(ordered[0]!));
+        await expect(list.last()).toContainText(nameOf(ordered[ordered.length - 1]!));
       }
     });
 

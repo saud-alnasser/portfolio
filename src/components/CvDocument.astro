@@ -39,7 +39,12 @@ import { isCertification, isCourse, isShown, onResume } from '../lib/shown';
 //   skills, the keywords in columns       skills, one line per group
 //   certifications, kind: certification   projects, the ones marked resume,
 //   courses, kind: course                   without technologies or links
-//   projects, every shown project         the certificates marked resume
+//   projects, every shown project         certifications, the ones marked
+//                                         courses, the ones marked
+//
+// A section prints only where it holds something, so the resume shows neither
+// credential heading until an entry is marked, and the CV drops one if its
+// kind is left empty.
 
 interface Props {
   locale: Locale;
