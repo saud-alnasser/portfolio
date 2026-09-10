@@ -10,16 +10,16 @@ import { marker } from '../scripts/form-marker.mjs';
 import { placeholder } from '../scripts/placeholder.mjs';
 import { strings } from '../src/lib/i18n';
 
-// The form a document page opens instead of downloading, and the document it
-// produces. The site publishes no email address and no phone number, so this
-// is the only path to a document that carries either, and it produces one in
-// the reader's own browser: the values go into the two hidden slots the
-// contact line already has, the page is printed, and the slots are emptied.
+// The form a document page opens at the marked address instead of downloading,
+// and the document it produces. Everywhere else the control downloads the
+// published PDF, and both paths are tested here as a pair on purpose: a suite
+// that only ever navigated to the marked address would pass against a build
+// with no gate in it, and the unmarked click is the one every reader makes.
 //
-// It opens at one address, the page's own with the marker on the end, and the
-// two paths are tested as a pair on purpose. A suite that only ever navigated
-// to the marked address would pass against a build with no gate in it, and the
-// unmarked click is what every reader of the site makes.
+// The site publishes no email address and no phone number, so the form is the
+// only path to a document that carries either, and it produces one in the
+// reader's own browser: the values go into the two hidden slots the contact
+// line already has, the page is printed, and the slots are emptied.
 //
 // The phone number comes from scripts/placeholder.mjs rather than being
 // written out here: a Saudi mobile in the source is what scripts/identifiers.mjs
@@ -54,6 +54,32 @@ async function stubPrint(page: Page) {
 
 const prints = (page: Page) => page.evaluate(() => (window as any).__prints as number);
 
+// Counts the times the dialog gained its `open` attribute, from the moment this
+// is installed. A test asserting that nothing opened cannot read the attribute
+// afterwards and call it proof: a dialog shown and dismissed in the same tick
+// reads exactly like one that never opened.
+//
+// Which is also why this counts the records rather than reading the attribute
+// when the callback runs. Records are delivered at the microtask checkpoint
+// after the task that produced them, so by then the attribute is gone again and
+// a watcher that re-read it would count nothing — the same blindness the
+// assertion it replaces had. `oldValue === null` is the transition from absent
+// to present, and that is the thing being counted.
+async function watchOpen(page: Page, selector: string) {
+  await page.evaluate((which) => {
+    const node = document.querySelector(which);
+    (window as any).__opened = node && node.hasAttribute('open') ? 1 : 0;
+    if (!node) return;
+    new MutationObserver((records) => {
+      for (const record of records) {
+        if (record.oldValue === null) (window as any).__opened += 1;
+      }
+    }).observe(node, { attributes: true, attributeFilter: ['open'], attributeOldValue: true });
+  }, selector);
+}
+
+const opened = (page: Page) => page.evaluate(() => (window as any).__opened as number);
+
 // The value written into one contact slot, and whether the slot is showing.
 // The value is the item's first span; the second is the separator bar, which
 // is part of the line rather than part of the value.
@@ -78,20 +104,74 @@ for (const locale of locales) {
         await stubPrint(page);
       });
 
-      // What every reader but one gets. Nothing cancels the link, so the click
-      // downloads the published PDF and the dialog that shipped with the page
-      // is never opened.
-      test('downloads the published document at the plain address, and opens nothing', async ({ page }) => {
+      // What every reader but one gets, and it sits beside the marked case
+      // below on purpose: the pair is only legible as a pair, and a suite
+      // holding one of them would pass against a build with no gate in it.
+      //
+      // Nothing cancels the link, so the control downloads the published PDF
+      // and the dialog never opens. Asserted by watching the attribute rather
+      // than by reading it afterwards, because the criterion is that it never
+      // gains `open`, and a dialog opened and closed again in the same tick
+      // would read as closed to a later assertion.
+      test('downloads the published document at the plain address, by pointer and by Enter, and opens nothing', async ({
+        page,
+      }) => {
         await page.goto(url);
         await settled(page);
+        await watchOpen(page, dialog);
 
         const download = page.waitForEvent('download');
         await page.locator(control).click();
         expect((await download).url(), `what the control downloaded on ${url}`).toContain(
           `/${variant}.${locale}.pdf`,
         );
-        await expect(page.locator(dialog), `the dialog on ${url}`).not.toHaveAttribute('open');
+
+        // And by the key a link is activated with, which is the half of the
+        // keyboard path that lives at this address. The other half, where Enter
+        // opens the form, is in tests/resume.spec.ts at the marked address.
+        const byKey = page.waitForEvent('download');
+        await page.locator(control).focus();
+        await page.keyboard.press('Enter');
+        expect((await byKey).url(), `what Enter downloaded on ${url}`).toContain(`/${variant}.${locale}.pdf`);
+
+        // One assertion rather than two: this one already covers a dialog that
+        // is closed by the time it is read, which is all the attribute itself
+        // could have told us.
+        expect(await opened(page), `times the dialog gained open on ${url}`).toBe(0);
         expect(await prints(page), `window.print() on ${url}`).toBe(0);
+      });
+
+      test('opens instead of downloading, and fills the contact line with what was typed', async ({ page }) => {
+        await page.goto(marked);
+        await settled(page);
+        await page.locator(control).click();
+        await expect(page.locator(dialog)).toHaveAttribute('open', '');
+
+        await page.locator('[data-document-field="email"]').fill('reader@example.com');
+        await page.locator('[data-document-field="phone"]').fill(placeholder.phone);
+        await page.locator(generate).click();
+
+        await expect(page.locator(dialog)).not.toHaveAttribute('open');
+        expect(await prints(page), `window.print() on ${url}`).toBe(1);
+
+        // In the contact line, in order, at the position the email held
+        // before this effort: the two slots come before the nationality.
+        const items = await page.locator(`${contact} > li:not([hidden])`).allInnerTexts();
+        const cleaned = items.map((item) => item.replace(/\|/g, '').trim());
+        expect(cleaned.slice(0, 2)).toEqual(['reader@example.com', placeholder.phone]);
+        expect(cleaned[2]).toBe(profile.nationality[locale] ?? profile.nationality.en);
+      });
+
+      test('carries the one value when only one is typed', async ({ page }) => {
+        await page.goto(marked);
+        await settled(page);
+        await page.locator(control).click();
+        await page.locator('[data-document-field="phone"]').fill(placeholder.phone);
+        await page.locator(generate).click();
+
+        expect(await slot(page, 'email')).toEqual({ text: '', hidden: true });
+        expect((await slot(page, 'phone')).text).toContain(placeholder.phone);
+        expect((await slot(page, 'phone')).hidden).toBe(false);
       });
 
       // Nothing about the marker is remembered: it lives in the address and
@@ -150,37 +230,25 @@ for (const locale of locales) {
         await expect(page.locator(dialog), `the dialog after a second fragment on ${url}`).toHaveAttribute('open', '');
       });
 
-      test('opens instead of downloading, and fills the contact line with what was typed', async ({ page }) => {
-        await page.goto(marked);
+      // The listener, which is the whole of what separates this design from
+      // reading the address once when the script binds. A page loaded without
+      // the marker becomes the marked page when the fragment is typed onto it,
+      // with no reload, and that is the one thing the latch buys the reader who
+      // already has the document open.
+      test('opens the form when the marker is typed onto a page already loaded', async ({ page }) => {
+        await page.goto(url);
         await settled(page);
+
+        // Assigned rather than navigated to, which is what typing a fragment
+        // onto the address of a loaded page does, and what fires hashchange.
+        await page.evaluate((fragment) => {
+          location.hash = fragment;
+        }, marker);
         await page.locator(control).click();
-        await expect(page.locator(dialog)).toHaveAttribute('open', '');
-
-        await page.locator('[data-document-field="email"]').fill('reader@example.com');
-        await page.locator('[data-document-field="phone"]').fill(placeholder.phone);
-        await page.locator(generate).click();
-
-        await expect(page.locator(dialog)).not.toHaveAttribute('open');
-        expect(await prints(page), `window.print() on ${url}`).toBe(1);
-
-        // In the contact line, in order, at the position the email held
-        // before this effort: the two slots come before the nationality.
-        const items = await page.locator(`${contact} > li:not([hidden])`).allInnerTexts();
-        const cleaned = items.map((item) => item.replace(/\|/g, '').trim());
-        expect(cleaned.slice(0, 2)).toEqual(['reader@example.com', placeholder.phone]);
-        expect(cleaned[2]).toBe(profile.nationality[locale] ?? profile.nationality.en);
-      });
-
-      test('carries the one value when only one is typed', async ({ page }) => {
-        await page.goto(marked);
-        await settled(page);
-        await page.locator(control).click();
-        await page.locator('[data-document-field="phone"]').fill(placeholder.phone);
-        await page.locator(generate).click();
-
-        expect(await slot(page, 'email')).toEqual({ text: '', hidden: true });
-        expect((await slot(page, 'phone')).text).toContain(placeholder.phone);
-        expect((await slot(page, 'phone')).hidden).toBe(false);
+        await expect(page.locator(dialog), `the dialog after ${marker} was typed onto ${url}`).toHaveAttribute(
+          'open',
+          '',
+        );
       });
 
       test('issues no network request while the form is open or generating', async ({ page }) => {
