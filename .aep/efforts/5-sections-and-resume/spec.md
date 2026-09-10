@@ -1,0 +1,113 @@
+---
+status: draft
+priority: high
+---
+
+# Problem
+
+The site built in [[efforts/1-portfolio-site/spec]] and redesigned in [[efforts/3-site-redesign/spec]] shows everything the content source holds, finished or not, and offers one document for every purpose.
+
+- **Unfinished work sits beside finished work with nothing to tell them apart.** The projects collection has no completion status. Nova says "in draft" inside its summary, screeps is an open-ended game colony, and the profile summary, which the README repeats on Saud's GitHub profile, names the language that is in draft. A recruiter cannot tell what Saud has shipped from what he has started, and the record overstates.
+- **The work page puts projects before experience, on one page.** A hiring reader looks for employment first. The two kinds of entry are one route with two headings, projects on top.
+- **Every online course completion is a "certificate".** The 27 Code with Mosh, SoloLearn, and typing.com entries live in one collection and render under one heading. A course Saud completed and a credential he holds are the same card, and the education page cannot show the courses as courses with their certificates attached.
+- **One CV does two jobs.** The CV page and its PDF carry every project, every course, and every skill, which is right for the record and wrong for an application: it runs past one page, and there is no short document to send with a job application. Saud asked on 2026-09-10 for a simple one-page resume beside the CV.
+- **The README links three CV forms.** Its CV line offers the page, the PDF, and the JSON Resume document. Saud wants the profile page to carry the portfolio link, one link to the CV on the site, and the email.
+
+# Goal
+
+The site is a set of sections, each a grid of cards: experience, then projects, education, the online courses each with its certificate, the certifications, and the skills. Everything it shows is finished work. Two documents are derived from the same content: a CV that holds everything the site shows, and a one-page resume that holds the summary, the experience, the education, the key skills, and the finished projects chosen for it. The README on the GitHub profile carries the summary, the portfolio link, the link to the CV page, and the email. Every guarantee of the first two efforts still holds: one content source, two languages, two themes, parser-safe documents, and the quality gates.
+
+# Scope
+
+- The content contract: a completion status on a project, a marker for what the resume shows, and the split of the course completions from the certifications.
+- The content itself: the status of every project, the removal of screeps from every output, the profile summary reworded to name finished work only, and the course and certification entries reclassified.
+- The site's sections: experience, projects, education, courses, certifications, and skills, how each is reached, and the order they come in.
+- The two documents: the CV as it is, and a new resume, each as a page, a PDF, and the section or control on the site that leads to them.
+- The README's profile block and the script that writes it.
+- The tests, the dist checks, and the content documentation, updated to what the new shape guarantees.
+
+# Requirements
+
+1. **A project carries a completion status, and only finished work is shown.** Every project entry says whether the work is finished. A project that is not finished appears in no output: not on the site, not in the CV, not in the resume, not in the JSON Resume document, and not in a section count. The status is authored in the content source and nowhere else.
+2. **screeps is out.** The screeps project appears in no output. Its entry may stay in the content source hidden, as the first effort's `hidden` visibility already allows, so the fact of it is not lost.
+3. **The profile summary names finished work only.** The summary on the home page, the CV, the resume, and the README describes what Saud has finished. It names nothing whose project status is unfinished.
+4. **Experience first, projects separate.** Experience and projects are two sections, and experience precedes projects everywhere both appear: in the navigation, on the home page, in the CV, in the resume, and in the JSON Resume document's own order where the schema leaves that to the author. The training placement stays in experience, marked as training as it is now.
+5. **Courses are a section, and each course carries its certificate.** The online course completions are a section of their own, laid out as cards. A course card shows the course, the provider, and the date where one is known, and opens the certificate document the way a certificate card does today. The education timeline's online-courses node counts and leads to this section.
+6. **Certifications are a section of their own.** A credential that is not a course completion renders in a certifications section, as cards with the same behaviour. Which entries are courses and which are certifications is authored in the content source.
+7. **Every section is a card grid, reachable from the navigation.** Experience, projects, education, courses, certifications, and skills each exist as a section a visitor reaches from the site's navigation, each laid out as cards in the grid the redesign defined: one column on a phone, two or more on a desktop. The home page shows one card per section with a count that matches what the section renders.
+8. **Two documents, both derived.** The site offers a CV and a resume, each generated from the content source in each language, each as a page and as a PDF download, and the site has a section or a control that leads to both and says which is which. Neither is written by hand; a fact changed in the content changes in both.
+9. **The CV holds everything.** The CV page and its PDF carry the summary, the experience, the education, the key skills, the certifications, the courses, and every finished project the site shows, in the template layout the redesign chose.
+10. **The resume is one page and holds what an application needs.** The resume carries the summary, the experience, the education, the key skills, and the finished projects marked for it in the content source. It carries a certification or a course only where its entry marks it for the resume. It fits one page on A4 and on Letter in both languages, in the same template layout as the CV. Which projects and certificates the resume shows is authored on their entries, never in a second list.
+11. **Both documents stay parser-safe.** The resume meets the same layout criteria the CV meets: one column of real text in reading order, standard headings, no table carrying content, no image, no positioned header or footer, and the extraction check that runs over the CV PDF runs over the resume PDF too.
+12. **The machine-readable document follows the CV.** The JSON Resume document per language contains exactly the entries the CV shows, so hiding an unfinished project removes it there as well.
+13. **The README carries the portfolio, the CV page, and the email.** The profile block GitHub shows carries the summary, the portfolio link in both languages, one link to the CV page on the site, and the email. The PDF and JSON Resume links leave it. The block is still written by the script from the content, and the dist check still fails when it is behind.
+14. **Both languages, both themes, and the gates.** Every new section, card, control, and string exists in English and Arabic, renders in both themes and both directions, and the Lighthouse, contrast, reduced-motion, keyboard, and no-script criteria of the redesign still pass, with the resume page added to the pages Lighthouse measures.
+15. **The content format is documented.** The content documentation describes the completion status, the resume marker, and how a course completion differs from a certification, so that adding a course, a credential, or a finished project means editing content and nothing else.
+
+# Acceptance Criteria
+
+1. Every file under the projects collection carries the status field, and the build refuses one without it. Setting one project's status to unfinished and building removes it from the projects section, the home page count, the CV, the resume, and the JSON Resume document, with no other edit. Searching the built site for the name of an unfinished project finds nothing.
+2. Searching `dist/` and both JSON Resume documents for "screeps" finds nothing.
+3. The profile summary in both languages names no project whose status is unfinished; the README's profile block, the home page, the CV, and the resume all show that summary; `pnpm readme --check` passes.
+4. The navigation, the home page's section cards, the CV, and the resume each list experience before projects. The two are separate sections, each with its own heading and grid. The Al Othaim Markets entry renders in experience with its training wording.
+5. The courses section renders one card per course completion, in date order with undated ones last, each showing its name, its provider, and its date where known; a card whose entry names a document opens it in the overlay with the redesign's close, link, Escape, and focus behaviour. The online-courses node on the education timeline shows the count of the courses section and links to it.
+6. The certifications section renders one card per entry classified as a certification, with the same card behaviour. Reclassifying an entry in the content moves its card between the two sections with no other edit.
+7. Each of the six sections is reachable from the navigation on every page and renders its entries inside card elements; at 360 pixels every grid is one column and at 1440 two or more, with no horizontal scroll. The home page shows one card per section, and each count equals the number of entries that section renders.
+8. The site has, in each language, a CV page and a resume page, a PDF for each written by the render step, and a section or control on the site that links to both and labels each. Changing a fact in the content source changes it on both pages and in both PDFs with no second edit.
+9. The English and Arabic CV pages show the summary, experience, education, skills, certifications, courses, and every finished project the projects section shows, in the redesign's template layout; the redesign's criteria 8 and 9 still hold for the CV.
+10. The resume page in each language shows the summary, the experience, the education, the key skills, and exactly the projects whose entries carry the resume marker, plus any certificate whose entry carries it; the rendered resume PDF has exactly one page in each language, and the dist check fails if it has more. Printed to A4 and to Letter from the browser, nothing is clipped. Removing the marker from a project removes it from the resume with no other edit.
+11. The resume page has no `<table>`, no `<img>`, and no fixed or absolute positioned element carrying content. The extraction check over the English resume PDF finds the name, the email, every experience entry's organisation, position, and period, and every education entry's institution, degree, and period, in reading order, and fails on a missing line.
+12. The JSON Resume document per language validates against the schema and carries exactly the projects, experience, education, certificates, and skills the CV page shows; the dist check that compares them passes.
+13. The README's profile block contains the summary, the two portfolio links, one CV link whose address is the CV page on the site, and the email; it contains no link to a PDF and no link to a JSON Resume document. `pnpm readme --check` passes, and the dist check fails when the README is behind.
+14. Every new string exists in both languages in `src/lib/i18n.ts` and the build's gap report does not grow; Lighthouse reports at least 90 on the three categories for the home, CV, and resume pages in both languages on the mobile profile; the layout, contrast, reduced-motion, theme, and keyboard tests pass with their expectations updated; with JavaScript disabled every section and both documents show their content.
+15. `src/content/README.md` documents the status field and its values, the resume marker, and the course and certification classification, and the content mechanism test still passes.
+
+# Constraints
+
+- **Everything the first two efforts constrain still binds:** free static hosting, one content source, truthful academic status, two languages with one set of facts, no tracking, no external request, progressive script, stacked changes through Graphite ([[efforts/1-portfolio-site/spec]] and [[efforts/3-site-redesign/spec]], "Constraints").
+- **Truthful in the other direction too.** A project marked finished is finished. The status is a claim on a hiring document, so an entry whose state is unknown is marked unfinished and left off until Saud says otherwise, because understating is recoverable and overstating is not.
+- **One selection, one place.** What the resume shows is a fact on each entry, never a list kept beside the content, so the resume can never name a project the content source dropped.
+- **The resume is one page, and the content bends to it, not the layout.** If the marked entries do not fit, the fix is fewer marked entries or shorter summaries, never a smaller type size below what the template reads at, because a parser and a reader both need the text as it is.
+- **Both documents keep the template.** The resume is the CV's layout with fewer sections, so the two read as one pair and the print and extraction rules the redesign wrote apply to both.
+
+# Out of Scope
+
+- **Reworking any project summary beyond the status.** No project is reworded; the one text change is the profile summary of requirement 3.
+- **New content.** No project, job, course, or credential is added. High school stays absent until its details exist.
+- **A different CV template.** The white and blue layout the redesign chose stays; the resume adopts it.
+- **A DOCX output, a blog, a contact form, a custom domain, live GitHub data, the King Saud University period, Qiyas results**, which the first effort already excludes.
+- **A JSON Resume document for the resume.** The machine-readable output follows the CV, which is the whole record; a second document for the subset adds an address for tooling that reads the first one anyway.
+- **Reviewing the Arabic.** New Arabic strings are drafts until Saud reads them on the published site, as the first effort's assumption already states.
+- **Changing the certificate documents.** The files and previews the redesign added are reused as they are; a course card opens the same document its certificate card opened.
+
+# Assumptions
+
+- The "What I work with" block stays in the README beneath the profile lines. Saud's request named the links and the email; it did not name the skills block, and on 2026-09-10 he confirmed the block stays.
+- Each section keeps its own route, reachable from the navigation, and the home page stays the index of sections, as the redesign left it. Whether experience and projects are two routes or one route with two sections in that order is the plan's, and the first effort's criterion 2, every section reachable from the navigation, still decides.
+- "Professional jobs" is the experience collection: the practical training placement is the one entry and stays there, marked training.
+- The 19 Code with Mosh and 7 SoloLearn completions are courses; the typing.com advanced assessment is the one certification. Saud reclassifies any entry by editing it.
+- The resume's first project set is rentable and cachescribe, which Saud named on 2026-09-10 as the finished, well-designed ones, and no certificate is marked for the resume until he marks one.
+- The status of every project, proposed from the request and confirmed by Saud on 2026-09-10; the content is authored to this table, and he changes any row by editing one field:
+
+  | Project | Proposed | Why |
+  | --- | --- | --- |
+  | rentable, cachescribe | finished | named by Saud as complete |
+  | screeps | hidden | Saud asked for it to leave |
+  | Nova | unfinished | its summary says "in draft" |
+  | Mudaraj, PL/0 compiler, CPU scheduling simulator, Personal information form, CourseViewer | finished | course work that was submitted and graded |
+  | advent-of-code, leetcode, learning-rust, monkey-lang, bevy-pong, godot-brackeys-simple-platformer | finished | exercises whose repositories are complete as far as they go |
+  | nexuscord, ETG, discord-trengo-integration, AEP | unfinished | Saud named only two projects as complete, and each of these is a system still being built; he confirmed they stay off until he marks one finished |
+
+- The CV page keeps its JSON Resume download link beside the PDF; only the README drops it.
+- The resume PDF is rendered by the same render step as the CV PDF, at an address beside it, and the address is the plan's.
+
+# Open Questions
+
+- **Whether any course or certification belongs on the resume.** None is marked until Saud names one, and marking one is one field on its entry.
+
+# Risks
+
+- **The site shrinks visibly.** Marking every uncertain project unfinished could leave the projects section with fewer than half the cards it has today. That is the truthful outcome under the constraint and it is reversible per project by one field.
+- **One page is tight in Arabic.** Arabic text runs longer and the resume must fit one page in both languages; the check on the page count is what catches it, and the remedy is content, per the constraint.
+- **Two documents drift.** A section added to the CV and forgotten on the resume, or the reverse. Both derive from the same collections and the same template, and the extraction check runs over both, so a missing line fails the build.
+- **The README changes on the profile page the moment it merges.** It is rewritten by the script from the content, so what merges is what the check passed.
