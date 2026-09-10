@@ -50,9 +50,21 @@ is stays authored once; the dist check fails when the README is behind.
 | `name` | text | yes | the name as it should appear |
 | `label` | text | yes | one line saying what Saud does, such as "Software developer" |
 | `summary` | text | yes | two or three sentences for the top of the site and the CV |
-| `email` | email address | no | the public contact address |
+| `email` | email address | no | Saud's address. Held here and rendered nowhere; see below |
+| `nationality` | text | yes | the nationality as a hiring document states it, such as "Saudi". Required, and authored rather than read off `location`: where someone lives and what they hold are two facts |
 | `location` | text | yes | city and country |
 | `profiles` | list | no | public profiles; each has `network` (such as GitHub), `username`, and `url`. May be empty |
+
+**The email is held here and published nowhere.** No page of the site and no
+document it publishes renders the address. Contact details reach a document
+one way only: a reader opens the CV or the resume, uses the download control,
+and types an email address and a phone number into the form it presents, and
+the document that form produces in their own browser is the only copy that
+carries them. Nothing typed there is stored, sent, or committed, and the
+published PDFs carry no contact detail at all. The field stays because it is a
+fact about Saud that another output may want; **it is not missing from the
+site, and adding it back to a page, a document, or the JSON Resume output
+undoes a deliberate decision.**
 
 ## `projects/`
 

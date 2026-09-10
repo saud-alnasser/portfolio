@@ -31,6 +31,14 @@ function entries(collection: string): any[] {
 const projects = entries('projects').filter((data) => isShown(data));
 const certificates = entries('certificates');
 
+// The repository link a document prints for a project, or nothing. Only a
+// `public` project shows its links, exactly as src/components/CvDocument.astro
+// decides it, so a `described` entry such as Mudaraj is expected to carry no
+// link at all rather than a link the content never gave it.
+function published(project: any): string | undefined {
+  return project.visibility === 'public' ? project.links?.repository : undefined;
+}
+
 // What each document holds, counted from the content the way the site counts
 // it. The CV takes every entry its kind admits; the resume takes only what an
 // entry marks for it, and a marked course keeps the courses heading rather
@@ -99,8 +107,8 @@ for (const locale of locales) {
         await expect(page.locator('[data-cv-section="certifications"] > ul > li')).toHaveCount(counts.certifications);
         await expect(page.locator('[data-cv-section="courses"] > ul > li')).toHaveCount(counts.courses);
 
-        // Named, not only counted: the resume carries the two projects the
-        // content marks and neither of the others.
+        // Named, not only counted: the resume carries the projects the
+        // content marks and none of the others.
         for (const project of projects) {
           const shown = variant === 'cv' || onResume(project);
           const heading = page.getByRole('heading', { name: project.name, exact: true });
@@ -237,7 +245,9 @@ for (const locale of locales) {
     for (const project of marked) {
       const entry = page.locator('[data-cv-section="projects"] > ol > li', { hasText: project.name });
       await expect(entry, `${project.name} on the CV`).toContainText(t.project.technologies);
-      await expect(entry.locator(`a[href="${project.links.repository}"]`)).toHaveCount(1);
+      const repository = published(project);
+      if (repository) await expect(entry.locator(`a[href="${repository}"]`)).toHaveCount(1);
+      else await expect(entry.locator('a'), `${project.name} on the CV`).toHaveCount(0);
     }
 
     await page.goto(at(`/${locale}/resume/`));
@@ -254,7 +264,7 @@ for (const locale of locales) {
         project.summary[locale] ?? project.summary.en,
       ]);
       await expect(entry, `${project.name} on the resume`).not.toContainText(t.project.technologies);
-      await expect(entry.locator(`a[href="${project.links.repository}"]`)).toHaveCount(0);
+      await expect(entry.locator('a'), `${project.name} on the resume`).toHaveCount(0);
     }
   });
 }

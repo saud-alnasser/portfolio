@@ -18,4 +18,5 @@ technologies:
   - "Drizzle ORM"
 visibility: described
 status: completed
+resume: true
 order: 2

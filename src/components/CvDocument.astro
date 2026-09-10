@@ -309,12 +309,12 @@ const muted = 'text-sm text-muted-foreground';
                     <p class={muted}>{text('role', data.role)}</p>
                     <p class="mt-2 leading-6">{text('summary', data.summary)}</p>
                     {/* The technologies and the repository are the record's,
-                        not the application's: two lines an entry, and the
-                        resume carries two entries, which is the third of the
-                        page budget the plan allots. Every technology is
-                        already in the key skills above, and the repository is
-                        one click from the portfolio link in the contact
-                        line. Both are on the CV, whole. */}
+                        not the application's: two lines an entry, over the
+                        entries the content marks for the resume, which is a
+                        third of the page budget. Every technology is already
+                        in the key skills above, and the repository is one
+                        click from the portfolio link in the contact line.
+                        Both are on the CV, whole. */}
                     {!resume && (
                       <>
                         <p class={`leading-6 ${muted}`}>

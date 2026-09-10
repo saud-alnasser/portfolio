@@ -1,5 +1,5 @@
 ---
-status: open
+status: resolved
 ---
 
 # feat(content): a nationality on the profile, Mudaraj on the resume, and the email recorded as unrendered
@@ -8,10 +8,10 @@ status: open
 The profile schema carries a localized `nationality` and `src/content/profile.yaml` carries its value in both languages. `src/content/projects/mudaraj.yaml` carries `resume: true`, so the resume's project set becomes Mudaraj, rentable, and cachescribe. `src/content/README.md` documents the new field and says plainly that the `email` in the content source is not rendered by the site, so that a later reader does not helpfully put it back. Nothing renders the nationality yet; that is ticket 02, which rewrites the contact line.
 
 ## Acceptance Criteria
-- [ ] The profile schema requires `nationality` as a localized field, the build refuses a profile without it, and `src/content/profile.yaml` carries it in English and Arabic (criterion 5).
-- [ ] The resume page in each language shows Mudaraj, rentable, and cachescribe and no other project, and the projects section of the site and the CV are unchanged by the marker; removing `resume: true` from any one of the three removes it from the resume alone, tried once (criterion 6).
-- [ ] `src/content/README.md` documents the nationality field and states that the email is held but not rendered, naming what renders contact details instead; `pnpm test:content` passes (criterion 9).
-- [ ] `pnpm check` reports no error and the build's gap report does not grow (criterion 8).
+- [x] The profile schema requires `nationality` as a localized field, the build refuses a profile without it, and `src/content/profile.yaml` carries it in English and Arabic (criterion 5).
+- [x] The resume page in each language shows Mudaraj, rentable, and cachescribe and no other project, and the projects section of the site and the CV are unchanged by the marker; removing `resume: true` from any one of the three removes it from the resume alone, tried once (criterion 6).
+- [x] `src/content/README.md` documents the nationality field and states that the email is held but not rendered, naming what renders contact details instead; `pnpm test:content` passes (criterion 9).
+- [x] `pnpm check` reports no error and the build's gap report does not grow (criterion 8).
 
 ## Relevant areas
 `src/content.config.ts` (the profile collection), `src/content/profile.yaml`, `src/content/projects/mudaraj.yaml`, `src/content/README.md`, `scripts/test-content-mechanism.mjs`, `tests/resume.spec.ts` which derives its project expectation from the content source.
