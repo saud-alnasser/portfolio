@@ -236,6 +236,28 @@ for (const locale of locales) {
         }
       });
 
+      test('carries no positioned element inside the document', async ({ page }) => {
+        await page.goto(route);
+        // The fourth thing the effort's criterion 7 names, beside the table,
+        // the image, and the contact block's place in the flow: a resume
+        // parser reads a positioned header or footer out of order, or not at
+        // all. `documentHazards` in scripts/check-dist.mjs proves the other
+        // three from the built HTML; this one needs layout, so it is here.
+        //
+        // Scoped to the document, not the page. The site's own accessible
+        // names are `sr-only`, which Tailwind implements as
+        // `position: absolute`, and the download form is a `<dialog>`, which
+        // is positioned whenever it is open. Both sit outside `article.cv`
+        // and neither prints, which is why the document is the right subject
+        // and a page-wide rule would refuse the site's own markup.
+        const positioned = await page.evaluate(() =>
+          [...document.querySelectorAll('article.cv *')]
+            .filter((element) => ['fixed', 'absolute'].includes(getComputedStyle(element).position))
+            .map((element) => `${element.tagName.toLowerCase()}.${element.className}`),
+        );
+        expect(positioned, `positioned elements inside the document on ${route}`).toEqual([]);
+      });
+
       test('separates the contact line with a bar after every item but the last', async ({ page }) => {
         await page.goto(route);
         // The bars are trailing, so hiding the two slots at the head of the

@@ -731,6 +731,13 @@ async function noOverclaim() {
 // Neither document page carries the layout hazards resume parsers document:
 // no table, no image, and the contact block in the flow of the document
 // rather than in a positioned header or footer.
+//
+// The fourth hazard, an element of the document itself being positioned, is
+// asserted in tests/resume.spec.ts instead. A computed `position` needs
+// layout and this reads the built HTML as text, and the assertion has to be
+// scoped to the document rather than the page: the site's accessible names
+// are `sr-only`, which is `position: absolute`, and the download form is a
+// `<dialog>`.
 async function documentHazards() {
   const name = 'document hazards';
   const lines = [];
