@@ -17,22 +17,34 @@
 //
 // The resume is the short document, so it is rendered a second time at Letter
 // to a buffer and both renders are counted with pdfjs-dist.
+//
+// Each document is then rendered once more, filled through the download form
+// the way a reader fills it, to .artifacts/ rather than dist/. That copy is
+// the only one carrying contact details, and it exists so the extraction
+// check has a contact line to run over; dist/ is what the deploy uploads, so
+// nothing carrying a contact detail may be written there.
 // Either running past its page budget fails the step naming the locale, the paper,
 // and the count, here rather than in a pull request: the remedy is content,
 // as the effort's spec constrains, never a smaller type size.
 
-import { readFile, stat } from 'node:fs/promises';
+import { mkdir, readFile, stat } from 'node:fs/promises';
 import { createRequire } from 'node:module';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { getDocument } from 'pdfjs-dist/legacy/build/pdf.mjs';
 import { chromium } from 'playwright';
+import { placeholder } from './placeholders.mjs';
 import { serve } from './serve-dist.mjs';
 
 const require = createRequire(import.meta.url);
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const dist = path.join(root, 'dist');
+// Where a filled document goes, and it is deliberately not dist/. The deploy
+// uploads dist/ and nothing else, so a document carrying contact details
+// written there would publish the very thing this exists to keep out.
+const artifacts = path.join(root, '.artifacts');
 const locales = ['en', 'ar'];
+
 
 // The fonts pdf.js substitutes for the fourteen standard ones a PDF may use
 // without embedding, as scripts/certificate-previews.mjs finds them: a
@@ -135,6 +147,85 @@ async function render(browser, at, locale, output) {
   return `${path.relative(root, file)}: ${size} bytes${pages ? `, ${pages}` : ''}${loaded.length > 0 ? `, fonts ${loaded.join(', ')}` : ''}`;
 }
 
+// The same document, filled through the form a reader uses, written outside
+// dist/. This is the only copy of either document that carries contact
+// details, and it exists so the extraction check has something to run over:
+// the published PDFs lost the email when the site stopped publishing it, and
+// a guarantee with nothing to check is a guarantee that quietly left.
+//
+// The form is driven rather than the slots written directly, because what is
+// being produced is what a reader gets, and a check over a document assembled
+// some other way would pass for the wrong reason. window.print() is replaced
+// before the page loads: a headless browser has no print dialog to complete,
+// and the PDF is taken with page.pdf() from the filled page, which is the
+// same call the published render makes.
+async function renderFilled(browser, at, locale, output) {
+  const route = `/${locale}/${output.route}/`;
+  const file = path.join(artifacts, `${output.file}.${locale}.filled.pdf`);
+  const page = await browser.newPage();
+  const counts = [];
+  try {
+    await page.addInitScript(() => {
+      window.print = () => {};
+    });
+    const response = await page.goto(at(route), { waitUntil: 'networkidle' });
+    if (!response || !response.ok()) {
+      throw new RenderFailure('page-not-loaded', `${route} answered ${response ? response.status() : 'nothing'}`);
+    }
+    await page.evaluate(async () => {
+      await document.fonts.ready;
+    });
+
+    await page.click('[data-document-download]');
+    await page.fill('[data-document-field="email"]', placeholder.email);
+    await page.fill('[data-document-field="phone"]', placeholder.phone);
+    await page.click('[data-document-generate]');
+
+    // The form is what decides whether this worked, so the state it leaves is
+    // checked here rather than assumed: a dialog that never opened, or a
+    // script that never ran, would otherwise produce the published document
+    // under a filled document's name.
+    const filled = await page.evaluate(() =>
+      [...document.querySelectorAll('[data-cv-contact] [data-contact-slot]')].map((item) => ({
+        hidden: item.hidden,
+        value: item.querySelector('span').textContent,
+      })),
+    );
+    const missing = filled.filter((slot) => slot.hidden || !slot.value);
+    if (filled.length !== 2 || missing.length > 0) {
+      throw new RenderFailure('form-did-not-fill', `${route}: the contact slots are ${JSON.stringify(filled)}`);
+    }
+
+    await page.pdf({ path: file, format: 'A4', printBackground: true });
+    if (output.pages !== null) {
+      counts.push({ paper: 'A4', count: await pageCount(await readFile(file)) });
+      counts.push({
+        paper: 'Letter',
+        count: await pageCount(await page.pdf({ format: 'Letter', printBackground: true })),
+      });
+    }
+  } finally {
+    await page.close();
+  }
+
+  let size;
+  try {
+    size = (await stat(file)).size;
+  } catch {
+    throw new RenderFailure('file-not-written', `${path.relative(root, file)} was not written`);
+  }
+  for (const { paper, count } of counts) {
+    if (count > output.pages) {
+      throw new RenderFailure(
+        'resume-too-long',
+        `${locale} filled at ${paper} runs to ${count} pages, expected at most ${output.pages}; shorten the content, never the type size`,
+      );
+    }
+  }
+  const pages = counts.map(({ paper, count }) => `${count} ${count === 1 ? 'page' : 'pages'} at ${paper}`).join(', ');
+  return `${path.relative(root, file)}: ${size} bytes${pages ? `, ${pages}` : ''}, filled through the form`;
+}
+
 // The server refuses a directory with no index.html, which is the one
 // failure that can happen before a page is opened.
 let server;
@@ -146,9 +237,11 @@ try {
 }
 const browser = await chromium.launch();
 try {
+  await mkdir(artifacts, { recursive: true });
   for (const locale of locales) {
     for (const output of documents) {
       console.log(await render(browser, server.at, locale, output));
+      console.log(await renderFilled(browser, server.at, locale, output));
     }
   }
 } catch (error) {

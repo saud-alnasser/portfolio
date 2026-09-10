@@ -6,6 +6,7 @@ import { expect, test, type Page } from '@playwright/test';
 import { parse as parseYaml } from 'yaml';
 import { lowContrastPairs } from './contrast';
 import { at, locales } from './pages';
+import { placeholder } from '../scripts/placeholders.mjs';
 import { strings } from '../src/lib/i18n';
 
 // The form a document page opens instead of downloading, and the document it
@@ -13,6 +14,10 @@ import { strings } from '../src/lib/i18n';
 // is the only path to a document that carries either, and it produces one in
 // the reader's own browser: the values go into the two hidden slots the
 // contact line already has, the page is printed, and the slots are emptied.
+//
+// The phone number comes from scripts/placeholders.mjs rather than being
+// written out here: a Saudi mobile in the source is what scripts/identifiers.mjs
+// exists to find, and this repository's history is scanned for one.
 //
 // window.print() is replaced before the page loads rather than left to run.
 // A headless browser has no print dialog to complete, and what these tests are
@@ -68,7 +73,7 @@ for (const locale of locales) {
         await expect(page.locator(dialog)).toHaveAttribute('open', '');
 
         await page.locator('[data-document-field="email"]').fill('reader@example.com');
-        await page.locator('[data-document-field="phone"]').fill('+966500000000');
+        await page.locator('[data-document-field="phone"]').fill(placeholder.phone);
         await page.locator(generate).click();
 
         await expect(page.locator(dialog)).not.toHaveAttribute('open');
@@ -78,7 +83,7 @@ for (const locale of locales) {
         // before this effort: the two slots come before the nationality.
         const items = await page.locator(`${contact} > li:not([hidden])`).allInnerTexts();
         const cleaned = items.map((item) => item.replace(/\|/g, '').trim());
-        expect(cleaned.slice(0, 2)).toEqual(['reader@example.com', '+966500000000']);
+        expect(cleaned.slice(0, 2)).toEqual(['reader@example.com', placeholder.phone]);
         expect(cleaned[2]).toBe(profile.nationality[locale] ?? profile.nationality.en);
       });
 
@@ -86,11 +91,11 @@ for (const locale of locales) {
         await page.goto(url);
         await settled(page);
         await page.locator(control).click();
-        await page.locator('[data-document-field="phone"]').fill('+966500000000');
+        await page.locator('[data-document-field="phone"]').fill(placeholder.phone);
         await page.locator(generate).click();
 
         expect(await slot(page, 'email')).toEqual({ text: '', hidden: true });
-        expect((await slot(page, 'phone')).text).toContain('+966500000000');
+        expect((await slot(page, 'phone')).text).toContain(placeholder.phone);
         expect((await slot(page, 'phone')).hidden).toBe(false);
       });
 
@@ -105,7 +110,7 @@ for (const locale of locales) {
 
         await page.locator(control).click();
         await page.locator('[data-document-field="email"]').fill('reader@example.com');
-        await page.locator('[data-document-field="phone"]').fill('+966500000000');
+        await page.locator('[data-document-field="phone"]').fill(placeholder.phone);
         await page.locator(generate).click();
         await expect(page.locator(dialog)).not.toHaveAttribute('open');
 
@@ -184,13 +189,13 @@ for (const locale of locales) {
         await page.locator('[data-document-field="email"]').focus();
         await page.keyboard.type('reader@example.com');
         await page.keyboard.press('Tab');
-        await page.keyboard.type('+966500000000');
+        await page.keyboard.type(placeholder.phone);
         await page.locator(generate).focus();
         await page.keyboard.press('Enter');
 
         await expect(page.locator(dialog)).not.toHaveAttribute('open');
         expect((await slot(page, 'email')).text).toContain('reader@example.com');
-        expect((await slot(page, 'phone')).text).toContain('+966500000000');
+        expect((await slot(page, 'phone')).text).toContain(placeholder.phone);
       });
 
       test('meets the contrast criterion with the form open', async ({ page, colorScheme }) => {

@@ -27,3 +27,7 @@ pnpm-debug.log*
 
 # jetbrains setting folder
 .idea/
+
+# documents generated through the download form, which carry contact
+# details and must never reach dist/, which is what the deploy uploads
+.artifacts/
