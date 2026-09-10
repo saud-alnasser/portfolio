@@ -29,8 +29,9 @@ const cv = withBase(`/${locale}/cv/`);
 const resume = withBase(`/${locale}/resume/`);
 
 // Where a visitor can go, as actions rather than a table. No email and no
-// phone number: the site publishes neither, anywhere, and a reader who wants
-// a document carrying them types them into the form a document page offers.
+// phone number: the site publishes neither, anywhere, and a document carrying
+// them is made in a browser from a document page opened at the address that
+// offers the form (docs/development.md).
 // A profile takes its network's mark where the icon set has one and the
 // external link icon where it does not (src/lib/networks.ts).
 const actions: { key: string; href: string; icon: 'file' | ProfileIcon; label: string }[] = [

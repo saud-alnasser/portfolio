@@ -5,15 +5,21 @@ import AxeBuilder from '@axe-core/playwright';
 import { expect, test, type Page } from '@playwright/test';
 import { parse as parseYaml } from 'yaml';
 import { lowContrastPairs } from './contrast';
-import { at, locales } from './pages';
+import { at, locales, storageKey } from './pages';
+import { marker } from '../scripts/form-marker.mjs';
 import { placeholder } from '../scripts/placeholder.mjs';
 import { strings } from '../src/lib/i18n';
 
-// The form a document page opens instead of downloading, and the document it
-// produces. The site publishes no email address and no phone number, so this
-// is the only path to a document that carries either, and it produces one in
-// the reader's own browser: the values go into the two hidden slots the
-// contact line already has, the page is printed, and the slots are emptied.
+// The form a document page opens at the marked address instead of downloading,
+// and the document it produces. Everywhere else the control downloads the
+// published PDF, and both paths are tested here as a pair on purpose: a suite
+// that only ever navigated to the marked address would pass against a build
+// with no gate in it, and the unmarked click is the one every reader makes.
+//
+// The site publishes no email address and no phone number, so the form is the
+// only path to a document that carries either, and it produces one in the
+// reader's own browser: the values go into the two hidden slots the contact
+// line already has, the page is printed, and the slots are emptied.
 //
 // The phone number comes from scripts/placeholder.mjs rather than being
 // written out here: a Saudi mobile in the source is what scripts/identifiers.mjs
@@ -37,6 +43,10 @@ const settled = (page: Page) => page.evaluate(() => Promise.all(document.getAnim
 
 // Counts the print calls instead of making them, and lets a test fire the
 // afterprint the browser would fire once a reader is done with the dialog.
+//
+// The count lands a task after the dialog's `open` attribute goes, because
+// printing happens in the close handler and `close()` removes the attribute
+// synchronously. Anything asserting on this counter polls for it.
 async function stubPrint(page: Page) {
   await page.addInitScript(() => {
     (window as any).__prints = 0;
@@ -47,6 +57,32 @@ async function stubPrint(page: Page) {
 }
 
 const prints = (page: Page) => page.evaluate(() => (window as any).__prints as number);
+
+// Counts the times the dialog gained its `open` attribute, from the moment this
+// is installed. A test asserting that nothing opened cannot read the attribute
+// afterwards and call it proof: a dialog shown and dismissed in the same tick
+// reads exactly like one that never opened.
+//
+// Which is also why this counts the records rather than reading the attribute
+// when the callback runs. Records are delivered at the microtask checkpoint
+// after the task that produced them, so by then the attribute is gone again and
+// a watcher that re-read it would count nothing — the same blindness the
+// assertion it replaces had. `oldValue === null` is the transition from absent
+// to present, and that is the thing being counted.
+async function watchOpen(page: Page, selector: string) {
+  await page.evaluate((which) => {
+    const node = document.querySelector(which);
+    (window as any).__opened = node && node.hasAttribute('open') ? 1 : 0;
+    if (!node) return;
+    new MutationObserver((records) => {
+      for (const record of records) {
+        if (record.oldValue === null) (window as any).__opened += 1;
+      }
+    }).observe(node, { attributes: true, attributeFilter: ['open'], attributeOldValue: true });
+  }, selector);
+}
+
+const opened = (page: Page) => page.evaluate(() => (window as any).__opened as number);
 
 // The value written into one contact slot, and whether the slot is showing.
 // The value is the item's first span; the second is the separator bar, which
@@ -59,6 +95,12 @@ async function slot(page: Page, which: 'email' | 'phone') {
 for (const locale of locales) {
   for (const variant of ['cv', 'resume'] as const) {
     const url = at(`/${locale}/${variant}/`);
+    // The same page at the address the form opens at, which every case below
+    // that wants the form navigates to by name. The marker is deliberately not
+    // in `url` and not in the shared setup: the plain address is what a reader
+    // of the site arrives at, and folding the marker into either would leave
+    // nothing asserting what happens there.
+    const marked = `${url}${marker}`;
     const t = strings[locale];
 
     test.describe(`the download form on ${url}`, () => {
@@ -66,8 +108,45 @@ for (const locale of locales) {
         await stubPrint(page);
       });
 
-      test('opens instead of downloading, and fills the contact line with what was typed', async ({ page }) => {
+      // What every reader but one gets, and it sits beside the marked case
+      // below on purpose: the pair is only legible as a pair, and a suite
+      // holding one of them would pass against a build with no gate in it.
+      //
+      // Nothing cancels the link, so the control downloads the published PDF
+      // and the dialog never opens. Asserted by watching the attribute rather
+      // than by reading it afterwards, because the criterion is that it never
+      // gains `open`, and a dialog opened and closed again in the same tick
+      // would read as closed to a later assertion.
+      test('downloads the published document at the plain address, by pointer and by Enter, and opens nothing', async ({
+        page,
+      }) => {
         await page.goto(url);
+        await settled(page);
+        await watchOpen(page, dialog);
+
+        const download = page.waitForEvent('download');
+        await page.locator(control).click();
+        expect((await download).url(), `what the control downloaded on ${url}`).toContain(
+          `/${variant}.${locale}.pdf`,
+        );
+
+        // And by the key a link is activated with, which is the half of the
+        // keyboard path that lives at this address. The other half, where Enter
+        // opens the form, is in tests/resume.spec.ts at the marked address.
+        const byKey = page.waitForEvent('download');
+        await page.locator(control).focus();
+        await page.keyboard.press('Enter');
+        expect((await byKey).url(), `what Enter downloaded on ${url}`).toContain(`/${variant}.${locale}.pdf`);
+
+        // One assertion rather than two: this one already covers a dialog that
+        // is closed by the time it is read, which is all the attribute itself
+        // could have told us.
+        expect(await opened(page), `times the dialog gained open on ${url}`).toBe(0);
+        expect(await prints(page), `window.print() on ${url}`).toBe(0);
+      });
+
+      test('opens instead of downloading, and fills the contact line with what was typed', async ({ page }) => {
+        await page.goto(marked);
         await settled(page);
         await page.locator(control).click();
         await expect(page.locator(dialog)).toHaveAttribute('open', '');
@@ -77,7 +156,13 @@ for (const locale of locales) {
         await page.locator(generate).click();
 
         await expect(page.locator(dialog)).not.toHaveAttribute('open');
-        expect(await prints(page), `window.print() on ${url}`).toBe(1);
+        // Polled rather than read once. `dialog.close()` removes the attribute
+        // above synchronously and queues the close event, so that assertion can
+        // resolve a task before the handler that prints has run, and a one-shot
+        // read then sees zero. It is the lighter of the two documents that loses
+        // that race, which is why it showed up on the resume pages and on the
+        // runner rather than here.
+        await expect.poll(() => prints(page), { message: `window.print() on ${url}` }).toBe(1);
 
         // In the contact line, in order, at the position the email held
         // before this effort: the two slots come before the nationality.
@@ -88,7 +173,7 @@ for (const locale of locales) {
       });
 
       test('carries the one value when only one is typed', async ({ page }) => {
-        await page.goto(url);
+        await page.goto(marked);
         await settled(page);
         await page.locator(control).click();
         await page.locator('[data-document-field="phone"]').fill(placeholder.phone);
@@ -99,8 +184,85 @@ for (const locale of locales) {
         expect((await slot(page, 'phone')).hidden).toBe(false);
       });
 
-      test('issues no network request while the form is open or generating', async ({ page }) => {
+      // Nothing about the marker is remembered: it lives in the address and
+      // nowhere else, so the next visit without it is a visit without the
+      // form, in the same browser on the same machine.
+      test('leaves nothing behind that would open the form again', async ({ page }) => {
+        await page.goto(marked);
+        await settled(page);
+        await page.locator(control).click();
+        await expect(page.locator(dialog)).toHaveAttribute('open', '');
+        await page.keyboard.press('Escape');
+
         await page.goto(url);
+        await settled(page);
+        const download = page.waitForEvent('download');
+        await page.locator(control).click();
+        expect((await download).url(), `what the control downloaded on ${url}`).toContain(
+          `/${variant}.${locale}.pdf`,
+        );
+        await expect(page.locator(dialog), `the dialog on ${url} after a marked visit`).not.toHaveAttribute('open');
+
+        const left = await page.evaluate(() => ({
+          cookie: document.cookie,
+          keys: [...Object.keys(localStorage), ...Object.keys(sessionStorage)],
+        }));
+        expect(left.cookie, `the cookies ${url} left`).toBe('');
+        expect(
+          left.keys.filter((key) => key !== storageKey),
+          `what ${url} stored besides the theme`,
+        ).toEqual([]);
+      });
+
+      // The latch, and the reason it is one. The skip link is the first
+      // focusable element in the body and points at #content, so the reader
+      // this form is for replaces the fragment before reaching the control. A
+      // gate that re-read the address at the click would be off by then, and
+      // silently, because the icon would simply download.
+      test('still opens the form after the fragment has moved on', async ({ page }) => {
+        await page.goto(marked);
+        await settled(page);
+
+        // Driven the way a reader drives it. history.replaceState fires no
+        // hashchange, and a case written that way would read as a broken latch.
+        await page.locator('a[href="#content"]').focus();
+        await page.keyboard.press('Enter');
+        expect(page.url(), `the address after the skip link on ${url}`).toContain('#content');
+        await page.locator(control).click();
+        await expect(page.locator(dialog), `the dialog after the skip link on ${url}`).toHaveAttribute('open', '');
+        await page.keyboard.press('Escape');
+
+        // And any other in-page target, set the way a fragment link sets it.
+        await page.evaluate(() => {
+          location.hash = '#somewhere-else';
+        });
+        await page.locator(control).click();
+        await expect(page.locator(dialog), `the dialog after a second fragment on ${url}`).toHaveAttribute('open', '');
+      });
+
+      // The listener, which is the whole of what separates this design from
+      // reading the address once when the script binds. A page loaded without
+      // the marker becomes the marked page when the fragment is typed onto it,
+      // with no reload, and that is the one thing the latch buys the reader who
+      // already has the document open.
+      test('opens the form when the marker is typed onto a page already loaded', async ({ page }) => {
+        await page.goto(url);
+        await settled(page);
+
+        // Assigned rather than navigated to, which is what typing a fragment
+        // onto the address of a loaded page does, and what fires hashchange.
+        await page.evaluate((fragment) => {
+          location.hash = fragment;
+        }, marker);
+        await page.locator(control).click();
+        await expect(page.locator(dialog), `the dialog after ${marker} was typed onto ${url}`).toHaveAttribute(
+          'open',
+          '',
+        );
+      });
+
+      test('issues no network request while the form is open or generating', async ({ page }) => {
+        await page.goto(marked);
         await settled(page);
 
         // Everything from here on: opening the dialog, typing, generating.
@@ -118,7 +280,7 @@ for (const locale of locales) {
       });
 
       test('empties the slots again after printing, and again when dismissed', async ({ page }) => {
-        await page.goto(url);
+        await page.goto(marked);
         await settled(page);
         await page.locator(control).click();
         await page.locator('[data-document-field="email"]').fill('reader@example.com');
@@ -146,7 +308,7 @@ for (const locale of locales) {
         // gets the last one's email and phone, on the document and in the
         // fields. `afterprint` is deliberately not dispatched here, which is
         // what makes this test about the clear on the way in.
-        await page.goto(url);
+        await page.goto(marked);
         await settled(page);
         await page.locator(control).click();
         await page.locator('[data-document-field="email"]').fill('first@example.com');
@@ -165,7 +327,7 @@ for (const locale of locales) {
       test('dismisses on Escape, on the close control, and on the backdrop, returning focus each time', async ({
         page,
       }) => {
-        await page.goto(url);
+        await page.goto(marked);
         await settled(page);
 
         for (const dismiss of ['escape', 'control', 'backdrop'] as const) {
@@ -183,7 +345,7 @@ for (const locale of locales) {
       });
 
       test('downloads the published document from the way out inside the form', async ({ page }) => {
-        await page.goto(url);
+        await page.goto(marked);
         await settled(page);
         await page.locator(control).click();
         const plain = page.locator(`${dialog} a[download]`);
@@ -195,7 +357,7 @@ for (const locale of locales) {
       });
 
       test('is completable by the keyboard alone, with both fields labelled', async ({ page }) => {
-        await page.goto(url);
+        await page.goto(marked);
         await settled(page);
 
         // Reached by tabbing rather than clicked, and opened with the key a
@@ -222,7 +384,7 @@ for (const locale of locales) {
       });
 
       test('meets the contrast criterion with the form open', async ({ page, colorScheme }) => {
-        await page.goto(url);
+        await page.goto(marked);
         await settled(page);
         // No second settle: opening the dialog cancels the page's reveal, and
         // a cancelled animation rejects the promise that waits on it.
@@ -242,7 +404,7 @@ for (const locale of locales) {
       test.use({ reducedMotion: 'reduce' });
 
       test('animates nothing when it opens', async ({ page }) => {
-        await page.goto(url);
+        await page.goto(marked);
         await page.locator(control).click();
         await expect(page.locator(dialog)).toHaveAttribute('open', '');
         const animations = await page.evaluate(() => document.getAnimations().length);
@@ -253,25 +415,34 @@ for (const locale of locales) {
     test.describe(`${url} with JavaScript disabled`, () => {
       test.use({ javaScriptEnabled: false, reducedMotion: 'reduce' });
 
-      test('renders in full and leaves the control the link to the published PDF', async ({ page }) => {
-        await page.goto(url);
-        await expect(page.locator('article.cv')).toBeVisible();
-        await expect(page.locator(contact)).toBeVisible();
+      // Both addresses. The marker is what opens the form where script runs,
+      // and it has to mean nothing at all where script does not: the one reader
+      // who bookmarked it gets the published PDF like everybody else rather
+      // than a page that does nothing.
+      for (const [which, address] of [
+        ['the plain address', url],
+        ['the marked address', marked],
+      ] as const) {
+        test(`renders in full at ${which} and leaves the control the link to the published PDF`, async ({ page }) => {
+          await page.goto(address);
+          await expect(page.locator('article.cv')).toBeVisible();
+          await expect(page.locator(contact)).toBeVisible();
 
-        const found = await page.locator(control).evaluate((node) => ({
-          tag: node.tagName.toLowerCase(),
-          href: node.getAttribute('href'),
-          download: node.hasAttribute('download'),
-        }));
-        expect(found).toEqual({ tag: 'a', href: at(`/${variant}.${locale}.pdf`), download: true });
+          const found = await page.locator(control).evaluate((node) => ({
+            tag: node.tagName.toLowerCase(),
+            href: node.getAttribute('href'),
+            download: node.hasAttribute('download'),
+          }));
+          expect(found).toEqual({ tag: 'a', href: at(`/${variant}.${locale}.pdf`), download: true });
 
-        // The dialog is inert without script, and the document it would fill
-        // is the published one: no address, no number, both slots hidden.
-        await expect(page.locator(dialog)).not.toHaveAttribute('open');
-        expect(await page.locator(contact).innerText()).not.toContain(profile.email);
-        await expect(page.locator(`${contact} [data-contact-slot="email"]`)).toBeHidden();
-        await expect(page.locator(`${contact} [data-contact-slot="phone"]`)).toBeHidden();
-      });
+          // The dialog is inert without script, and the document it would fill
+          // is the published one: no address, no number, both slots hidden.
+          await expect(page.locator(dialog)).not.toHaveAttribute('open');
+          expect(await page.locator(contact).innerText()).not.toContain(profile.email);
+          await expect(page.locator(`${contact} [data-contact-slot="email"]`)).toBeHidden();
+          await expect(page.locator(`${contact} [data-contact-slot="phone"]`)).toBeHidden();
+        });
+      }
     });
   }
 }

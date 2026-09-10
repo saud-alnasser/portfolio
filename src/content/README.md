@@ -59,14 +59,16 @@ is on the site, and the README links to it rather than repeating it.
 
 **The email is held here and published nowhere.** No page of the site and no
 document it publishes renders the address. Contact details reach a document
-one way only: a reader opens the CV or the resume, uses the download control,
-and types an email address and a phone number into the form it presents, and
-the document that form produces in their own browser is the only copy that
-carries them. Nothing typed there is stored, sent, or committed, and the
-published PDFs carry no contact detail at all. The field stays because it is a
-fact about Saud that another output may want; **it is not missing from the
-site, and adding it back to a page, a document, or the JSON Resume output
-undoes a deliberate decision.**
+one way only: the CV or the resume is opened at the marked address, the
+document page's own with `#me` on the end, the download control there opens a
+form, and the document that form produces in the browser is the only copy that
+carries them. Everywhere else that control downloads the published PDF, which
+carries none; `docs/development.md` says why the form is behind an address.
+Nothing typed into it is stored, sent, or committed, and the published PDFs
+carry no contact detail at all. The field stays because it is a fact about
+Saud that another output may want; **it is not missing from the site, and
+adding it back to a page, a document, or the JSON Resume output undoes a
+deliberate decision.**
 
 ## `projects/`
 

@@ -12,8 +12,8 @@ import { withBase } from '../../lib/paths';
 // the render step writes to /resume.<locale>.pdf. It is the CV's template
 // with fewer sections and fewer entries, from the same component
 // (src/components/CvDocument.astro), so this page is the download control,
-// the document, and the form that control opens, and nothing else. It runs to
-// at most two pages at either paper in either language, which
+// the document, and the form the marked address opens, and nothing else. It
+// runs to at most two pages at either paper in either language, which
 // scripts/render-pdf.mjs counts and refuses to publish past.
 // How many it actually takes depends on the machine: the same document is one
 // page under the fonts Windows resolves for the system stack and two under
