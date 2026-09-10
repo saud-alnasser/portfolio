@@ -3,7 +3,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { expect, test, type Page } from '@playwright/test';
 import { parse as parseYaml } from 'yaml';
-import { formatPeriod, strings } from '../src/lib/i18n';
+import { fill, formatPeriod, strings } from '../src/lib/i18n';
 import { isCertification, isCourse, isShown, onResume } from '../src/lib/shown';
 import { at, locales, type Locale } from './pages';
 
@@ -108,27 +108,99 @@ for (const locale of locales) {
         }
       });
 
-      test('links its own PDF and the other document', async ({ page }) => {
+      // The row each document page opens with holds one thing: the control
+      // that downloads that page's own PDF. It is a link, so a browser
+      // running no script still gets the published document, its content is
+      // an icon and no visible text, and its name and its tooltip are the
+      // same words, which is what makes what a screen reader announces and
+      // what a pointer shows one fact rather than two.
+      test('opens with one control, which downloads its own PDF', async ({ page }) => {
         await page.goto(route);
-        await expect(page.locator('[data-document-link="pdf"]')).toHaveAttribute(
-          'href',
-          at(`/${variant}.${locale}.pdf`),
+        const row = page.locator('.cv-actions');
+        await expect(row.locator('> *')).toHaveCount(1);
+
+        const control = row.locator('[data-document-download]');
+        const name = fill(strings[locale].cv.downloadPdf, { document: strings[locale][variant].title });
+        await expect(control).toHaveCount(1);
+        await expect(control).toHaveAttribute('href', at(`/${variant}.${locale}.pdf`));
+        await expect(control).toHaveAttribute('download', '');
+        await expect(control).toHaveAccessibleName(name);
+        await expect(control).toHaveAttribute('title', name);
+        await expect(control.locator('[data-icon="download"]')).toHaveCount(1);
+        // No visible text: every word the control carries is inside the
+        // sr-only span that names it, so nothing beside the icon reads on
+        // screen. Asserted on the child nodes rather than on innerText,
+        // because sr-only clips its text rather than hiding it.
+        const visible = await control.evaluate((element) =>
+          Array.from(element.childNodes)
+            .filter((node) => !(node instanceof Element && node.classList.contains('sr-only')))
+            .map((node) => node.textContent ?? '')
+            .join('')
+            .trim(),
         );
+        expect(visible, `visible text of the control on ${route}`).toBe('');
+
+      });
+
+      // The keyboard path, end to end, which is what the effort's criterion 8
+      // asks for: tab to the control from the top of the page, see the ring
+      // the stylesheet draws on :focus-visible, and press Enter to get the
+      // file. Both palettes run this, because the ring is a token and a token
+      // can be missing from one of them. No script is bound to the control,
+      // so what Enter starts is the browser downloading the published PDF.
+      test('takes focus from the keyboard, shows its ring, and downloads on Enter', async ({ page }) => {
+        await page.goto(route);
+        const control = page.locator('.cv-actions [data-document-download]');
+
+        // The header's controls come first in the reading order; 20 is more
+        // presses than that and few enough to fail rather than hang.
+        let focused = false;
+        for (let press = 0; press < 20 && !focused; press += 1) {
+          await page.keyboard.press('Tab');
+          focused = await page.evaluate(() => !!document.activeElement?.matches('[data-document-download]'));
+        }
+        expect(focused, `the control on ${route} is reachable by Tab`).toBe(true);
+
+        const ring = await control.evaluate((element) => {
+          const style = getComputedStyle(element);
+          return {
+            visible: element.matches(':focus-visible'),
+            width: style.outlineWidth,
+            style: style.outlineStyle,
+            colour: style.outlineColor,
+          };
+        });
+        expect(ring.visible, `the control on ${route} matches :focus-visible`).toBe(true);
+        expect(ring.style, `the outline style on ${route}`).toBe('solid');
+        expect(Number.parseFloat(ring.width), `the outline width on ${route}`).toBeGreaterThan(0);
+        expect(ring.colour, `the outline colour on ${route}`).not.toBe('rgba(0, 0, 0, 0)');
+
+        const download = page.waitForEvent('download');
+        await page.keyboard.press('Enter');
+        expect((await download).url(), `what Enter downloads on ${route}`).toContain(`/${variant}.${locale}.pdf`);
+      });
+
+      // What the row no longer offers. The header navigation is what carries
+      // a reader between the two documents, and the JSON Resume document
+      // keeps its address without a link pointing at it.
+      test('links neither the JSON Resume document nor the other document', async ({ page }) => {
+        await page.goto(route);
         const other = variant === 'cv' ? 'resume' : 'cv';
-        await expect(page.locator(`[data-document-link="${other}"]`)).toHaveAttribute(
-          'href',
-          at(`/${locale}/${other}/`),
-        );
+        await expect(page.locator(`main a[href$="resume.json"]`)).toHaveCount(0);
+        await expect(page.locator(`main a[href="${at(`/${locale}/${other}/`)}"]`)).toHaveCount(0);
+
+        // The header's first list is the site's routes; the second holds the
+        // language menu, whose own links to this route in the other language
+        // are not what carries a reader between the two documents.
+        const nav = page.getByRole('navigation', { name: strings[locale].nav.label }).locator('ul').first();
+        await expect(nav.locator(`a[href="${at(`/${locale}/cv/`)}"]`)).toHaveCount(1);
+        await expect(nav.locator(`a[href="${at(`/${locale}/resume/`)}"]`)).toHaveCount(1);
       });
     });
   }
 
-  test(`the CV page in ${locale} keeps its JSON Resume link and its course list`, async ({ page }) => {
+  test(`the CV page in ${locale} keeps its course list`, async ({ page }) => {
     await page.goto(at(`/${locale}/cv/`));
-    await expect(page.locator('[data-document-link="json"]')).toHaveAttribute(
-      'href',
-      at(`/${locale}/resume.json`),
-    );
     // The course list under the education entry is what the resume drops.
     const course = courseNames(locale)[0];
     if (course) await expect(page.locator('[data-cv-section="education"]')).toContainText(course);

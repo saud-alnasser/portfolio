@@ -160,19 +160,20 @@ const en = {
     close: 'Close',
   },
   // The two document pages. Their section headings are the ones resume
-  // parsers expect; the other headings reuse the site's own, above. The rows
-  // of links at the top of each page share these labels, because the resume
-  // offers the same PDF download the CV does.
+  // parsers expect; the other headings reuse the site's own, above. The row
+  // at the top of each page shares these labels, because both pages offer the
+  // same control and differ only in which document it downloads.
   cv: {
     title: 'Curriculum vitae',
     description:
       'The curriculum vitae of {name}: the whole record of experience, education, skills, certifications, courses, and projects, with PDF and JSON Resume downloads.',
-    // The accessible name of the row of links a document page opens with:
-    // its own downloads and the other document.
+    // The accessible name of the row a document page opens with, which holds
+    // the one control that downloads that page's own document.
     documents: 'Documents',
-    downloadPdf: 'Download PDF',
-    downloadJson: 'Download JSON Resume',
-    resumeLink: 'View the resume',
+    // The download control's name and its hover tooltip, which are the same
+    // words. {document} is the title of the document being downloaded, so the
+    // control says which of the two it is rather than only that it is a PDF.
+    downloadPdf: 'Download {document} as PDF',
     summary: 'Summary',
     // The template names these two sections; the other headings on the page
     // are the site's own, above.
@@ -186,7 +187,6 @@ const en = {
     title: 'Resume',
     description:
       'The short resume of {name}: the summary, experience, education, key skills, and selected projects, with a PDF download.',
-    cvLink: 'View the full CV',
   },
   period: {
     present: 'Present',
@@ -311,9 +311,7 @@ const ar: Strings = {
     description:
       'سيرة {name} الذاتية: السجل الكامل للخبرة العملية والتعليم والمهارات والشهادات والدورات والمشاريع، مع تنزيلها بصيغة PDF وبصيغة JSON Resume.',
     documents: 'المستندات',
-    downloadPdf: 'تنزيل PDF',
-    downloadJson: 'تنزيل JSON Resume',
-    resumeLink: 'عرض السيرة المختصرة',
+    downloadPdf: 'تنزيل {document} بصيغة PDF',
     summary: 'الملخص',
     experience: 'الخبرة العملية',
     skills: 'المهارات الأساسية',
@@ -324,7 +322,6 @@ const ar: Strings = {
     title: 'السيرة المختصرة',
     description:
       'السيرة المختصرة لـ{name}: الملخص والخبرة العملية والتعليم والمهارات الأساسية ومشاريع مختارة، مع تنزيلها بصيغة PDF.',
-    cvLink: 'عرض السيرة الذاتية الكاملة',
   },
   period: {
     present: 'الآن',

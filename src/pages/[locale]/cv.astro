@@ -2,6 +2,7 @@
 import { getEntry } from 'astro:content';
 import Base from '../../layouts/Base.astro';
 import CvDocument from '../../components/CvDocument.astro';
+import Icon from '../../components/Icon.astro';
 import { fill, locales, strings, type Locale } from '../../lib/i18n';
 import { localized } from '../../lib/localized';
 import { withBase } from '../../lib/paths';
@@ -23,13 +24,14 @@ const profile = (await getEntry('profile', 'profile'))!;
 const name = localized(locale, 'profile', profile.id)('name', profile.data.name);
 
 // What this page offers beside itself: the PDF the render step writes beside
-// dist/, the JSON Resume document from the endpoint at resume.json.ts, and
-// the other document.
+// dist/, and nothing else. The JSON Resume document keeps its address at
+// resume.json.ts, and the header navigation is how a reader reaches the
+// resume, so neither needs a link here.
 const pdf = withBase(`/cv.${locale}.pdf`);
-const json = withBase(`/${locale}/resume.json`);
-const resume = withBase(`/${locale}/resume/`);
 
-const link = 'text-primary underline underline-offset-4 hover:decoration-2';
+// The control's name, which is also its tooltip, so the two agree: the words
+// a screen reader announces are the words that appear on hover.
+const download = fill(t.cv.downloadPdf, { document: t.cv.title });
 ---
 
 <Base
@@ -39,10 +41,24 @@ const link = 'text-primary underline underline-offset-4 hover:decoration-2';
   path="/cv/"
   column="document"
 >
-  <nav aria-label={t.cv.documents} class="cv-actions mb-10 flex flex-wrap gap-x-6 gap-y-2 text-sm">
-    <a href={pdf} download data-document-link="pdf" class={link}>{t.cv.downloadPdf}</a>
-    <a href={json} data-document-link="json" class={link}>{t.cv.downloadJson}</a>
-    <a href={resume} data-document-link="resume" class={link}>{t.cv.resumeLink}</a>
+  <!--
+    The one control this page opens with. It is a link rather than a button
+    because with no script it has to download the published PDF on its own,
+    which is what the effort's no-script requirement rests on. The
+    `data-document-download` hook is where the form that collects contact
+    details attaches later; nothing is bound to it here.
+  -->
+  <nav aria-label={t.cv.documents} class="cv-actions mb-10 flex flex-wrap gap-2">
+    <a
+      href={pdf}
+      download
+      data-document-download
+      title={download}
+      class="inline-flex items-center rounded-md border border-border bg-card p-2 hover:border-primary hover:text-primary motion-safe:transition-colors"
+    >
+      <Icon name="download" class="size-5" />
+      <span class="sr-only">{download}</span>
+    </a>
   </nav>
 
   <CvDocument locale={locale} variant="cv" />

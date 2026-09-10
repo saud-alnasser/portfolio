@@ -66,8 +66,8 @@ for (const route of ['/en/cv/', '/en/resume/'] as const) {
     await page.emulateMedia({ media: 'print' });
     expect(await page.evaluate(() => getComputedStyle(document.documentElement).colorScheme)).toBe('light');
     expect(await page.evaluate(rootBackground), 'in print the light palette applies').toBe(background.light);
-    // The chrome around the document, and the row of links above it, are off
-    // the page.
+    // The chrome around the document, and the download control above it, are
+    // off the page.
     await expect(page.locator('body > header')).toBeHidden();
     await expect(page.locator('body > footer')).toBeHidden();
     await expect(page.locator('.cv-actions')).toBeHidden();

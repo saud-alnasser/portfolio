@@ -243,7 +243,8 @@ details[open] > summary .fold-chevron {
 
   /* The chrome around the document, which on paper would be noise or, for the
      site footer, a footer carrying contact details: the navigation, the theme
-     control, the language switch, and the download links. */
+     control, the language switch, and the download control the document page
+     opens with. */
   body > header,
   body > footer,
   .cv-actions {
