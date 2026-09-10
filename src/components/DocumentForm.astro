@@ -1,13 +1,16 @@
 ---
-// The form a document page opens instead of downloading, where the browser
-// runs script. A reader who wants a document carrying contact details types
-// them here, and the document is made in their own browser by printing the page
-// they are already looking at; docs/development.md says why the site publishes
-// none of its own.
+// The form a document page opens instead of downloading, where the browser runs
+// script and the page was opened at the address that marks it. Every other
+// click on the download control downloads the published PDF and never opens
+// this. A reader who wants a document carrying contact details types them here,
+// and the document is made in their own browser by printing the page they are
+// already looking at; docs/development.md says why the site publishes none of
+// its own, and which address opens this.
 //
 // It is a native <dialog>, which gives Escape, the focus trap, and the backdrop
 // for nothing, and it renders outside <main> because a transform on an ancestor
-// breaks a dialog's place in the top layer. The inline script in the base
+// breaks a dialog's place in the top layer. It ships to every reader either
+// way, as inert markup where nothing opens it. The inline script in the base
 // layout is what fills the contact line and prints; without script the download
 // control is the plain link to the published PDF that it already is, and this
 // dialog is never opened.

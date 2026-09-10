@@ -4,10 +4,12 @@
 // render it, and they differ only in the file behind it.
 //
 // A link rather than a button, and that is load-bearing rather than a matter of
-// taste: with no script it has to download the published PDF on its own, which
-// is what the site's no-script guarantee rests on, and a button with no script
-// does nothing. The `data-document-download` hook is what the inline script in
-// the base layout binds to; nothing is bound to it here.
+// taste: it has to download the published PDF on its own, which is what the
+// site's no-script guarantee rests on and what every reader's click gets, and a
+// button with no script does nothing. The `data-document-download` hook is what
+// the inline script in the base layout binds to; nothing is bound to it here,
+// and that script cancels this link only where the page's address carries the
+// marker that opens the form.
 
 import Icon from './Icon.astro';
 import { fill, strings, type Locale } from '../lib/i18n';

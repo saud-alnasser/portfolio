@@ -5,7 +5,7 @@ import AxeBuilder from '@axe-core/playwright';
 import { expect, test, type Page } from '@playwright/test';
 import { parse as parseYaml } from 'yaml';
 import { lowContrastPairs } from './contrast';
-import { at, locales } from './pages';
+import { at, locales, storageKey } from './pages';
 import { marker } from '../scripts/form-marker.mjs';
 import { placeholder } from '../scripts/placeholder.mjs';
 import { strings } from '../src/lib/i18n';
@@ -15,6 +15,11 @@ import { strings } from '../src/lib/i18n';
 // is the only path to a document that carries either, and it produces one in
 // the reader's own browser: the values go into the two hidden slots the
 // contact line already has, the page is printed, and the slots are emptied.
+//
+// It opens at one address, the page's own with the marker on the end, and the
+// two paths are tested as a pair on purpose. A suite that only ever navigated
+// to the marked address would pass against a build with no gate in it, and the
+// unmarked click is what every reader of the site makes.
 //
 // The phone number comes from scripts/placeholder.mjs rather than being
 // written out here: a Saudi mobile in the source is what scripts/identifiers.mjs
@@ -71,6 +76,78 @@ for (const locale of locales) {
     test.describe(`the download form on ${url}`, () => {
       test.beforeEach(async ({ page }) => {
         await stubPrint(page);
+      });
+
+      // What every reader but one gets. Nothing cancels the link, so the click
+      // downloads the published PDF and the dialog that shipped with the page
+      // is never opened.
+      test('downloads the published document at the plain address, and opens nothing', async ({ page }) => {
+        await page.goto(url);
+        await settled(page);
+
+        const download = page.waitForEvent('download');
+        await page.locator(control).click();
+        expect((await download).url(), `what the control downloaded on ${url}`).toContain(
+          `/${variant}.${locale}.pdf`,
+        );
+        await expect(page.locator(dialog), `the dialog on ${url}`).not.toHaveAttribute('open');
+        expect(await prints(page), `window.print() on ${url}`).toBe(0);
+      });
+
+      // Nothing about the marker is remembered: it lives in the address and
+      // nowhere else, so the next visit without it is a visit without the
+      // form, in the same browser on the same machine.
+      test('leaves nothing behind that would open the form again', async ({ page }) => {
+        await page.goto(marked);
+        await settled(page);
+        await page.locator(control).click();
+        await expect(page.locator(dialog)).toHaveAttribute('open', '');
+        await page.keyboard.press('Escape');
+
+        await page.goto(url);
+        await settled(page);
+        const download = page.waitForEvent('download');
+        await page.locator(control).click();
+        expect((await download).url(), `what the control downloaded on ${url}`).toContain(
+          `/${variant}.${locale}.pdf`,
+        );
+        await expect(page.locator(dialog), `the dialog on ${url} after a marked visit`).not.toHaveAttribute('open');
+
+        const left = await page.evaluate(() => ({
+          cookie: document.cookie,
+          keys: [...Object.keys(localStorage), ...Object.keys(sessionStorage)],
+        }));
+        expect(left.cookie, `the cookies ${url} left`).toBe('');
+        expect(
+          left.keys.filter((key) => key !== storageKey),
+          `what ${url} stored besides the theme`,
+        ).toEqual([]);
+      });
+
+      // The latch, and the reason it is one. The skip link is the first
+      // focusable element in the body and points at #content, so the reader
+      // this form is for replaces the fragment before reaching the control. A
+      // gate that re-read the address at the click would be off by then, and
+      // silently, because the icon would simply download.
+      test('still opens the form after the fragment has moved on', async ({ page }) => {
+        await page.goto(marked);
+        await settled(page);
+
+        // Driven the way a reader drives it. history.replaceState fires no
+        // hashchange, and a case written that way would read as a broken latch.
+        await page.locator('a[href="#content"]').focus();
+        await page.keyboard.press('Enter');
+        expect(page.url(), `the address after the skip link on ${url}`).toContain('#content');
+        await page.locator(control).click();
+        await expect(page.locator(dialog), `the dialog after the skip link on ${url}`).toHaveAttribute('open', '');
+        await page.keyboard.press('Escape');
+
+        // And any other in-page target, set the way a fragment link sets it.
+        await page.evaluate(() => {
+          location.hash = '#somewhere-else';
+        });
+        await page.locator(control).click();
+        await expect(page.locator(dialog), `the dialog after a second fragment on ${url}`).toHaveAttribute('open', '');
       });
 
       test('opens instead of downloading, and fills the contact line with what was typed', async ({ page }) => {
@@ -260,25 +337,34 @@ for (const locale of locales) {
     test.describe(`${url} with JavaScript disabled`, () => {
       test.use({ javaScriptEnabled: false, reducedMotion: 'reduce' });
 
-      test('renders in full and leaves the control the link to the published PDF', async ({ page }) => {
-        await page.goto(url);
-        await expect(page.locator('article.cv')).toBeVisible();
-        await expect(page.locator(contact)).toBeVisible();
+      // Both addresses. The marker is what opens the form where script runs,
+      // and it has to mean nothing at all where script does not: the one reader
+      // who bookmarked it gets the published PDF like everybody else rather
+      // than a page that does nothing.
+      for (const [which, address] of [
+        ['the plain address', url],
+        ['the marked address', marked],
+      ] as const) {
+        test(`renders in full at ${which} and leaves the control the link to the published PDF`, async ({ page }) => {
+          await page.goto(address);
+          await expect(page.locator('article.cv')).toBeVisible();
+          await expect(page.locator(contact)).toBeVisible();
 
-        const found = await page.locator(control).evaluate((node) => ({
-          tag: node.tagName.toLowerCase(),
-          href: node.getAttribute('href'),
-          download: node.hasAttribute('download'),
-        }));
-        expect(found).toEqual({ tag: 'a', href: at(`/${variant}.${locale}.pdf`), download: true });
+          const found = await page.locator(control).evaluate((node) => ({
+            tag: node.tagName.toLowerCase(),
+            href: node.getAttribute('href'),
+            download: node.hasAttribute('download'),
+          }));
+          expect(found).toEqual({ tag: 'a', href: at(`/${variant}.${locale}.pdf`), download: true });
 
-        // The dialog is inert without script, and the document it would fill
-        // is the published one: no address, no number, both slots hidden.
-        await expect(page.locator(dialog)).not.toHaveAttribute('open');
-        expect(await page.locator(contact).innerText()).not.toContain(profile.email);
-        await expect(page.locator(`${contact} [data-contact-slot="email"]`)).toBeHidden();
-        await expect(page.locator(`${contact} [data-contact-slot="phone"]`)).toBeHidden();
-      });
+          // The dialog is inert without script, and the document it would fill
+          // is the published one: no address, no number, both slots hidden.
+          await expect(page.locator(dialog)).not.toHaveAttribute('open');
+          expect(await page.locator(contact).innerText()).not.toContain(profile.email);
+          await expect(page.locator(`${contact} [data-contact-slot="email"]`)).toBeHidden();
+          await expect(page.locator(`${contact} [data-contact-slot="phone"]`)).toBeHidden();
+        });
+      }
     });
   }
 }

@@ -1,5 +1,5 @@
 ---
-status: open
+status: resolved
 blocked-by: [01]
 ---
 
@@ -9,13 +9,13 @@ blocked-by: [01]
 A click on the download control downloads that page's published PDF, on both document pages in both languages, with no dialog and nothing asked. At the marked address the control opens the form exactly as it does today. The gate is the latched boolean in the plan's Interfaces, living inside `documents()` in the layout's inline script, and both paths have tests of their own.
 
 ## Acceptance Criteria
-- [ ] On all four document pages, a click on the control at the plain address downloads that page's PDF and `[data-document-dialog]` never gains `open` (criterion 1).
-- [ ] On all four pages at the marked address, the form opens, carries what was typed into the contact line in order, carries the one value where one was typed, and prints once, in both themes and both directions and by keyboard alone (criterion 2).
-- [ ] After the skip link has replaced the fragment with `#content`, and after the fragment is set to any other in-page target, the control still opens the dialog (criterion 3).
-- [ ] A visit to the marked address leaves nothing behind: a later visit to the plain address downloads, and the only storage entry anywhere is the theme key (criterion 4).
-- [ ] With JavaScript disabled, all four pages render in full and the control is the plain link to the published PDF at both the plain and the marked address (criterion 5).
-- [ ] Removing the guard fails the case for criterion 1, and a guard that never passes fails the cases for criterion 2 (criterion 7).
-- [ ] No new string enters `src/lib/i18n.ts`, the gap report does not grow, and the Lighthouse, contrast, reduced-motion and keyboard gates pass as they do today (criterion 9).
+- [x] On all four document pages, a click on the control at the plain address downloads that page's PDF and `[data-document-dialog]` never gains `open` (criterion 1).
+- [x] On all four pages at the marked address, the form opens, carries what was typed into the contact line in order, carries the one value where one was typed, and prints once, in both themes and both directions and by keyboard alone (criterion 2).
+- [x] After the skip link has replaced the fragment with `#content`, and after the fragment is set to any other in-page target, the control still opens the dialog (criterion 3).
+- [x] A visit to the marked address leaves nothing behind: a later visit to the plain address downloads, and the only storage entry anywhere is the theme key (criterion 4).
+- [x] With JavaScript disabled, all four pages render in full and the control is the plain link to the published PDF at both the plain and the marked address (criterion 5).
+- [x] Removing the guard fails the case for criterion 1, and a guard that never passes fails the cases for criterion 2 (criterion 7).
+- [x] No new string enters `src/lib/i18n.ts`, the gap report does not grow, and the Lighthouse, contrast, reduced-motion and keyboard gates pass as they do today (criterion 9).
 
 ## Relevant areas
 `src/layouts/Base.astro`: `documents()` at `:169`, its click handler at `:200`, and the comment above `<script>` at `:70`. `src/components/DocumentDownload.astro` and `src/components/DocumentForm.astro`, for their comments. `tests/document-form.spec.ts`, where the new cases sit beside the ones effort 7 left, and `:256` for the no-script case that gains a second address. The skip link the criterion 3 case drives is at `src/layouts/Base.astro:274`.

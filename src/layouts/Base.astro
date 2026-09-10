@@ -73,10 +73,11 @@ const nav = [
       control once the document is parsed, closes the language menu on Escape
       and on a click outside it, opens a certificate card in the page's
       dialog, and turns a document page's download control into the form that
-      fills the contact line and prints. The last three all work without it:
-      the menu opens and closes on its own, a certificate card is the link to
-      its PDF that it already is, and the download control is the link to the
-      published PDF that it already is.
+      fills the contact line and prints, which it does only where the page's
+      address carries the marker. The last three all work without it: the menu
+      opens and closes on its own, a certificate card is the link to its PDF
+      that it already is, and the download control is the link to the published
+      PDF that it already is, which is what every unmarked click gets too.
     -->
     <script is:inline>
       (function () {
@@ -156,16 +157,17 @@ const nav = [
         }
 
         // Turns the download control on a document page into the form that
-        // fills the document's contact line, then prints it. The values go
-        // into the two hidden slots the contact line already has, the page is
-        // printed, and the slots are emptied again; docs/development.md says
-        // why the document is made here rather than published. Nothing is
-        // stored and nothing is sent.
+        // fills the document's contact line, then prints it, and only where
+        // the page was opened at the marked address. The values go into the
+        // two hidden slots the contact line already has, the page is printed,
+        // and the slots are emptied again; docs/development.md says why the
+        // document is made here rather than published, and at which address.
+        // Nothing is stored and nothing is sent.
         //
-        // Without this the control is the link to the published PDF it
-        // already is, which is what a reader with no script gets, and a
-        // browser whose dialog cannot open modally is left alone for the same
-        // reason: the link is cancelled only where the dialog will open.
+        // Everywhere else the control is the link to the published PDF it
+        // already is: at an unmarked address, with no script at all, and in a
+        // browser whose dialog cannot open modally. The link is cancelled only
+        // where the dialog is about to open.
         function documents() {
           var dialog = document.querySelector('[data-document-dialog]');
           var contact = document.querySelector('[data-cv-contact]');
@@ -197,10 +199,36 @@ const nav = [
             if (form) form.reset();
           }
 
+          // Whether this page was opened at the address the form belongs to.
+          // The token is written here and in scripts/form-marker.mjs, which is
+          // what the render step and the tests navigate with; this script
+          // cannot import that module, so the two are held together by every
+          // test that opens the form failing where they disagree. Compared
+          // lowercased, so a fragment typed as #ME still works.
+          //
+          // It latches, and only ever turns on. The skip link is the first
+          // focusable element in the body and points at #content, so the one
+          // reader this form is for replaces the fragment before reaching the
+          // control. A gate that re-read the address at the click would be off
+          // by then, and silently: the icon would simply download.
+          function mine() {
+            return location.hash.toLowerCase() === '#me';
+          }
+          var marked = mine();
+          window.addEventListener('hashchange', function () {
+            if (mine()) marked = true;
+          });
+
           document.addEventListener('click', function (event) {
             if (event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
             var control = event.target.closest ? event.target.closest('[data-document-download]') : null;
             if (!control) return;
+            // Unmarked, the control does what its href says and downloads the
+            // published PDF, which is what every reader of the site gets. The
+            // guard sits after the lookup rather than at the top of the
+            // handler, and nowhere near the early return above, because the
+            // handlers have to be bound for the latch to be able to fire later.
+            if (!marked) return;
             event.preventDefault();
             // The third of three clears, and the one that needs no event to
             // fire: a dismissed dialog clears on close and a printed document
