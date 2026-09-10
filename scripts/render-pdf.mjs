@@ -196,7 +196,10 @@ async function renderFilled(browser, at, locale, output) {
     // Reloaded rather than opened again on the calls after the first, because
     // the address now carries a fragment: a goto to the address the page is
     // already at is a same-document navigation, which answers with no response
-    // at all and leaves standing the document the previous capture emptied.
+    // at all. The check below then fails the step with `page-not-loaded` on a
+    // page that loaded perfectly, so dropping this branch costs a confusing
+    // failure rather than a wrong document. The capture it protects is the
+    // second one, of a document the first capture's afterprint emptied.
     const address = at(route) + marker;
     const response =
       page.url() === address

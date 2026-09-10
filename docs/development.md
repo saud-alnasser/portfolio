@@ -51,17 +51,17 @@ private is that it is never built into a published file. The address stays in
 may want; nothing renders it, and `no contact details` in
 `scripts/check-dist.mjs` fails the build if anything starts to.
 
-A reader who wants a document carrying contact details types them into the
-form the download control on a document page opens. The values go into the
-contact line of the page they are already looking at, the page prints itself,
-and the reader saves the result as a PDF. Nothing is stored and nothing is
-sent.
+A reader who wants a document carrying contact details opens a document page at
+the address below and types them into the form the control there offers. The
+values go into the contact line of the page already on screen, the page prints
+itself, and the reader saves the result as a PDF. Nothing is stored and nothing
+is sent.
 
 **That form opens at one address: the document page's own with `#me` on the
-end**, as in `/en/cv/#me`, `/ar/cv/#me`, `/en/resume/#me` and
-`/ar/resume/#me`. Everywhere else a click on the download control downloads
-the published PDF, which is what the icon says and what every reader of the
-site gets. The form asks for an email address and a phone number that the
+end**, as in `/en/cv/#me`, `/ar/cv/#me`, `/en/resume/#me` and `/ar/resume/#me`.
+The fragment is compared in lower case, so `#ME` typed on a phone keyboard works
+too. Everywhere else a click on the download control downloads the published
+PDF, which is what the icon says and what every reader of the site gets. The form asks for an email address and a phone number that the
 site publishes nowhere, so the one person who has anything to type into it is
 the person whose details they are, and the marked address is what he
 bookmarks. The token is written once in `scripts/form-marker.mjs`, and once
@@ -71,22 +71,27 @@ It is a marker and not a lock. The dialog's markup and that script ship to
 every reader and the token is in the source of a public repository: what the
 address removes is a dialog in a visitor's way and the one-click path to a
 document in Saud's name carrying somebody else's number. Nothing about it is
-remembered either, by design, so a bookmark or a typed fragment is the whole
-of how it is reached. Reading the address is also deliberately done once, when
-the script binds, and latched: the skip link at the top of every page points
-at `#content`, so a reader using a keyboard replaces the fragment before
-reaching the control.
+remembered either, by design, so a bookmark or a typed fragment is the whole of
+how it is reached.
+
+**The marker latches**, and that asymmetry is the one thing to know before
+changing it. The address is read when the script binds and again on every
+`hashchange`, and a fragment that is not the marker never switches the form
+back off. So typing `#me` onto a page already open works, with no reload, and
+the skip link at the top of every page, which points at `#content` and is the
+first thing a keyboard reaches, cannot take the form away again. Reading the
+address at the moment of the click instead would break exactly that reader,
+and silently: the icon would simply download.
 
 `pnpm render:pdf` produces that document too, once per document per language,
 by **navigating to the marked address** and driving the same form, and writes
-it to **`.artifacts/`**. That directory is
-gitignored and outside `dist/`, deliberately: the deploy uploads `dist/` and
-nothing else, so a document carrying contact details written there would
-publish the very thing this arrangement exists to keep out. The filled copies
-exist so the extraction check and the page budget run over the document a
-reader actually gets; the placeholder values they carry are in
-`scripts/placeholder.mjs`, obviously not real, and written once because both
-the render step and the check read them.
+it to **`.artifacts/`**. That directory is gitignored and outside `dist/`,
+deliberately: the deploy uploads `dist/` and nothing else, so a document
+carrying contact details written there would publish the very thing this
+arrangement exists to keep out. The filled copies exist so the extraction check
+and the page budget run over the document a reader actually gets; the
+placeholder values they carry are in `scripts/placeholder.mjs`, obviously not
+real, and written once because both the render step and the check read them.
 
 The certificate previews are committed with their PDFs, so `pnpm
 certificates:previews` runs on a developer's machine after a PDF is added or

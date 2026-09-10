@@ -161,10 +161,10 @@ for (const locale of locales) {
       // What Enter starts depends on where the page was opened, and this is
       // the half where it opens the form: the marked address
       // (scripts/form-marker.mjs), which is the address the form opens at. The
-      // half where Enter downloads the published PDF instead is in
-      // tests/document-form.spec.ts, under JavaScript disabled, which is the
-      // case the no-script guarantee is about; the form's own way out
-      // downloads the same file with script.
+      // half where Enter downloads the published PDF instead is asserted at the
+      // plain address in tests/document-form.spec.ts, in the case that drives
+      // the control by pointer and by key; the same file covers the no-script
+      // path, where the control is the plain link at either address.
       test('takes focus from the keyboard, shows its ring, and acts on Enter', async ({ page }) => {
         await page.goto(`${route}${marker}`);
         const control = page.locator('.cv-actions [data-document-download]');
