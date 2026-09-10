@@ -72,7 +72,7 @@ The site is a set of sections, each a grid of cards: experience, then projects, 
 
 # Out of Scope
 
-- **Reworking any project summary beyond the status.** No project is reworded; the one text change is the profile summary of requirement 3.
+- **Reworking any project summary for its own sake.** Revised on 2026-09-10, with the two constraints above: the original wording put every project summary out of scope, and the remedy Saud chose for the one-page rule names shortening them as its first content lever, so the two could not both stand. What is out of scope is rewriting a summary because it reads better; what is in scope is shortening one, truthfully, as far as the resume's one page needs and no further, and each such edit is recorded on the ticket that made it. A shortened summary is the content source's, so it is what the work page, the CV, and the JSON documents show as well.
 - **New content.** No project, job, course, or credential is added. High school stays absent until its details exist.
 - **A different CV template.** The white and blue layout the redesign chose stays; the resume adopts it.
 - **A DOCX output, a blog, a contact form, a custom domain, live GitHub data, the King Saud University period, Qiyas results**, which the first effort already excludes.
