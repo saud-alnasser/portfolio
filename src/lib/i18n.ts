@@ -173,9 +173,10 @@ const en = {
     // words. {document} is the title of the document being downloaded, so the
     // control says which of the two it is rather than only that it is a PDF.
     downloadPdf: 'Download {document} as PDF',
-    // The form the download control opens where the browser runs script. The
-    // site publishes no contact detail, so a document that carries one is
-    // made in the reader's own browser from what they type here: `note` says
+    // The form the download control opens at the marked address, where the
+    // browser runs script; everywhere else that control downloads the
+    // published PDF. The site publishes no contact detail, so a document that
+    // carries one is made in that browser from what is typed here: `note` says
     // that a print dialog is what opens next, because a print dialog nobody
     // asked for reads as a bug, and `plain` is the way out that produces the
     // published document instead.

@@ -12,7 +12,8 @@ import { withBase } from '../../lib/paths';
 // writes to /cv.<locale>.pdf. It holds everything the site shows; the resume
 // beside it holds what an application needs. Both are the same document
 // component (src/components/CvDocument.astro), so this page is the download
-// control, the document, and the form that control opens, and nothing else.
+// control, the document, and the form the marked address opens, and nothing
+// else.
 
 export function getStaticPaths() {
   return locales.map((l) => ({ params: { locale: l.code } }));
