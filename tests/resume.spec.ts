@@ -153,11 +153,17 @@ for (const locale of locales) {
 
       // The keyboard path, end to end, which is what the effort's criterion 8
       // asks for: tab to the control from the top of the page, see the ring
-      // the stylesheet draws on :focus-visible, and press Enter to get the
-      // file. Both palettes run this, because the ring is a token and a token
-      // can be missing from one of them. No script is bound to the control,
-      // so what Enter starts is the browser downloading the published PDF.
-      test('takes focus from the keyboard, shows its ring, and downloads on Enter', async ({ page }) => {
+      // the stylesheet draws on :focus-visible, and press Enter to act on it.
+      // Both palettes run this, because the ring is a token and a token can be
+      // missing from one of them.
+      //
+      // What Enter starts depends on script, and both halves are asserted.
+      // Here, with script, it opens the form that fills the contact line. The
+      // half where it downloads the published PDF directly is in
+      // tests/document-form.spec.ts, under JavaScript disabled, which is the
+      // case the no-script guarantee is about; the form's own way out
+      // downloads the same file with script.
+      test('takes focus from the keyboard, shows its ring, and acts on Enter', async ({ page }) => {
         await page.goto(route);
         const control = page.locator('.cv-actions [data-document-download]');
 
@@ -184,9 +190,8 @@ for (const locale of locales) {
         expect(Number.parseFloat(ring.width), `the outline width on ${route}`).toBeGreaterThan(0);
         expect(ring.colour, `the outline colour on ${route}`).not.toBe('rgba(0, 0, 0, 0)');
 
-        const download = page.waitForEvent('download');
         await page.keyboard.press('Enter');
-        expect((await download).url(), `what Enter downloads on ${route}`).toContain(`/${variant}.${locale}.pdf`);
+        await expect(page.locator('[data-document-dialog]'), `what Enter opens on ${route}`).toHaveAttribute('open', '');
       });
 
       // What the row no longer offers. The header navigation is what carries

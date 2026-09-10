@@ -173,6 +173,22 @@ const en = {
     // words. {document} is the title of the document being downloaded, so the
     // control says which of the two it is rather than only that it is a PDF.
     downloadPdf: 'Download {document} as PDF',
+    // The form the download control opens where the browser runs script. The
+    // site publishes no contact detail, so a document that carries one is
+    // made in the reader's own browser from what they type here: `note` says
+    // that a print dialog is what opens next, because a print dialog nobody
+    // asked for reads as a bug, and `plain` is the way out that produces the
+    // published document instead.
+    form: {
+      title: 'Add your contact details',
+      note: 'What you type goes into this document in your browser and is sent nowhere, stored nowhere, and kept by nobody. Generating opens your print dialog: choose Save as PDF as the destination.',
+      email: 'Email address',
+      phone: 'Phone number',
+      optional: 'Both are optional. Leave one empty and the document carries the other.',
+      generate: 'Generate the document',
+      plain: 'Download without contact details',
+      close: 'Close',
+    },
     summary: 'Summary',
     // The template names these two sections; the other headings on the page
     // are the site's own, above.
@@ -310,6 +326,16 @@ const ar: Strings = {
       'سيرة {name} الذاتية: السجل الكامل للخبرة العملية والتعليم والمهارات والشهادات والدورات والمشاريع، مع تنزيلها بصيغة PDF وبصيغة JSON Resume.',
     documents: 'المستندات',
     downloadPdf: 'تنزيل {document} بصيغة PDF',
+    form: {
+      title: 'أضف بيانات التواصل',
+      note: 'ما تكتبه يُضاف إلى هذا المستند داخل متصفحك، ولا يُرسل إلى أي جهة ولا يُحفظ في أي مكان. عند الإنشاء تُفتح نافذة الطباعة: اختر الحفظ بصيغة PDF.',
+      email: 'البريد الإلكتروني',
+      phone: 'رقم الجوال',
+      optional: 'كلاهما اختياري. اترك أحدهما فارغًا ويحمل المستند الآخر.',
+      generate: 'إنشاء المستند',
+      plain: 'تنزيل بدون بيانات التواصل',
+      close: 'إغلاق',
+    },
     summary: 'الملخص',
     experience: 'الخبرة العملية',
     skills: 'المهارات الأساسية',

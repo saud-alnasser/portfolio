@@ -1,0 +1,90 @@
+---
+// The form a document page opens instead of downloading, where the browser
+// runs script. The site publishes no email address and no phone number: it is
+// built from a public repository onto static hosting, so there is no server to
+// hand one reader a file another does not get, and the only thing that keeps a
+// contact detail private is that it is never built in. A reader who wants a
+// document carrying theirs types it here, and the document is made in their own
+// browser by printing the page they are already looking at.
+//
+// It is a native <dialog>, which gives Escape, the focus trap, and the backdrop
+// for nothing, and it renders outside <main> because a transform on an ancestor
+// breaks a dialog's place in the top layer. The inline script in the base
+// layout is what fills the contact line and prints; without script the download
+// control is the plain link to the published PDF that it already is, and this
+// dialog is never opened.
+//
+// `method="dialog"` and the submit handler's preventDefault() are what make
+// "sent nowhere" true of the markup as well as of the script: there is no
+// action, no endpoint, and nothing to submit to.
+
+import Icon from './Icon.astro';
+import { fill, strings, type Locale } from '../lib/i18n';
+
+interface Props {
+  locale: Locale;
+  // The published PDF of the page this dialog belongs to: the way out that
+  // produces the document the build renders, with no contact details on it.
+  pdf: string;
+  // The title of that document, so the plain download names which one it is.
+  document: string;
+}
+
+const { locale, pdf, document: name } = Astro.props;
+const t = strings[locale];
+const field = 'mt-1 w-full rounded-md border border-border bg-background px-3 py-2 text-foreground';
+---
+
+<dialog
+  data-document-dialog
+  aria-labelledby="document-form-title"
+  class="m-auto w-[calc(100vw-2rem)] max-w-lg rounded-lg border border-border bg-card p-0 text-foreground backdrop:bg-black/60"
+>
+  <form method="dialog" data-document-form class="flex max-h-[calc(100dvh-4rem)] flex-col">
+    <div class="flex items-start justify-between gap-4 border-b border-border p-4 sm:p-5">
+      <p id="document-form-title" class="font-semibold tracking-tight">{t.cv.form.title}</p>
+      <button
+        type="button"
+        data-document-close
+        class="flex cursor-pointer items-center rounded-md p-1 text-muted-foreground hover:text-primary motion-safe:transition-colors"
+      >
+        <Icon name="x" class="size-5" />
+        <span class="sr-only">{t.cv.form.close}</span>
+      </button>
+    </div>
+
+    <div class="flex flex-col gap-4 p-4 text-sm sm:p-5">
+      <p class="text-muted-foreground">{t.cv.form.note}</p>
+
+      <div>
+        <label for="document-form-email" class="font-medium">{t.cv.form.email}</label>
+        <input id="document-form-email" data-document-field="email" type="email" name="email" autocomplete="email" class={field} />
+      </div>
+
+      <div>
+        <label for="document-form-phone" class="font-medium">{t.cv.form.phone}</label>
+        <input id="document-form-phone" data-document-field="phone" type="tel" name="phone" autocomplete="tel" class={field} />
+      </div>
+
+      <p class="text-muted-foreground">{t.cv.form.optional}</p>
+    </div>
+
+    <div class="flex flex-wrap items-center justify-between gap-4 border-t border-border p-4 text-sm sm:p-5">
+      <a
+        href={pdf}
+        download
+        class="text-primary underline underline-offset-4 hover:decoration-2"
+      >
+        {t.cv.form.plain}
+        <span class="sr-only">{fill(t.cv.downloadPdf, { document: name })}</span>
+      </a>
+      <button
+        type="submit"
+        data-document-generate
+        class="cursor-pointer rounded-md border border-border bg-background px-3 py-2 font-medium hover:border-primary hover:text-primary motion-safe:transition-colors"
+      >
+        {t.cv.form.generate}
+      </button>
+    </div>
+  </form>
+</dialog>

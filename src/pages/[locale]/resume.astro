@@ -2,6 +2,7 @@
 import { getEntry } from 'astro:content';
 import Base from '../../layouts/Base.astro';
 import CvDocument from '../../components/CvDocument.astro';
+import DocumentForm from '../../components/DocumentForm.astro';
 import Icon from '../../components/Icon.astro';
 import { fill, locales, strings, type Locale } from '../../lib/i18n';
 import { localized } from '../../lib/localized';
@@ -65,4 +66,6 @@ const download = fill(t.cv.downloadPdf, { document: t.resume.title });
   </nav>
 
   <CvDocument locale={locale} variant="resume" />
+
+  <DocumentForm locale={locale} pdf={pdf} document={t.resume.title} slot="dialog" />
 </Base>
