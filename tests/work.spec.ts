@@ -5,6 +5,7 @@ import { expect, test, type Locator, type Page } from '@playwright/test';
 import { parse as parseYaml } from 'yaml';
 import { fill, formatPeriod, plural, strings } from '../src/lib/i18n';
 import { byOrderThenStartDescending, byStartDescending } from '../src/lib/order';
+import { isShown } from '../src/lib/shown';
 import { at, locales, type Locale } from './pages';
 
 // The work page as a pair of card grids: every project and every placement
@@ -24,6 +25,7 @@ interface Project {
   period: { start: string; end?: string };
   order?: number;
   visibility: 'public' | 'described' | 'hidden';
+  status: 'completed' | 'in-progress';
   links?: { repository?: string; live?: string };
 }
 
@@ -47,11 +49,9 @@ function collection<T>(name: string): T[] {
     .map((file) => parseYaml(readFileSync(path.join(dir, file), 'utf8')) as T);
 }
 
-// A hidden project stays in the source and out of every output, so the page
-// shows one card fewer than the directory holds.
-const projects = collection<Project>('projects')
-  .filter((entry) => entry.visibility !== 'hidden')
-  .sort(byOrderThenStartDescending);
+// A hidden or unfinished project stays in the source and out of every output
+// (src/lib/shown.ts), so the page shows fewer cards than the directory holds.
+const projects = collection<Project>('projects').filter(isShown).sort(byOrderThenStartDescending);
 
 const experience = collection<Experience>('experience').sort(byStartDescending);
 

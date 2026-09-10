@@ -9,6 +9,7 @@ import {
   byStartDescending,
 } from './order';
 import { absolute } from './paths';
+import { isShown } from './shown';
 
 // The mapper from the content collections to a JSON Resume document for one
 // language. The pages and the CV page read the same collections through the
@@ -130,7 +131,7 @@ export async function resumeFor(locale: Locale, site: URL) {
   if (!profile) throw new Error('resume: the profile entry is missing from src/content/profile.yaml');
 
   const [projects, experience, education, certificates, skills] = await Promise.all([
-    getCollection('projects', ({ data }) => data.visibility !== 'hidden'),
+    getCollection('projects', ({ data }) => isShown(data)),
     getCollection('experience'),
     getCollection('education'),
     getCollection('certificates'),

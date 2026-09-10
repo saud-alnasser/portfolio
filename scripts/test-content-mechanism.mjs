@@ -21,6 +21,10 @@
 // real certificate carries its document, so this is the one place that card
 // is rendered and checked.
 //
+// The fixture project is finished and marked for the resume, and the fixture
+// certificate is a course, so each carries the fields the contract requires
+// and takes the path a real entry takes through src/lib/shown.ts.
+//
 // The fixture names start with `fixture-`, as src/content/README.md reserves for
 // placeholders, and carry a suffix no real entry would. `render:pdf` is not
 // run: the PDF is rendered from the CV page this script already asserts on.
@@ -63,6 +67,8 @@ technologies:
 links:
   repository: https://example.invalid/${project.name}
 visibility: public
+status: completed
+resume: true
 `;
 
 const certificate = {
@@ -76,6 +82,7 @@ name:
   en: "${certificate.name}"
   ar: "${certificate.name}"
 issuer: "Fixture issuer"
+kind: course
 `;
 
 const fixtures = [project, certificate];

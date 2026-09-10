@@ -45,6 +45,20 @@ const period = z.object({
 export const visibilities = ['public', 'described', 'hidden'] as const;
 export const educationStatuses = ['completed', 'certificate-pending', 'in-progress'] as const;
 export const experienceKinds = ['employment', 'training'] as const;
+// Whether a project is finished. The education vocabulary where it fits:
+// `certificate-pending` means nothing for a project and is not a value here.
+export const projectStatuses = ['completed', 'in-progress'] as const;
+// An online course completion, or a credential that is not one.
+export const certificateKinds = ['course', 'certification'] as const;
+
+export type Visibility = (typeof visibilities)[number];
+export type ProjectStatus = (typeof projectStatuses)[number];
+export type CertificateKind = (typeof certificateKinds)[number];
+
+// Whether an entry appears on the one-page resume. Absent means no; the site
+// reads it through src/lib/shown.ts and the JSON Resume document never
+// carries it.
+const resume = z.boolean().optional();
 
 const profile = defineCollection({
   loader: file('./src/content/profile.yaml'),
@@ -87,6 +101,10 @@ const projects = defineCollection({
         .strict()
         .optional(),
       visibility: z.enum(visibilities),
+      // Required, so an entry cannot be finished by omission: a project is
+      // shown only when it is `completed`, whatever its visibility says.
+      status: z.enum(projectStatuses),
+      resume,
       order: z.number().int().optional(),
     })
     .strict(),
@@ -146,9 +164,13 @@ const certificates = defineCollection({
     .object({
       name: localized,
       issuer: z.string().min(1),
+      // Required: the courses grid and the certifications grid are split on
+      // it, so an entry without one has no place to render.
+      kind: z.enum(certificateKinds),
       date: iso8601.optional(),
       url: url.optional(),
       document: certificateDocument.optional(),
+      resume,
     })
     .strict(),
 });

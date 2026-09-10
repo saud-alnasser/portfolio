@@ -2,4 +2,5 @@ name:
   en: "Refactoring"
   ar: "إعادة هيكلة الشيفرة"
 issuer: "Code with Mosh"
+kind: course
 document: "files/code-with-mosh-refactoring.pdf"

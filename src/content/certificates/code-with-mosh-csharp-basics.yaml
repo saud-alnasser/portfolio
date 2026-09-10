@@ -2,4 +2,5 @@ name:
   en: "C# Basics"
   ar: "أساسيات C#"
 issuer: "Code with Mosh"
+kind: course
 document: "files/code-with-mosh-csharp-basics.pdf"

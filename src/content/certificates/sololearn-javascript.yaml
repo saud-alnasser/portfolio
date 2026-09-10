@@ -2,5 +2,6 @@ name:
   en: "JavaScript"
   ar: "JavaScript"
 issuer: "SoloLearn"
+kind: course
 date: "2021-12-24"
 document: "files/sololearn-javascript.pdf"

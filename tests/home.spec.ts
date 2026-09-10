@@ -5,6 +5,7 @@ import { expect, test, type Page } from '@playwright/test';
 import { parse as parseYaml } from 'yaml';
 import { fill, plural, strings } from '../src/lib/i18n';
 import { profileIcon } from '../src/lib/networks';
+import { isShown } from '../src/lib/shown';
 import { at, locales, type Locale } from './pages';
 
 // The home page: the hero, the contact actions, the skill cards, and one card
@@ -14,13 +15,14 @@ import { at, locales, type Locale } from './pages';
 
 const content = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', 'src', 'content');
 
-// The YAML files of one collection that the site shows: every file that is not
-// marked `visibility: hidden`, as scripts/check-dist.mjs puts it.
+// The YAML files of one collection that the site shows: every file, except
+// that projects pass through the one predicate every output reads
+// (src/lib/shown.ts), as scripts/check-dist.mjs puts it.
 function visibleEntries(collection: string): string[] {
   const dir = path.join(content, collection);
   return readdirSync(dir)
     .filter((file) => file.endsWith('.yaml'))
-    .filter((file) => !/^visibility:\s*hidden\s*$/m.test(readFileSync(path.join(dir, file), 'utf8')))
+    .filter((file) => collection !== 'projects' || isShown(parseYaml(readFileSync(path.join(dir, file), 'utf8'))))
     .sort();
 }
 

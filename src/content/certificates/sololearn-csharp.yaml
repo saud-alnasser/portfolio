@@ -2,5 +2,6 @@ name:
   en: "C#"
   ar: "C#"
 issuer: "SoloLearn"
+kind: course
 date: "2021-11-11"
 document: "files/sololearn-csharp.pdf"

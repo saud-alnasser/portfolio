@@ -2,4 +2,5 @@ name:
   en: "HTML Fundamentals"
   ar: "أساسيات HTML"
 issuer: "Code with Mosh"
+kind: course
 document: "files/code-with-mosh-html-fundamentals.pdf"

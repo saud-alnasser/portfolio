@@ -13,4 +13,5 @@ technologies:
   - "TypeScript"
   - "Discord gateway and REST API"
 visibility: described
+status: in-progress
 order: 3

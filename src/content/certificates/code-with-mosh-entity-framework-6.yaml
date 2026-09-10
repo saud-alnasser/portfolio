@@ -2,4 +2,5 @@ name:
   en: "Entity Framework 6"
   ar: "Entity Framework 6"
 issuer: "Code with Mosh"
+kind: course
 document: "files/code-with-mosh-entity-framework-6.pdf"

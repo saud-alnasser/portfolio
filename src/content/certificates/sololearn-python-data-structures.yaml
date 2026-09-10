@@ -2,5 +2,6 @@ name:
   en: "Python Data Structures"
   ar: "هياكل البيانات في Python"
 issuer: "SoloLearn"
+kind: course
 date: "2021-11-27"
 document: "files/sololearn-python-data-structures.pdf"

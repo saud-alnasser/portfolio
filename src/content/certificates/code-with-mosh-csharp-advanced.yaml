@@ -2,4 +2,5 @@ name:
   en: "C# Advanced"
   ar: "C# المستوى المتقدم"
 issuer: "Code with Mosh"
+kind: course
 document: "files/code-with-mosh-csharp-advanced.pdf"

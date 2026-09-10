@@ -9,6 +9,7 @@ import { localized } from '../../lib/localized';
 import { profileIcon, type ProfileIcon } from '../../lib/networks';
 import { byOrderThenName } from '../../lib/order';
 import { withBase } from '../../lib/paths';
+import { isShown } from '../../lib/shown';
 
 export function getStaticPaths() {
   return locales.map((l) => ({ params: { locale: l.code } }));
@@ -47,9 +48,10 @@ const skills = (await getCollection('skills')).sort((a, b) => byOrderThenName(a.
 
 // Every count a section card shows is the length of the collection that
 // section renders, read here and never written by hand, so a card cannot
-// drift from the content source. The visibility filter is the work page's:
-// a hidden project stays in the source and out of every output.
-const projects = await getCollection('projects', ({ data }) => data.visibility !== 'hidden');
+// drift from the content source. The projects filter is the one every output
+// reads (src/lib/shown.ts): a hidden or unfinished project stays in the
+// source and out of every output, this count included.
+const projects = await getCollection('projects', ({ data }) => isShown(data));
 const experience = await getCollection('experience');
 const education = await getCollection('education');
 const certificates = await getCollection('certificates');

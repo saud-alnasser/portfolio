@@ -2,4 +2,5 @@ name:
   en: "C# Intermediate"
   ar: "C# المستوى المتوسط"
 issuer: "Code with Mosh"
+kind: course
 document: "files/code-with-mosh-csharp-intermediate.pdf"

@@ -2,4 +2,5 @@ name:
   en: "Design Patterns, Part 3"
   ar: "أنماط التصميم، الجزء الثالث"
 issuer: "Code with Mosh"
+kind: course
 document: "files/code-with-mosh-design-patterns-part-3.pdf"

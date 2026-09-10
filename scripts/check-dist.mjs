@@ -23,6 +23,7 @@ import { formatPeriod, localeInfo, strings } from '../src/lib/i18n.ts';
 import { gapReport, pick } from '../src/lib/localized.ts';
 import { byStartAscending, byStartDescending } from '../src/lib/order.ts';
 import { joinBase } from '../src/lib/paths.ts';
+import { isShown } from '../src/lib/shown.ts';
 import { base, site } from '../astro.config.mjs';
 
 const require = createRequire(import.meta.url);
@@ -48,33 +49,20 @@ class CheckFailure extends Error {
   }
 }
 
-// The YAML files of one collection that the site shows: every file that is not
-// marked `visibility: hidden`. The key is top-level in every schema that has
-// it, so a line-anchored match is enough and no YAML parser is needed.
+// The YAML files of one collection that the site shows, each parsed. Every
+// collection shows every file, except projects, which the site filters
+// through the one predicate every output reads (src/lib/shown.ts): a hidden
+// or unfinished project stays in the source and is expected in no output.
 async function visibleEntries(collection) {
   const dir = path.join(context.content, collection);
   const files = (await readdir(dir)).filter((name) => name.endsWith('.yaml')).sort();
   const entries = [];
   for (const file of files) {
-    const text = await readFile(path.join(dir, file), 'utf8');
-    const visibility = scalar(text, 'visibility');
-    if (visibility === 'hidden') continue;
-    entries.push({ file, text, visibility });
+    const data = parseYaml(await readFile(path.join(dir, file), 'utf8'));
+    if (collection === 'projects' && !isShown(data)) continue;
+    entries.push({ file, data });
   }
   return entries;
-}
-
-// A top-level scalar of a YAML file, with any surrounding quotes removed, so
-// `name: "Mudaraj"` and `name: Mudaraj` read the same.
-function scalar(text, key) {
-  const value = text.match(new RegExp(`^${key}:\\s*(.+?)\\s*$`, 'm'))?.[1];
-  return value?.replace(/^(["'])(.*)\1$/, '$2');
-}
-
-// The `name:` of a project file, which is authored once and so is the same in
-// every language's document.
-function projectName(text) {
-  return scalar(text, 'name');
 }
 
 async function readJson(file) {
@@ -105,7 +93,9 @@ async function jsonResume() {
   for (const [section, collection] of Object.entries(sections)) {
     expected[section] = await visibleEntries(collection);
   }
-  const described = expected.projects.filter((entry) => entry.visibility === 'described').map((entry) => projectName(entry.text));
+  // A project's `name:` is authored once, so it is the same in every
+  // language's document.
+  const described = expected.projects.filter((entry) => entry.data.visibility === 'described').map((entry) => entry.data.name);
 
   const lines = [];
   for (const locale of context.locales) {
@@ -210,8 +200,8 @@ async function cvPdf() {
   const locale = 'en';
   const t = strings[locale];
   const profile = parseYaml(await readFile(path.join(context.content, 'profile.yaml'), 'utf8')).profile;
-  const experience = (await visibleEntries('experience')).map((entry) => parseYaml(entry.text)).sort(byStartDescending);
-  const education = (await visibleEntries('education')).map((entry) => parseYaml(entry.text)).sort(byStartAscending);
+  const experience = (await visibleEntries('experience')).map((entry) => entry.data).sort(byStartDescending);
+  const education = (await visibleEntries('education')).map((entry) => entry.data).sort(byStartAscending);
   const expected = [
     // The page sets the name in capitals, so that is what comes out of the
     // PDF whatever the content file says; it is the one item compared
@@ -613,8 +603,9 @@ async function gaps() {
     const dir = path.join(context.content, collection);
     for (const file of (await readdir(dir)).filter((entry) => entry.endsWith('.yaml')).sort()) {
       const entry = parseYaml(await readFile(path.join(dir, file), 'utf8'));
-      // A hidden project is never rendered, so the build records no gap for it.
-      if (entry.visibility === 'hidden') continue;
+      // A hidden or unfinished project is never rendered, so the build
+      // records no gap for it.
+      if (collection === 'projects' && !isShown(entry)) continue;
       walkValue(entry, collection, file.slice(0, -'.yaml'.length), '');
     }
   }
