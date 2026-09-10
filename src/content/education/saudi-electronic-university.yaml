@@ -1,5 +1,6 @@
-# Course work complete as of the 2025-2026 summer term; the certificate has not
-# been issued. The status field says so, and the site renders it as it is.
+# The degree is complete: the course work finished in the 2025-2026 summer term
+# and the certificate has been issued. The status field says so, and the site
+# renders it as it is.
 institution:
   en: Saudi Electronic University
   ar: الجامعة السعودية الإلكترونية
@@ -12,7 +13,7 @@ studyType:
 period:
   start: "2023-09"
   end: "2026-09"
-status: certificate-pending
+status: completed
 courses:
   - en: Digital Logic Design
     ar: تصميم المنطق الرقمي

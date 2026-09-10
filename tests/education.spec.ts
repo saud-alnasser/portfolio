@@ -30,7 +30,11 @@ function entries<T>(collection: string): T[] {
 }
 
 type Text = Record<'en' | 'ar', string>;
-type EducationEntry = { institution: Text; status: string; period: { start: string }; courses?: Text[] };
+// The status is the vocabulary the wording table is keyed by, so an entry
+// whose status has no wording is a type error here rather than an empty
+// assertion at run time.
+type EducationStatus = keyof (typeof strings)['en']['education']['status'];
+type EducationEntry = { institution: Text; status: EducationStatus; period: { start: string }; courses?: Text[] };
 type CertificateEntry = { name: Text; kind: 'course' | 'certification'; date?: string };
 
 const education = entries<EducationEntry>('education').sort(byStartAscending);
@@ -43,10 +47,12 @@ const courses = certificates.filter(isCourse);
 const certifications = certificates.filter(isCertification);
 const dated = courses.filter((entry) => entry.date).sort(byDateAscending);
 
-// The institution the timeline ends on, and the one whose certificate is
-// pending: the same entry today, and the test says which it means either way.
+// The institution the timeline ends on, and the one that lists its courses:
+// the same entry today, and the test says which it means either way. The status
+// is read off the entry rather than named here, so changing it in the content
+// changes what this expects instead of failing here.
 const mostRecent = education[education.length - 1];
-const pending = education.find((entry) => entry.status === 'certificate-pending')!;
+const degree = education.find((entry) => entry.courses?.length)!;
 
 // The phase runs from the earliest dated certificate to the latest.
 const period = { start: String(dated[0].date), end: String(dated[dated.length - 1].date) };
@@ -61,12 +67,12 @@ for (const locale of locales) {
   test.describe(url, () => {
     test('shows the university as a card with its status and its courses folded', async ({ page }) => {
       await page.goto(url);
-      const card = page.locator(timeline).filter({ has: page.locator(`[data-status="${pending.status}"]`) });
+      const card = page.locator(timeline).filter({ has: page.locator(`[data-status="${degree.status}"]`) });
       await expect(card).toHaveCount(1);
-      await expect(card.locator('[data-status]')).toHaveText(t.education.status['certificate-pending']);
-      await expect(card).toContainText(pending.institution[locale]);
+      await expect(card.locator('[data-status]')).toHaveText(t.education.status[degree.status]);
+      await expect(card).toContainText(degree.institution[locale]);
 
-      const courses = pending.courses!;
+      const courses = degree.courses!;
       const fold = card.locator('details');
       const shown = { count: String(courses.length), noun: plural(locale, courses.length, t.fold.nouns.courses) };
       await expect(fold).not.toHaveAttribute('open');
@@ -76,7 +82,7 @@ for (const locale of locales) {
       await fold.locator('summary').click();
       await expect(fold).toHaveAttribute('open', '');
       await expect(fold.locator('summary')).toContainText(fill(t.fold.hide, shown));
-      await expect(fold.locator('li'), `the ${courses.length} courses of ${pending.institution.en}`).toHaveCount(
+      await expect(fold.locator('li'), `the ${courses.length} courses of ${degree.institution.en}`).toHaveCount(
         courses.length,
       );
       await expect(fold.locator('li').first()).toBeVisible();
@@ -187,7 +193,7 @@ for (const locale of locales) {
       const fold = page.locator(`${timeline} details`);
       await fold.locator('summary').click();
       await expect(fold).toHaveAttribute('open', '');
-      await expect(fold.locator('li')).toHaveCount(pending.courses!.length);
+      await expect(fold.locator('li')).toHaveCount(degree.courses!.length);
       await expect(fold.locator('li').first()).toBeVisible();
     });
   });
