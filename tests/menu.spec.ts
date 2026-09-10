@@ -1,5 +1,6 @@
 import AxeBuilder from '@axe-core/playwright';
 import { expect, test } from '@playwright/test';
+import { strings } from '../src/lib/i18n';
 import { lowContrastPairs } from './contrast';
 import { at, control, menu, otherLocale, pageList } from './pages';
 
@@ -12,6 +13,21 @@ import { at, control, menu, otherLocale, pageList } from './pages';
 
 // The languages as the menu names them, in their own script.
 const names = { en: 'English', ar: 'العربية' } as const;
+
+// The site's own navigation, beside the language menu in the same header: the
+// same links in the same order on every page, with the resume after the CV,
+// so a reader who found one document finds the other.
+test.describe('the site navigation', () => {
+  for (const { locale, path } of pageList) {
+    const t = strings[locale];
+    test(`lists the five links in order on ${path}`, async ({ page }) => {
+      await page.goto(path);
+      const links = page.locator(`body > header nav[aria-label="${t.nav.label}"] > ul > li > a`);
+      await expect(links).toHaveText([t.nav.home, t.nav.work, t.nav.education, t.nav.cv, t.nav.resume]);
+      await expect(links.nth(4)).toHaveAttribute('href', at(`/${locale}/resume/`));
+    });
+  }
+});
 
 test.describe('the language menu', () => {
   test('carries an icon and a name, and opens with a click', async ({ page }) => {

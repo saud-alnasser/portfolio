@@ -49,6 +49,7 @@ const en = {
     work: 'Work',
     education: 'Education',
     cv: 'CV',
+    resume: 'Resume',
     // The language menu's accessible name.
     language: 'Language',
   },
@@ -96,7 +97,8 @@ const en = {
     courses: 'Online courses completed, each with its certificate.',
     certifications: 'Credentials that are not course completions.',
     skills: 'What I work with, higher up this page.',
-    cv: 'Experience, education, skills, and certifications on one page.',
+    cv: 'The whole record: experience, education, projects, courses, certifications, and skills.',
+    resume: 'One page to send with an application: the summary, the work, and selected projects.',
     // What a section card says it holds: "19 projects", "26 courses". The
     // count comes from the collection the section renders, never from this
     // file. {count} is the number and {noun} the form of the section's noun
@@ -157,21 +159,34 @@ const en = {
     document: 'Open the PDF',
     close: 'Close',
   },
-  // The CV page. Its section headings are the ones resume parsers expect;
-  // the other sections reuse the site's headings above.
+  // The two document pages. Their section headings are the ones resume
+  // parsers expect; the other headings reuse the site's own, above. The rows
+  // of links at the top of each page share these labels, because the resume
+  // offers the same PDF download the CV does.
   cv: {
     title: 'Curriculum vitae',
     description:
       'The curriculum vitae of {name}: experience, education, skills, and certifications on one printable page, with PDF and JSON Resume downloads.',
-    downloads: 'Downloads',
+    // The accessible name of the row of links a document page opens with:
+    // its own downloads and the other document.
+    documents: 'Documents',
     downloadPdf: 'Download PDF',
     downloadJson: 'Download JSON Resume',
+    resumeLink: 'View the resume',
     summary: 'Summary',
     // The template names these two sections; the other headings on the page
     // are the site's own, above.
     experience: 'Work experience',
     skills: 'Key skills',
     certifications: 'Certifications',
+    courses: 'Courses',
+  },
+  // The resume page. Everything else it shows is the CV's, above.
+  resume: {
+    title: 'Resume',
+    description:
+      'The one-page resume of {name}: the summary, experience, education, key skills, and selected projects, with a PDF download.',
+    cvLink: 'View the full CV',
   },
   period: {
     present: 'Present',
@@ -191,6 +206,7 @@ const ar: Strings = {
     work: 'الأعمال',
     education: 'التعليم',
     cv: 'السيرة الذاتية',
+    resume: 'السيرة المختصرة',
     language: 'اللغة',
   },
   theme: {
@@ -231,7 +247,8 @@ const ar: Strings = {
     courses: 'دورات إلكترونية مكتملة، مع شهادة كل دورة.',
     certifications: 'شهادات ليست إتمام دورات.',
     skills: 'ما أعمل به، أعلى هذه الصفحة.',
-    cv: 'الخبرة العملية والتعليم والمهارات والشهادات في صفحة واحدة.',
+    cv: 'السجل الكامل: الخبرة العملية والتعليم والمشاريع والدورات والشهادات والمهارات.',
+    resume: 'صفحة واحدة لمرافقة طلب التوظيف: الملخص والخبرة العملية ومشاريع مختارة.',
     counts: {
       line: '{count} {noun}',
       // The counted noun of each section, in the forms Arabic gives each
@@ -293,13 +310,21 @@ const ar: Strings = {
     title: 'السيرة الذاتية',
     description:
       'سيرة {name} الذاتية: الخبرة العملية والتعليم والمهارات والشهادات في صفحة واحدة قابلة للطباعة، مع تنزيلها بصيغة PDF وبصيغة JSON Resume.',
-    downloads: 'التنزيلات',
+    documents: 'المستندات',
     downloadPdf: 'تنزيل PDF',
     downloadJson: 'تنزيل JSON Resume',
+    resumeLink: 'عرض السيرة المختصرة',
     summary: 'الملخص',
     experience: 'الخبرة العملية',
     skills: 'المهارات الأساسية',
     certifications: 'الشهادات',
+    courses: 'الدورات',
+  },
+  resume: {
+    title: 'السيرة المختصرة',
+    description:
+      'السيرة المختصرة لـ{name} في صفحة واحدة: الملخص والخبرة العملية والتعليم والمهارات الأساسية ومشاريع مختارة، مع تنزيلها بصيغة PDF.',
+    cvLink: 'عرض السيرة الذاتية الكاملة',
   },
   period: {
     present: 'الآن',

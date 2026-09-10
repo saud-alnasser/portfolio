@@ -26,6 +26,7 @@ const summary = text('summary', profile.data.summary);
 const location = text('location', profile.data.location);
 
 const cv = withBase(`/${locale}/cv/`);
+const resume = withBase(`/${locale}/resume/`);
 
 // The contact details as actions rather than a table: the label is what the
 // visitor reads and the address is in the link, so the page never repeats the
@@ -40,6 +41,7 @@ const actions: { key: string; href: string; icon: 'mail' | 'file' | ProfileIcon;
     label: p.network,
   })),
   { key: 'cv', href: cv, icon: 'file', label: t.nav.cv },
+  { key: 'resume', href: resume, icon: 'file', label: t.nav.resume },
 ];
 
 // Skills sit on the home page, above the sections, because they are the
@@ -114,6 +116,7 @@ const sections = [
     counts: [count(skills.length, 'skills')],
   },
   { section: 'cv', href: cv, name: t.nav.cv, description: t.home.cv },
+  { section: 'resume', href: resume, name: t.nav.resume, description: t.home.resume },
 ];
 ---
 

@@ -22,12 +22,12 @@ summary:
     تدريب عملي في إدارة تقنية المعلومات بالمقر الرئيسي للشركة، لدعم
     الموظفين والفروع في العتاد والبرمجيات وطلبات الخدمة المسجلة تذاكر.
 highlights:
-  - en: Replaced and deployed hardware across the headquarters offices, and collected, prepared, and installed equipment for joiners and leavers.
-    ar: استبدال العتاد ونشره في مكاتب المقر الرئيسي، وجمع الأجهزة وتجهيزها وتركيبها للموظفين الملتحقين والمغادرين.
+  - en: Replaced and deployed hardware at headquarters, and prepared it for joiners and leavers.
+    ar: استبدال العتاد ونشره في المقر الرئيسي، وتجهيزه للموظفين الملتحقين والمغادرين.
   - en: Maintained printers and other office equipment, and documented damaged equipment in condition reports.
     ar: صيانة الطابعات وغيرها من الأجهزة المكتبية، وتوثيق الأجهزة التالفة في تقارير حالة.
   - en: Troubleshot software problems, including an HR application whose libraries were blocked by Microsoft Edge SmartScreen.
     ar: معالجة مشكلات البرمجيات، ومنها تطبيق للموارد البشرية حجب Microsoft Edge SmartScreen مكتباته.
-  - en: Handled incidents and service requests as custom SDB tickets in Microsoft Dynamics 365, and used Configuration Manager and Nexthink for remote support and diagnostics.
-    ar: التعامل مع الحوادث وطلبات الخدمة بوصفها تذاكر SDB مخصصة في Microsoft Dynamics 365، واستخدام Configuration Manager وNexthink للدعم والتشخيص عن بُعد.
+  - en: Handled incidents and requests in Dynamics 365, Configuration Manager, and Nexthink.
+    ar: التعامل مع الحوادث والطلبات في Dynamics 365 وConfiguration Manager وNexthink.
 kind: training

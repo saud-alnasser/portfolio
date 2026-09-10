@@ -119,6 +119,13 @@ const sections: {
     href: (locale) => at(`/${locale}/cv/`),
     name: (locale) => strings[locale].nav.cv,
   },
+  // The two documents are the last cards, the resume after the CV. Neither
+  // is a list of entries, so neither counts anything.
+  {
+    section: 'resume',
+    href: (locale) => at(`/${locale}/resume/`),
+    name: (locale) => strings[locale].nav.resume,
+  },
 ];
 
 // Where each element sits in the document order of `main`, so reading order is
@@ -170,7 +177,7 @@ for (const locale of locales) {
     test('offers the contact actions with icons and names', async ({ page }) => {
       await page.goto(at(`/${locale}/`));
       const actions = page.locator('[data-contact-actions] a');
-      await expect(actions).toHaveCount(2 + profile.profiles.length);
+      await expect(actions).toHaveCount(3 + profile.profiles.length);
 
       for (const action of await actions.all()) {
         await expect(action.locator('svg')).toHaveCount(1);
@@ -191,6 +198,11 @@ for (const locale of locales) {
       await expect(cv).toHaveAttribute('href', at(`/${locale}/cv/`));
       await expect(cv.locator('svg')).toHaveAttribute('data-icon', 'file');
       await expect(cv).toHaveAccessibleName(strings[locale].nav.cv);
+
+      const resume = page.locator('[data-contact="resume"]');
+      await expect(resume).toHaveAttribute('href', at(`/${locale}/resume/`));
+      await expect(resume.locator('svg')).toHaveAttribute('data-icon', 'file');
+      await expect(resume).toHaveAccessibleName(strings[locale].nav.resume);
     });
 
     test('shows every skill group as a card with its keywords', async ({ page }) => {
@@ -245,6 +257,17 @@ for (const locale of locales) {
         await page.goto(href);
         await expect(page.locator(`h2#${anchor}`), `${href} lands on a heading`).toHaveCount(1);
       }
+    });
+
+    test('offers the two documents last, the resume after the CV', async ({ page }) => {
+      // The CV and the resume are documents rather than lists of entries, so
+      // each says what it holds, counts nothing, and comes after the sections
+      // (requirement 8, and requirement 4's order).
+      await page.goto(at(`/${locale}/`));
+
+      const order = await positions(page, ['[data-section-card="cv"]', '[data-section-card="resume"]']);
+      expect(order, 'both document cards are on the page').not.toContain(-1);
+      expect(order[1], 'the resume card comes after the CV card').toBeGreaterThan(order[0]!);
     });
   });
 }

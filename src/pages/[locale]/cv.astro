@@ -1,31 +1,16 @@
 ---
-import { getCollection, getEntry } from 'astro:content';
+import { getEntry } from 'astro:content';
 import Base from '../../layouts/Base.astro';
-import { fill, formatDate, formatPeriod, locales, strings, type Locale } from '../../lib/i18n';
+import CvDocument from '../../components/CvDocument.astro';
+import { fill, locales, strings, type Locale } from '../../lib/i18n';
 import { localized } from '../../lib/localized';
 import { withBase } from '../../lib/paths';
-import { isShown } from '../../lib/shown';
-import {
-  byDateAscending,
-  byOrderThenName,
-  byOrderThenStartDescending,
-  byStartAscending,
-  byStartDescending,
-} from '../../lib/order';
 
 // The CV a person reads, one page per language, and the page the render step
-// writes to /cv.<locale>.pdf. It is laid out after the white and blue
-// minimalist corporate template Saud chose: the name centred in capitals over
-// a rule, the contact details on one centred line, every section heading in a
-// full-width tinted band, and each entry's title with its dates on one line.
-//
-// The template is followed only as far as a resume parser allows, which is
-// what the layout is for in the first place: one column in reading order,
-// real text everywhere, standard section headings, the contact details in the
-// flow of the document, and no table, image, text box, or positioned header
-// or footer. The document order below is the order scripts/check-dist.mjs
-// extracts from the PDF. The band, the print rules, and what makes the band
-// survive printing live in src/styles/global.css.
+// writes to /cv.<locale>.pdf. It holds everything the site shows; the resume
+// beside it holds what an application needs. Both are the same document
+// component (src/components/CvDocument.astro), so this page is the actions
+// row and nothing else.
 
 export function getStaticPaths() {
   return locales.map((l) => ({ params: { locale: l.code } }));
@@ -35,44 +20,16 @@ const locale = Astro.params.locale as Locale;
 const t = strings[locale];
 
 const profile = (await getEntry('profile', 'profile'))!;
-const text = localized(locale, 'profile', profile.id);
-const name = text('name', profile.data.name);
-const label = text('label', profile.data.label);
-const summary = text('summary', profile.data.summary);
-const location = text('location', profile.data.location);
+const name = localized(locale, 'profile', profile.id)('name', profile.data.name);
 
-// The same orders as the pages and the resume endpoint (src/lib/order.ts), so
-// the three outputs agree.
-const experience = (await getCollection('experience')).sort((a, b) => byStartDescending(a.data, b.data));
-const education = (await getCollection('education')).sort((a, b) => byStartAscending(a.data, b.data));
-const skills = (await getCollection('skills')).sort((a, b) => byOrderThenName(a.data, b.data));
-const certificates = (await getCollection('certificates')).sort((a, b) => byDateAscending(a.data, b.data));
-const projects = (await getCollection('projects', ({ data }) => isShown(data))).sort((a, b) =>
-  byOrderThenStartDescending(a.data, b.data),
-);
-
-// The template's key-skills block is the keywords themselves, laid in
-// columns, which is also what a parser reads for. They keep their groups'
-// order, and each appears once: two groups can name the same keyword, as SQL
-// is both a language and a database skill.
-const keywords = [...new Set(skills.flatMap((entry) => entry.data.keywords))];
-
-// The two downloads for this language. The PDF is written beside dist/ by the
-// render step; the JSON Resume document is the endpoint at resume.json.ts.
+// What this page offers beside itself: the PDF the render step writes beside
+// dist/, the JSON Resume document from the endpoint at resume.json.ts, and
+// the other document.
 const pdf = withBase(`/cv.${locale}.pdf`);
 const json = withBase(`/${locale}/resume.json`);
+const resume = withBase(`/${locale}/resume/`);
 
 const link = 'text-primary underline underline-offset-4 hover:decoration-2';
-// A section heading: the full-width band that is the one tint on the page.
-// The tint itself and the rule that prints it are `.cv-band` in global.css.
-// Tracking stays at 0.025em here and on the name, because `pdftotext -layout`
-// turns wider tracking into spaces between the letters.
-const band = 'cv-band mt-8 px-2 py-1 font-semibold uppercase tracking-[0.025em]';
-// An entry's first line: the title at the start, the dates at the far edge.
-// Logical properties throughout, so Arabic mirrors it with no second rule.
-const row = 'flex flex-wrap items-baseline justify-between gap-x-4';
-const period = 'font-semibold tabular-nums';
-const muted = 'text-sm text-muted-foreground';
 ---
 
 <Base
@@ -82,207 +39,11 @@ const muted = 'text-sm text-muted-foreground';
   path="/cv/"
   column="document"
 >
-  <nav aria-label={t.cv.downloads} class="cv-actions mb-10 flex flex-wrap gap-x-6 gap-y-2 text-sm">
-    <a href={pdf} download class={link}>{t.cv.downloadPdf}</a>
-    <a href={json} class={link}>{t.cv.downloadJson}</a>
+  <nav aria-label={t.cv.documents} class="cv-actions mb-10 flex flex-wrap gap-x-6 gap-y-2 text-sm">
+    <a href={pdf} download data-document-link="pdf" class={link}>{t.cv.downloadPdf}</a>
+    <a href={json} data-document-link="json" class={link}>{t.cv.downloadJson}</a>
+    <a href={resume} data-document-link="resume" class={link}>{t.cv.resumeLink}</a>
   </nav>
 
-  <article class="cv">
-    <header class="cv-entry border-b border-border pb-5 text-center">
-      <h1 class="text-3xl font-semibold uppercase tracking-[0.025em]">{name}</h1>
-      <p class="mt-1 text-muted-foreground">{label}</p>
-      {/* One line, in the flow of the document. The bars separate the items
-          for a reader and are hidden from a screen reader, which has the
-          list. */}
-      <ul
-        aria-label={t.home.contact}
-        class="cv-contact mt-3 flex flex-wrap items-center justify-center gap-x-2 gap-y-1 text-sm"
-      >
-        <li>
-          <a href={`mailto:${profile.data.email}`} class={link}>{profile.data.email}</a>
-        </li>
-        <li class="flex items-center gap-x-2">
-          <span aria-hidden="true" class="text-muted-foreground">|</span>
-          <span>{location}</span>
-        </li>
-        {
-          profile.data.profiles.map((p) => (
-            <li class="flex items-center gap-x-2">
-              <span aria-hidden="true" class="text-muted-foreground">
-                |
-              </span>
-              <a href={p.url} class={link}>
-                {p.url}
-              </a>
-            </li>
-          ))
-        }
-      </ul>
-    </header>
-
-    <section aria-labelledby="cv-summary">
-      <h2 id="cv-summary" class={band}>{t.cv.summary}</h2>
-      <p class="mt-3 leading-6">{summary}</p>
-    </section>
-
-    <section aria-labelledby="cv-experience">
-      <h2 id="cv-experience" class={band}>{t.cv.experience}</h2>
-      <ol class="mt-3 space-y-5">
-        {
-          experience.map((entry) => {
-            const { data } = entry;
-            const text = localized(locale, 'experience', entry.id);
-            return (
-              <li class="cv-entry">
-                <div class={row}>
-                  <h3 class="font-semibold">
-                    {text('position', data.position)}
-                    {data.kind === 'training' && ` (${t.experience.training})`}
-                  </h3>
-                  <p class={period}>{formatPeriod(locale, data.period)}</p>
-                </div>
-                <p class={muted}>
-                  <span class="text-foreground">{text('organisation', data.organisation)}</span>
-                  {t.listSeparator}
-                  {text('location', data.location)}
-                </p>
-                <p class="mt-2 leading-6">{text('summary', data.summary)}</p>
-                {data.highlights.length > 0 && (
-                  <ul aria-label={t.experience.highlights} class="mt-2 list-disc space-y-1 ps-5 leading-6">
-                    {data.highlights.map((highlight, index) => (
-                      <li>{text(`highlights[${index}]`, highlight)}</li>
-                    ))}
-                  </ul>
-                )}
-              </li>
-            );
-          })
-        }
-      </ol>
-    </section>
-
-    <section aria-labelledby="cv-education">
-      <h2 id="cv-education" class={band}>{t.nav.education}</h2>
-      <ol class="mt-3 space-y-5">
-        {
-          education.map((entry) => {
-            const { data } = entry;
-            const text = localized(locale, 'education', entry.id);
-            return (
-              <li class="cv-entry">
-                <div class={row}>
-                  <h3 class="font-semibold">
-                    {text('studyType', data.studyType)}
-                    {t.listSeparator}
-                    {text('area', data.area)}
-                  </h3>
-                  <p class={period}>{formatPeriod(locale, data.period)}</p>
-                </div>
-                <p class="text-sm">{text('institution', data.institution)}</p>
-                {/* The status as authored; the wording per value is in i18n.ts. */}
-                <p class={muted} data-status={data.status}>
-                  {t.education.status[data.status]}
-                </p>
-                {data.courses && data.courses.length > 0 && (
-                  <p class={`mt-2 leading-6 ${muted}`}>
-                    <span class="text-foreground">{t.education.courses}: </span>
-                    {data.courses.map((course, index) => text(`courses[${index}]`, course)).join(t.listSeparator)}
-                  </p>
-                )}
-              </li>
-            );
-          })
-        }
-      </ol>
-    </section>
-
-    {
-      keywords.length > 0 && (
-        <section aria-labelledby="cv-skills">
-          <h2 id="cv-skills" class={band}>
-            {t.cv.skills}
-          </h2>
-          {/* Columns, not a grid of cells: each keyword stays whole, so
-              extraction keeps it whatever order the columns come out in. */}
-          <ul class="cv-skills mt-3 columns-2 list-inside list-disc gap-x-8 text-sm leading-6 sm:columns-3">
-            {keywords.map((keyword) => (
-              <li class="break-inside-avoid">{keyword}</li>
-            ))}
-          </ul>
-        </section>
-      )
-    }
-
-    {
-      certificates.length > 0 && (
-        <section aria-labelledby="cv-certifications">
-          <h2 id="cv-certifications" class={band}>
-            {t.cv.certifications}
-          </h2>
-          <ul class="mt-3 space-y-1 text-sm leading-6">
-            {certificates.map((entry) => {
-              const { data } = entry;
-              const text = localized(locale, 'certificates', entry.id);
-              return (
-                <li class="cv-entry">
-                  <span class="font-medium">{text('name', data.name)}</span>
-                  {t.listSeparator}
-                  <span class="text-muted-foreground">
-                    {data.issuer}
-                    {data.date && `${t.listSeparator}${formatDate(locale, data.date)}`}
-                  </span>
-                </li>
-              );
-            })}
-          </ul>
-        </section>
-      )
-    }
-
-    {
-      projects.length > 0 && (
-        <section aria-labelledby="cv-projects">
-          <h2 id="cv-projects" class={band}>
-            {t.sections.projects}
-          </h2>
-          <ol class="mt-3 space-y-5">
-            {projects.map((entry) => {
-              const { data } = entry;
-              const text = localized(locale, 'projects', entry.id);
-              // As on the work page: only a public project shows its links,
-              // and here they are written out so they survive paper.
-              const links = data.visibility === 'public' ? (data.links ?? {}) : {};
-              const urls = [links.repository, links.live].filter((url): url is string => Boolean(url));
-              return (
-                <li class="cv-entry">
-                  <div class={row}>
-                    <h3 class="font-semibold">{data.name}</h3>
-                    <p class={period}>{formatPeriod(locale, data.period)}</p>
-                  </div>
-                  <p class={muted}>{text('role', data.role)}</p>
-                  <p class="mt-2 leading-6">{text('summary', data.summary)}</p>
-                  <p class={`leading-6 ${muted}`}>
-                    <span class="text-foreground">{t.project.technologies}: </span>
-                    {data.technologies.join(t.listSeparator)}
-                  </p>
-                  {urls.length > 0 && (
-                    <p class="text-sm">
-                      {urls.map((url, index) => (
-                        <>
-                          {index > 0 && t.listSeparator}
-                          <a href={url} class={link}>
-                            {url}
-                          </a>
-                        </>
-                      ))}
-                    </p>
-                  )}
-                </li>
-              );
-            })}
-          </ol>
-        </section>
-      )
-    }
-  </article>
+  <CvDocument locale={locale} variant="cv" />
 </Base>

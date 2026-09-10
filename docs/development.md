@@ -12,8 +12,10 @@ Everything the site publishes is under
 | Path | What |
 | --- | --- |
 | `/en/`, `/ar/` | the site, in each language |
-| `/en/cv/`, `/ar/cv/` | the CV page, printable |
+| `/en/cv/`, `/ar/cv/` | the CV page, printable: everything the site shows |
 | `/cv.en.pdf`, `/cv.ar.pdf` | the CV as a PDF, rendered at build time |
+| `/en/resume/`, `/ar/resume/` | the resume page, printable: the short document an application takes |
+| `/resume.en.pdf`, `/resume.ar.pdf` | the resume as a PDF, rendered at build time and refused past one page |
 | `/en/resume.json`, `/ar/resume.json` | the CV as a JSON Resume document |
 | `/sitemap.xml`, `/robots.txt` | the sitemap, linked from every page as well; `robots.txt` exists so the site does not break at a host root, since crawlers read it there rather than under a base path |
 
@@ -24,11 +26,11 @@ pnpm install
 pnpm dev          # local server
 pnpm check        # type and template checks
 pnpm build        # writes dist/
-pnpm render:pdf   # writes dist/cv.en.pdf and dist/cv.ar.pdf (needs Playwright's Chromium)
+pnpm render:pdf   # writes the four document PDFs; fails if a resume runs past one page (needs Playwright's Chromium)
 pnpm check:dist   # the checks CI runs over dist/
 pnpm test         # the Playwright tests, against a static server of dist/
 pnpm test:content # adds a temporary project and a temporary certificate, rebuilds, and checks each shows everywhere it should
-pnpm lighthouse   # Lighthouse on the home and CV pages, mobile profile
+pnpm lighthouse   # Lighthouse on the home, CV, and resume pages, mobile profile
 pnpm check:live <address>  # asks a served site for its pages and downloads; the deploy job runs it last
 pnpm readme       # rewrites the profile block of README.md from src/content/ and the config
 pnpm scan:history # the identifier scan over the whole git history
