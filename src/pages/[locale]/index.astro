@@ -9,6 +9,7 @@ import { localized } from '../../lib/localized';
 import { profileIcon, type ProfileIcon } from '../../lib/networks';
 import { byOrderThenName } from '../../lib/order';
 import { withBase } from '../../lib/paths';
+import { isCertification, isCourse, isShown } from '../../lib/shown';
 
 export function getStaticPaths() {
   return locales.map((l) => ({ params: { locale: l.code } }));
@@ -25,6 +26,7 @@ const summary = text('summary', profile.data.summary);
 const location = text('location', profile.data.location);
 
 const cv = withBase(`/${locale}/cv/`);
+const resume = withBase(`/${locale}/resume/`);
 
 // The contact details as actions rather than a table: the label is what the
 // visitor reads and the address is in the link, so the page never repeats the
@@ -39,6 +41,7 @@ const actions: { key: string; href: string; icon: 'mail' | 'file' | ProfileIcon;
     label: p.network,
   })),
   { key: 'cv', href: cv, icon: 'file', label: t.nav.cv },
+  { key: 'resume', href: resume, icon: 'file', label: t.nav.resume },
 ];
 
 // Skills sit on the home page, above the sections, because they are the
@@ -47,32 +50,73 @@ const skills = (await getCollection('skills')).sort((a, b) => byOrderThenName(a.
 
 // Every count a section card shows is the length of the collection that
 // section renders, read here and never written by hand, so a card cannot
-// drift from the content source. The visibility filter is the work page's:
-// a hidden project stays in the source and out of every output.
-const projects = await getCollection('projects', ({ data }) => data.visibility !== 'hidden');
+// drift from the content source. The filters are the ones every output reads
+// (src/lib/shown.ts): a hidden or unfinished project stays in the source and
+// out of every output, this count included, and a certificate belongs to the
+// courses section or to the certifications section by its own field.
+const projects = await getCollection('projects', ({ data }) => isShown(data));
 const experience = await getCollection('experience');
 const education = await getCollection('education');
-const certificates = await getCollection('certificates');
+const courses = await getCollection('certificates', ({ data }) => isCourse(data));
+const certifications = await getCollection('certificates', ({ data }) => isCertification(data));
 
 const count = (n: number, noun: keyof Strings['home']['counts']['nouns']) =>
   fill(t.home.counts.line, { count: String(n), noun: plural(locale, n, t.home.counts.nouns[noun]) });
 
+// One card per section of the site, in the order a hiring reader wants them,
+// each leading to the heading of the section on the page that holds it: the
+// work page carries experience and projects, the education page the studies
+// timeline, the courses, and the certifications, and the skills are on this
+// page already. The certifications heading keeps the `certificates` id it has
+// always had. The CV is one document rather than a list, so it counts nothing.
+const work = withBase(`/${locale}/work/`);
+const educationPage = withBase(`/${locale}/education/`);
+
 const sections = [
   {
-    section: 'work',
-    href: withBase(`/${locale}/work/`),
-    name: t.nav.work,
-    description: t.home.work,
-    counts: [count(projects.length, 'projects'), count(experience.length, 'experience')],
+    section: 'experience',
+    href: `${work}#experience`,
+    name: t.sections.experience,
+    description: t.home.experience,
+    counts: [count(experience.length, 'experience')],
+  },
+  {
+    section: 'projects',
+    href: `${work}#projects`,
+    name: t.sections.projects,
+    description: t.home.projects,
+    counts: [count(projects.length, 'projects')],
   },
   {
     section: 'education',
-    href: withBase(`/${locale}/education/`),
+    href: `${educationPage}#studies`,
     name: t.nav.education,
     description: t.home.education,
-    counts: [count(education.length, 'education'), count(certificates.length, 'certificates')],
+    counts: [count(education.length, 'education')],
+  },
+  {
+    section: 'courses',
+    href: `${educationPage}#courses`,
+    name: t.sections.courses,
+    description: t.home.courses,
+    counts: [count(courses.length, 'courses')],
+  },
+  {
+    section: 'certifications',
+    href: `${educationPage}#certificates`,
+    name: t.sections.certifications,
+    description: t.home.certifications,
+    counts: [count(certifications.length, 'certifications')],
+  },
+  {
+    section: 'skills',
+    href: `${withBase(`/${locale}/`)}#skills`,
+    name: t.sections.skills,
+    description: t.home.skills,
+    counts: [count(skills.length, 'skills')],
   },
   { section: 'cv', href: cv, name: t.nav.cv, description: t.home.cv },
+  { section: 'resume', href: resume, name: t.nav.resume, description: t.home.resume },
 ];
 ---
 

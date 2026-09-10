@@ -25,9 +25,10 @@ Decided so far:
   on 2026-09-09 in `[[efforts/1-portfolio-site/plan]]`, "The address"
 - it is built with **Astro 7**, Tailwind 4, and typed YAML content
   collections, chosen in `[[efforts/1-portfolio-site/plan]]` on 2026-09-08;
-  the site is static files only, in English and Arabic, with a CV derived from
-  the same content as a printable page, a PDF rendered at build time, and a
-  JSON Resume document
+  the site is static files only, in English and Arabic, with two documents
+  derived from the same content, a CV that carries the whole record and a
+  short resume for an application, each as a printable page and a PDF
+  rendered at build time, beside a JSON Resume document that follows the CV
 - work lands as **stacked changes through Graphite** (`[[rules/version-control]]`)
 - what it shows is specified in `[[efforts/1-portfolio-site/spec]]`
 
@@ -40,7 +41,7 @@ Decided so far:
 | `src/content/` | **the content source**: one YAML file per entry under `projects/`, `experience/`, `education/`, `certificates/`, `skills/`, and `profile.yaml`, with the certificate documents and their previews under `certificates/files/`. Every fact the site or the CV shows lives here and nowhere else; `src/content/README.md` documents the format |
 | `src/content.config.ts` | the content contract: the Zod schema of each collection, which the build enforces |
 | `src/pages/`, `src/layouts/`, `src/components/` | the Astro templates: pages under `[locale]/` for `en` and `ar`, the `resume.json` and `robots.txt` endpoints, one base layout, one component per entry type, and the pieces they share: the inline icon set, the card, the fold, and the two header controls |
-| `src/lib/` | UI strings per locale with the plural helper (`i18n.ts`), the language fallback and its gap report (`localized.ts`), the entry ordering (`order.ts`), the JSON Resume mapper (`resume.ts`), the base-path join every published path goes through (`paths.ts`), the icon a profile's network carries (`networks.ts`) |
+| `src/lib/` | UI strings per locale with the plural helper (`i18n.ts`), the language fallback and its gap report (`localized.ts`), the entry ordering (`order.ts`), whether an entry appears at all and which document it belongs to (`shown.ts`), the JSON Resume mapper (`resume.ts`), the base-path join every published path goes through (`paths.ts`), the icon a profile's network carries (`networks.ts`) |
 | `src/styles/` | the one global stylesheet: Tailwind, the palette tokens for both themes including the card surface and the CV band, the rules for the native disclosures and the CV, the print rules, the Arabic font faces |
 | `public/` | files served as they are: the bundled Arabic font and its licence |
 | `scripts/` | what runs after the build: the PDF render, the dist checks, the content mechanism test, the history scan, the Lighthouse runner, the static server the tests, the PDF render, and Lighthouse use, which serves `dist/` under the base path as Pages does, and the live check the deploy job runs last; and one that runs before a commit rather than after a build, the certificate preview render, whose output is committed |
@@ -54,7 +55,7 @@ Decided so far:
 | Term | Means |
 | --- | --- |
 | localized | a text field written per language as `{ en, ar }`; every other field is written once |
-| described | a project shown by name and summary without a link (`visibility: described`), the way private work appears |
+| described | a project rendered by name and summary without a link (`visibility: described`), the way private work appears. Visibility and completion are separate fields: a project is shown only where it is not `hidden` **and** its `status` is `completed`, which `src/lib/shown.ts` decides once for every output |
 | certificate-pending | the education status for course work that is complete while the certificate has not been issued; the site never says more than that |
 | gap report | the build's one-line list of every field whose Arabic was missing and rendered its English instead |
 | base path | `/saud-alnasser`, the prefix GitHub Pages puts a project site under; `withBase()` in `src/lib/paths.ts` joins a site path to it |

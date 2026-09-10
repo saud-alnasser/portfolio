@@ -5,6 +5,7 @@ import { expect, test, type Locator, type Page } from '@playwright/test';
 import { parse as parseYaml } from 'yaml';
 import { fill, formatPeriod, plural, strings } from '../src/lib/i18n';
 import { byOrderThenStartDescending, byStartDescending } from '../src/lib/order';
+import { isShown } from '../src/lib/shown';
 import { at, locales, type Locale } from './pages';
 
 // The work page as a pair of card grids: every project and every placement
@@ -24,6 +25,7 @@ interface Project {
   period: { start: string; end?: string };
   order?: number;
   visibility: 'public' | 'described' | 'hidden';
+  status: 'completed' | 'in-progress';
   links?: { repository?: string; live?: string };
 }
 
@@ -47,11 +49,9 @@ function collection<T>(name: string): T[] {
     .map((file) => parseYaml(readFileSync(path.join(dir, file), 'utf8')) as T);
 }
 
-// A hidden project stays in the source and out of every output, so the page
-// shows one card fewer than the directory holds.
-const projects = collection<Project>('projects')
-  .filter((entry) => entry.visibility !== 'hidden')
-  .sort(byOrderThenStartDescending);
+// A hidden or unfinished project stays in the source and out of every output
+// (src/lib/shown.ts), so the page shows fewer cards than the directory holds.
+const projects = collection<Project>('projects').filter(isShown).sort(byOrderThenStartDescending);
 
 const experience = collection<Experience>('experience').sort(byStartDescending);
 
@@ -103,6 +103,43 @@ test.describe('the work page', () => {
         expect(surface.radius, `radius of card ${index} on ${url}`).toBeGreaterThan(0);
         expect(surface.background, `surface of card ${index} on ${url}`).not.toBe(background);
       }
+    });
+
+    test(`${url} puts the experience grid before the projects grid`, async ({ page }) => {
+      // Requirement 4: a hiring reader looks for employment first, so each
+      // section is a heading with the id the home page's card links to, and
+      // experience comes first. Read from the document rather than from the
+      // template, so a reordering of the source shows up here.
+      await page.goto(url);
+      const order = await page.evaluate(() => {
+        const nodes = Array.from(document.querySelectorAll('main, main *'));
+        const at = (selector: string) => {
+          const element = document.querySelector(selector);
+          return element ? nodes.indexOf(element) : -1;
+        };
+        return {
+          experienceHeading: at('h2#experience'),
+          experienceGrid: at('[data-grid="experience"]'),
+          projectsHeading: at('h2#projects'),
+          projectsGrid: at('[data-grid="projects"]'),
+        };
+      });
+
+      for (const [what, position] of Object.entries(order)) {
+        expect(position, `${what} on ${url}`).toBeGreaterThanOrEqual(0);
+      }
+      expect(order.experienceHeading, `the experience heading comes before its grid on ${url}`).toBeLessThan(
+        order.experienceGrid,
+      );
+      expect(order.experienceGrid, `the experience grid comes before the projects heading on ${url}`).toBeLessThan(
+        order.projectsHeading,
+      );
+      expect(order.projectsHeading, `the projects heading comes before its grid on ${url}`).toBeLessThan(
+        order.projectsGrid,
+      );
+
+      await expect(page.locator('h2#experience')).toHaveText(strings[locale].sections.experience);
+      await expect(page.locator('h2#projects')).toHaveText(strings[locale].sections.projects);
     });
 
     test(`${url} shows each card's name, period, and meta line`, async ({ page }) => {

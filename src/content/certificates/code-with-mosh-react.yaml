@@ -2,4 +2,5 @@ name:
   en: "React"
   ar: "React"
 issuer: "Code with Mosh"
+kind: course
 document: "files/code-with-mosh-react.pdf"

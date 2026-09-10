@@ -60,7 +60,7 @@ export async function renderProfile() {
     wrap(profile.summary.en),
     '',
     `- 🌐 Portfolio: [${home.replace(/^https?:\/\//, '')}](${at('/en/')}) · [بالعربية](${at('/ar/')})`,
-    `- 📄 CV: [read it](${at('/en/cv/')}) · [PDF](${at('/cv.en.pdf')}) · [JSON Resume](${at('/en/resume.json')})`,
+    `- 📄 CV: [read it](${at('/en/cv/')})`,
     `- ✉️ Email: [${profile.email}](mailto:${profile.email})`,
     ...profile.profiles
       .filter((entry) => entry.network !== 'GitHub')

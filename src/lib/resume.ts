@@ -9,12 +9,13 @@ import {
   byStartDescending,
 } from './order';
 import { absolute } from './paths';
+import { isShown } from './shown';
 
 // The mapper from the content collections to a JSON Resume document for one
-// language. The pages and the CV page read the same collections through the
-// same fallback and the same ordering, so a value changed in one content file
-// changes here without a second edit, and a missing Arabic text shows up in
-// the build's gap report whichever output rendered it first.
+// language. The pages and the document component read the same collections
+// through the same fallback and the same ordering, so a value changed in one
+// content file changes here without a second edit, and a missing Arabic text
+// shows up in the build's gap report whichever output rendered it first.
 //
 // Custom keys (`type` on a work entry, `status` on an education entry,
 // `language` under `meta`) live inside section entries or inside `meta`, never
@@ -130,7 +131,7 @@ export async function resumeFor(locale: Locale, site: URL) {
   if (!profile) throw new Error('resume: the profile entry is missing from src/content/profile.yaml');
 
   const [projects, experience, education, certificates, skills] = await Promise.all([
-    getCollection('projects', ({ data }) => data.visibility !== 'hidden'),
+    getCollection('projects', ({ data }) => isShown(data)),
     getCollection('experience'),
     getCollection('education'),
     getCollection('certificates'),

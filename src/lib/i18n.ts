@@ -49,6 +49,7 @@ const en = {
     work: 'Work',
     education: 'Education',
     cv: 'CV',
+    resume: 'Resume',
     // The language menu's accessible name.
     language: 'Language',
   },
@@ -86,20 +87,31 @@ const en = {
     email: 'Email',
     location: 'Location',
     sections: 'On this site',
-    work: 'Projects and experience.',
-    education: 'Studies and certificates.',
-    cv: 'Experience, education, skills, and certifications on one page.',
-    // What a section card says it holds: "19 projects", "27 certificates".
-    // The count comes from the collection the section renders, never from
-    // this file. {count} is the number and {noun} the form of the section's
-    // noun that goes with it, from `nouns`.
+    // One line per section card, saying what that section holds. The card
+    // for a section that lives on another page leads to its heading there;
+    // the skills card leads to the skills higher up this page, which is why
+    // its line says where it is going.
+    experience: 'Employment and practical training.',
+    projects: 'Finished projects and what they are built with.',
+    education: 'Schools and university, in order of time.',
+    courses: 'Online courses completed, each with its certificate.',
+    certifications: 'Credentials that are not course completions.',
+    skills: 'What I work with, higher up this page.',
+    cv: 'The whole record: experience, education, projects, courses, certifications, and skills.',
+    resume: 'The short one to send with an application: the summary, the work, and selected projects.',
+    // What a section card says it holds: "19 projects", "26 courses". The
+    // count comes from the collection the section renders, never from this
+    // file. {count} is the number and {noun} the form of the section's noun
+    // that goes with it, from `nouns`.
     counts: {
       line: '{count} {noun}',
       nouns: {
         projects: { one: 'project', other: 'projects' } as PluralForms,
         experience: { one: 'position', other: 'positions' } as PluralForms,
         education: { one: 'institution', other: 'institutions' } as PluralForms,
-        certificates: { one: 'certificate', other: 'certificates' } as PluralForms,
+        courses: { one: 'course', other: 'courses' } as PluralForms,
+        certifications: { one: 'certification', other: 'certifications' } as PluralForms,
+        skills: { one: 'skill group', other: 'skill groups' } as PluralForms,
       },
     },
   },
@@ -107,7 +119,8 @@ const en = {
     projects: 'Projects',
     experience: 'Experience',
     studies: 'Studies',
-    certificates: 'Certificates',
+    courses: 'Courses',
+    certifications: 'Certifications',
     skills: 'Skills',
   },
   project: {
@@ -127,14 +140,14 @@ const en = {
     },
     courses: 'Courses',
     // The one node on the timeline that is not an institution: the phase of
-    // online courses between school and university. It stands for every
-    // certificate, so `count` says how many, with `noun` in the form the
-    // number takes, and `link` leads to the certificates themselves.
+    // online courses between school and university. It stands for the
+    // courses section, so `count` says how many courses, with `noun` in the
+    // form the number takes, and `link` leads to that section.
     onlineCourses: {
       name: 'Online courses',
       count: '{count} {noun}',
-      noun: { one: 'certificate', other: 'certificates' } as PluralForms,
-      link: 'View the certificates',
+      noun: { one: 'course', other: 'courses' } as PluralForms,
+      link: 'View the courses',
     },
   },
   // A certificate card and the dialog it opens. `open` is what the card says
@@ -146,21 +159,34 @@ const en = {
     document: 'Open the PDF',
     close: 'Close',
   },
-  // The CV page. Its section headings are the ones resume parsers expect;
-  // the other sections reuse the site's headings above.
+  // The two document pages. Their section headings are the ones resume
+  // parsers expect; the other headings reuse the site's own, above. The rows
+  // of links at the top of each page share these labels, because the resume
+  // offers the same PDF download the CV does.
   cv: {
     title: 'Curriculum vitae',
     description:
-      'The curriculum vitae of {name}: experience, education, skills, and certifications on one printable page, with PDF and JSON Resume downloads.',
-    downloads: 'Downloads',
+      'The curriculum vitae of {name}: the whole record of experience, education, skills, certifications, courses, and projects, with PDF and JSON Resume downloads.',
+    // The accessible name of the row of links a document page opens with:
+    // its own downloads and the other document.
+    documents: 'Documents',
     downloadPdf: 'Download PDF',
     downloadJson: 'Download JSON Resume',
+    resumeLink: 'View the resume',
     summary: 'Summary',
     // The template names these two sections; the other headings on the page
     // are the site's own, above.
     experience: 'Work experience',
     skills: 'Key skills',
     certifications: 'Certifications',
+    courses: 'Courses',
+  },
+  // The resume page. Everything else it shows is the CV's, above.
+  resume: {
+    title: 'Resume',
+    description:
+      'The short resume of {name}: the summary, experience, education, key skills, and selected projects, with a PDF download.',
+    cvLink: 'View the full CV',
   },
   period: {
     present: 'Present',
@@ -180,6 +206,7 @@ const ar: Strings = {
     work: 'الأعمال',
     education: 'التعليم',
     cv: 'السيرة الذاتية',
+    resume: 'السيرة المختصرة',
     language: 'اللغة',
   },
   theme: {
@@ -214,9 +241,14 @@ const ar: Strings = {
     email: 'البريد الإلكتروني',
     location: 'الموقع الجغرافي',
     sections: 'في هذا الموقع',
-    work: 'المشاريع والخبرات العملية.',
-    education: 'الدراسة والشهادات.',
-    cv: 'الخبرة العملية والتعليم والمهارات والشهادات في صفحة واحدة.',
+    experience: 'الوظائف والتدريب العملي.',
+    projects: 'المشاريع المكتملة وما بُنيت به.',
+    education: 'المدارس والجامعة بترتيب الزمن.',
+    courses: 'دورات إلكترونية مكتملة، مع شهادة كل دورة.',
+    certifications: 'شهادات ليست إتمام دورات.',
+    skills: 'ما أعمل به، أعلى هذه الصفحة.',
+    cv: 'السجل الكامل: الخبرة العملية والتعليم والمشاريع والدورات والشهادات والمهارات.',
+    resume: 'النسخة المختصرة لمرافقة طلب التوظيف: الملخص والخبرة العملية ومشاريع مختارة.',
     counts: {
       line: '{count} {noun}',
       // The counted noun of each section, in the forms Arabic gives each
@@ -225,7 +257,15 @@ const ar: Strings = {
         projects: { one: 'مشروع', two: 'مشروعان', few: 'مشاريع', many: 'مشروعاً', other: 'مشروع' },
         experience: { one: 'وظيفة', two: 'وظيفتان', few: 'وظائف', many: 'وظيفة', other: 'وظيفة' },
         education: { one: 'جهة تعليمية', two: 'جهتان تعليميتان', few: 'جهات تعليمية', many: 'جهة تعليمية', other: 'جهة تعليمية' },
-        certificates: { one: 'شهادة', two: 'شهادتان', few: 'شهادات', many: 'شهادة', other: 'شهادة' },
+        courses: { one: 'دورة', two: 'دورتان', few: 'دورات', many: 'دورةً', other: 'دورة' },
+        certifications: { one: 'شهادة', two: 'شهادتان', few: 'شهادات', many: 'شهادةً', other: 'شهادة' },
+        skills: {
+          one: 'مجموعة مهارات',
+          two: 'مجموعتا مهارات',
+          few: 'مجموعات مهارات',
+          many: 'مجموعة مهارات',
+          other: 'مجموعة مهارات',
+        },
       },
     },
   },
@@ -233,7 +273,8 @@ const ar: Strings = {
     projects: 'المشاريع',
     experience: 'الخبرة العملية',
     studies: 'الدراسة',
-    certificates: 'الشهادات',
+    courses: 'الدورات',
+    certifications: 'الشهادات',
     skills: 'المهارات',
   },
   project: {
@@ -256,8 +297,8 @@ const ar: Strings = {
       name: 'الدورات الإلكترونية',
       count: '{count} {noun}',
       // The counted noun in the form Arabic gives each range, as `fold` above.
-      noun: { one: 'شهادة', two: 'شهادتان', few: 'شهادات', many: 'شهادةً', other: 'شهادة' },
-      link: 'عرض الشهادات',
+      noun: { one: 'دورة', two: 'دورتان', few: 'دورات', many: 'دورةً', other: 'دورة' },
+      link: 'عرض الدورات',
     },
   },
   certificate: {
@@ -268,14 +309,22 @@ const ar: Strings = {
   cv: {
     title: 'السيرة الذاتية',
     description:
-      'سيرة {name} الذاتية: الخبرة العملية والتعليم والمهارات والشهادات في صفحة واحدة قابلة للطباعة، مع تنزيلها بصيغة PDF وبصيغة JSON Resume.',
-    downloads: 'التنزيلات',
+      'سيرة {name} الذاتية: السجل الكامل للخبرة العملية والتعليم والمهارات والشهادات والدورات والمشاريع، مع تنزيلها بصيغة PDF وبصيغة JSON Resume.',
+    documents: 'المستندات',
     downloadPdf: 'تنزيل PDF',
     downloadJson: 'تنزيل JSON Resume',
+    resumeLink: 'عرض السيرة المختصرة',
     summary: 'الملخص',
     experience: 'الخبرة العملية',
     skills: 'المهارات الأساسية',
     certifications: 'الشهادات',
+    courses: 'الدورات',
+  },
+  resume: {
+    title: 'السيرة المختصرة',
+    description:
+      'السيرة المختصرة لـ{name}: الملخص والخبرة العملية والتعليم والمهارات الأساسية ومشاريع مختارة، مع تنزيلها بصيغة PDF.',
+    cvLink: 'عرض السيرة الذاتية الكاملة',
   },
   period: {
     present: 'الآن',

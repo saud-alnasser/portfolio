@@ -9,8 +9,8 @@
 # runs no setup step, and a shell script with curl needs none.
 #
 # The root must serve the redirect page, each language its home, and the CV
-# page its two downloads. Pages can take a moment to serve a fresh deployment,
-# so each address is retried for up to two minutes before the script fails
+# and resume pages their downloads. Pages can take a moment to serve a fresh
+# deployment, so each address is retried for up to two minutes before it fails
 # naming the address and the status it got. A green run says the addresses
 # answer; on a deploy after the first, the CDN may still be answering from
 # the previous deployment for a short while, so it does not say this build
@@ -54,10 +54,14 @@ expect "${site}en/" 200
 expect "${site}ar/" 200
 expect "${site}en/cv/" 200
 expect "${site}ar/cv/" 200
+expect "${site}en/resume/" 200
+expect "${site}ar/resume/" 200
 expect "${site}en/resume.json" 200
 expect "${site}ar/resume.json" 200
 expect "${site}cv.en.pdf" 200
 expect "${site}cv.ar.pdf" 200
+expect "${site}resume.en.pdf" 200
+expect "${site}resume.ar.pdf" 200
 expect "${site}sitemap.xml" 200
 
 # The root is the redirect page to the default language, not a blank.

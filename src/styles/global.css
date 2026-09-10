@@ -217,6 +217,24 @@ details[open] > summary .fold-chevron {
   margin: 16mm 18mm;
 }
 
+/*
+ * The resume's own page box. `@page` is a document-level at-rule and no
+ * selector can scope it to one article, so the narrower margins are declared
+ * on a named page and the resume document's root box is put on that page
+ * below. The CV's root carries no page name and keeps the box above. Both a
+ * browser print and the `page.pdf` the render step calls read this one rule,
+ * because the render step passes no margin option of its own.
+ *
+ * 10mm all round is where most of the shortening comes from, and less than
+ * half of it is the extra height: the column is 60 CSS pixels wider, which
+ * takes wrapped lines out of every paragraph in the document. It stays well
+ * inside the unprintable border a desktop printer keeps, which is around
+ * 6mm at its worst edge.
+ */
+@page resume {
+  margin: 10mm;
+}
+
 @media print {
   /* A print-friendly base size; every rem on the page scales from it. */
   html {
@@ -266,5 +284,57 @@ details[open] > summary .fold-chevron {
   li {
     orphans: 3;
     widows: 3;
+  }
+
+  /*
+   * The resume, which is the same template made short: the article carries
+   * `cv-compact` and the document prints a size smaller, in a narrower page
+   * box, with tighter bands and tighter gaps between its entries. 10pt is
+   * what the template's own sample reads at and the floor the spec sets, so
+   * a resume that still runs to two pages is fixed in the content and never
+   * here. The root is what carries the size and the page name, because every
+   * rem on the page scales from the one and the page box is the other's, and
+   * `:has()` is what reaches it from the class the variant puts on the
+   * article. None of this touches the CV, which is the whole record and
+   * prints exactly as the redesign left it.
+   */
+  :root:has(.cv-compact) {
+    font-size: 10pt;
+    page: resume;
+  }
+
+  /* Above a band, which is the gap between one section and the next
+     heading. Nothing extracts across it, so it closes to where the band's
+     own tint still separates the two sections by eye; the gap below it, the
+     one extraction depends on, does not move. */
+  .cv-compact .cv-band {
+    margin-top: calc(var(--spacing) * 3);
+  }
+
+  /* The block under a band keeps more air than the `mt-3` on it gives.
+     `pdftotext -layout` groups two rows into one extracted line when the gap
+     between them is small enough, and at 10pt the utility's gap is: the first
+     entry's dates then extract on the heading's line rather than beside the
+     title, which is the reading order scripts/check-dist.mjs asserts. 16px is
+     where the grouping stops, measured on the rendered PDF; this is the first
+     step above it, and it is the one gap on the resume that does not tighten
+     any further. */
+  .cv-compact .cv-band + * {
+    margin-top: calc(var(--spacing) * 5);
+  }
+
+  /* Between two entries of a section, and under the name block. The gap
+     above is between a heading and the text under it, where the extraction
+     depends on it; these two are between one entry and the next, where
+     nothing groups across the break, so they close to where the entries
+     still read as separate blocks. The lists of entries are the ordered
+     ones, which is what separates them here from the certificate and skill
+     lists, whose lines sit a third of this apart already. */
+  .cv-compact section > ol > .cv-entry:not(:last-child) {
+    margin-block-end: calc(var(--spacing) * 3);
+  }
+
+  .cv-compact > header {
+    padding-bottom: calc(var(--spacing) * 3);
   }
 }

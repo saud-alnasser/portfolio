@@ -17,4 +17,5 @@ technologies:
   - "PostgreSQL"
   - "Drizzle ORM"
 visibility: described
+status: completed
 order: 2

@@ -6,8 +6,8 @@ role:
   en: "Sole developer"
   ar: "المطور الوحيد"
 summary:
-  en: "An offline-first desktop tracker for rent payments. A Tauri 2 shell in Rust around a SvelteKit 2 and Svelte 5 frontend keeps a local replica of a Turso database and syncs when there is a network; a separate control plane handles accounts, workspaces, and sync tokens over plain JSON."
-  ar: "متتبع لمدفوعات الإيجار على سطح المكتب يعمل دون اتصال أولاً. غلاف Tauri 2 بلغة Rust حول واجهة SvelteKit 2 وSvelte 5 يحتفظ بنسخة محلية من قاعدة بيانات Turso ويزامنها عند توفر الشبكة؛ ومستوى تحكم منفصل يتولى الحسابات ومساحات العمل ورموز المزامنة عبر JSON بسيط."
+  en: "An offline-first desktop tracker for rent payments, on Tauri, SvelteKit, and Turso."
+  ar: "متتبع لمدفوعات الإيجار على سطح المكتب يعمل دون اتصال أولاً، مبني على Tauri وSvelteKit وTurso."
 technologies:
   - "TypeScript"
   - "Svelte"
@@ -19,4 +19,6 @@ technologies:
 links:
   repository: https://github.com/saud-alnasser/rentable
 visibility: public
+status: completed
+resume: true
 order: 1

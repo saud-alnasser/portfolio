@@ -2,5 +2,6 @@ name:
   en: "HTML"
   ar: "HTML"
 issuer: "SoloLearn"
+kind: course
 date: "2021-12-19"
 document: "files/sololearn-html.pdf"

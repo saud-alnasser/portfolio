@@ -2,5 +2,6 @@ name:
   en: "Python for Beginners"
   ar: "Python للمبتدئين"
 issuer: "SoloLearn"
+kind: course
 date: "2021-11-07"
 document: "files/sololearn-python-for-beginners.pdf"

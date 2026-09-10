@@ -6,6 +6,7 @@ import Experience from '../../../components/Experience.astro';
 import { fill, locales, strings, type Locale } from '../../../lib/i18n';
 import { localized } from '../../../lib/localized';
 import { byOrderThenStartDescending, byStartDescending } from '../../../lib/order';
+import { isShown } from '../../../lib/shown';
 
 export function getStaticPaths() {
   return locales.map((l) => ({ params: { locale: l.code } }));
@@ -17,8 +18,9 @@ const t = strings[locale];
 const profile = (await getEntry('profile', 'profile'))!;
 const name = localized(locale, 'profile', profile.id)('name', profile.data.name);
 
-// A hidden project stays in the source and out of every output.
-const projects = (await getCollection('projects', ({ data }) => data.visibility !== 'hidden')).sort((a, b) =>
+// A hidden or unfinished project stays in the source and out of every output
+// (src/lib/shown.ts).
+const projects = (await getCollection('projects', ({ data }) => isShown(data))).sort((a, b) =>
   byOrderThenStartDescending(a.data, b.data),
 );
 const experience = (await getCollection('experience')).sort((a, b) => byStartDescending(a.data, b.data));
@@ -34,31 +36,33 @@ const experience = (await getCollection('experience')).sort((a, b) => byStartDes
   <h1 class="text-3xl font-semibold tracking-tight sm:text-4xl">{t.pages.work.title}</h1>
 
   {/*
-    Both sections are ordered lists laid out as a grid: one column on a phone,
-    two from 48rem up, so 19 projects are scanned rather than scrolled. The
-    grid is written on the list itself, so its items are its cards and the
-    reading order is the order the collection was sorted into.
+    Experience comes first: a hiring reader looks for employment before
+    anything else, and the two sections are what the home page's cards link
+    to by these ids. Both are ordered lists laid out as a grid: one column on
+    a phone, two from 48rem up, so the projects are scanned rather than
+    scrolled. The grid is written on the list itself, so its items are its
+    cards and the reading order is the order the collection was sorted into.
   */}
-  <section aria-labelledby="projects" class="mt-12">
-    <h2 id="projects" class="text-xl font-semibold tracking-tight">{t.sections.projects}</h2>
-    <ol data-grid="projects" class="mt-6 grid grid-cols-1 gap-4 md:grid-cols-2 md:gap-5">
-      {
-        projects.map((entry) => (
-          <li>
-            <Project locale={locale} entry={entry} />
-          </li>
-        ))
-      }
-    </ol>
-  </section>
-
-  <section aria-labelledby="experience" class="mt-16">
+  <section aria-labelledby="experience" class="mt-12">
     <h2 id="experience" class="text-xl font-semibold tracking-tight">{t.sections.experience}</h2>
     <ol data-grid="experience" class="mt-6 grid grid-cols-1 gap-4 md:grid-cols-2 md:gap-5">
       {
         experience.map((entry) => (
           <li>
             <Experience locale={locale} entry={entry} />
+          </li>
+        ))
+      }
+    </ol>
+  </section>
+
+  <section aria-labelledby="projects" class="mt-16">
+    <h2 id="projects" class="text-xl font-semibold tracking-tight">{t.sections.projects}</h2>
+    <ol data-grid="projects" class="mt-6 grid grid-cols-1 gap-4 md:grid-cols-2 md:gap-5">
+      {
+        projects.map((entry) => (
+          <li>
+            <Project locale={locale} entry={entry} />
           </li>
         ))
       }

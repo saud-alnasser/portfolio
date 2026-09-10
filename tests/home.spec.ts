@@ -5,6 +5,7 @@ import { expect, test, type Page } from '@playwright/test';
 import { parse as parseYaml } from 'yaml';
 import { fill, plural, strings } from '../src/lib/i18n';
 import { profileIcon } from '../src/lib/networks';
+import { isCertification, isCourse, isShown } from '../src/lib/shown';
 import { at, locales, type Locale } from './pages';
 
 // The home page: the hero, the contact actions, the skill cards, and one card
@@ -14,13 +15,14 @@ import { at, locales, type Locale } from './pages';
 
 const content = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', 'src', 'content');
 
-// The YAML files of one collection that the site shows: every file that is not
-// marked `visibility: hidden`, as scripts/check-dist.mjs puts it.
+// The YAML files of one collection that the site shows: every file, except
+// that projects pass through the one predicate every output reads
+// (src/lib/shown.ts), as scripts/check-dist.mjs puts it.
 function visibleEntries(collection: string): string[] {
   const dir = path.join(content, collection);
   return readdirSync(dir)
     .filter((file) => file.endsWith('.yaml'))
-    .filter((file) => !/^visibility:\s*hidden\s*$/m.test(readFileSync(path.join(dir, file), 'utf8')))
+    .filter((file) => collection !== 'projects' || isShown(parseYaml(readFileSync(path.join(dir, file), 'utf8'))))
     .sort();
 }
 
@@ -37,14 +39,25 @@ const profile = entryData('profile.yaml').profile as {
   profiles: { network: string; username: string; url: string }[];
 };
 
-const counted = {
-  projects: visibleEntries('projects').length,
-  experience: visibleEntries('experience').length,
-  education: visibleEntries('education').length,
-  certificates: visibleEntries('certificates').length,
-};
-
 const skillEntries = visibleEntries('skills').map((file) => entryData('skills', file));
+
+// The certificates collection is two sections, told apart by the field the
+// page reads (src/lib/shown.ts), so a card's count follows a reclassification
+// in the content without this file being touched.
+const certificates = visibleEntries('certificates').map(
+  (file) => entryData('certificates', file) as { kind: 'course' | 'certification' },
+);
+
+// What each section card must say it holds: the number of entries that
+// section renders, computed from src/content/ the way the page computes it.
+const counted = {
+  experience: visibleEntries('experience').length,
+  projects: visibleEntries('projects').length,
+  education: visibleEntries('education').length,
+  courses: certificates.filter(isCourse).length,
+  certifications: certificates.filter(isCertification).length,
+  skills: skillEntries.length,
+};
 
 // The line a section card shows for one collection, worded as the page words
 // it: the number, and the form of the noun the language gives that number.
@@ -53,6 +66,67 @@ function countLine(locale: Locale, collection: keyof typeof counted): string {
   const n = counted[collection];
   return fill(t.home.counts.line, { count: String(n), noun: plural(locale, n, t.home.counts.nouns[collection]) });
 }
+
+// The sections of the site, in the order the home page indexes them, each
+// with the heading it leads to on the page that holds it and the collection
+// it counts. The certifications heading keeps the `certificates` id an
+// inbound link may already carry. The CV is one document rather than a list
+// of entries, so it counts nothing.
+const sections: {
+  section: string;
+  href: (locale: Locale) => string;
+  name: (locale: Locale) => string;
+  counts?: keyof typeof counted;
+}[] = [
+  {
+    section: 'experience',
+    href: (locale) => `${at(`/${locale}/work/`)}#experience`,
+    name: (locale) => strings[locale].sections.experience,
+    counts: 'experience',
+  },
+  {
+    section: 'projects',
+    href: (locale) => `${at(`/${locale}/work/`)}#projects`,
+    name: (locale) => strings[locale].sections.projects,
+    counts: 'projects',
+  },
+  {
+    section: 'education',
+    href: (locale) => `${at(`/${locale}/education/`)}#studies`,
+    name: (locale) => strings[locale].nav.education,
+    counts: 'education',
+  },
+  {
+    section: 'courses',
+    href: (locale) => `${at(`/${locale}/education/`)}#courses`,
+    name: (locale) => strings[locale].sections.courses,
+    counts: 'courses',
+  },
+  {
+    section: 'certifications',
+    href: (locale) => `${at(`/${locale}/education/`)}#certificates`,
+    name: (locale) => strings[locale].sections.certifications,
+    counts: 'certifications',
+  },
+  {
+    section: 'skills',
+    href: (locale) => `${at(`/${locale}/`)}#skills`,
+    name: (locale) => strings[locale].sections.skills,
+    counts: 'skills',
+  },
+  {
+    section: 'cv',
+    href: (locale) => at(`/${locale}/cv/`),
+    name: (locale) => strings[locale].nav.cv,
+  },
+  // The two documents are the last cards, the resume after the CV. Neither
+  // is a list of entries, so neither counts anything.
+  {
+    section: 'resume',
+    href: (locale) => at(`/${locale}/resume/`),
+    name: (locale) => strings[locale].nav.resume,
+  },
+];
 
 // Where each element sits in the document order of `main`, so reading order is
 // asserted on the page rather than inferred from the template.
@@ -103,7 +177,7 @@ for (const locale of locales) {
     test('offers the contact actions with icons and names', async ({ page }) => {
       await page.goto(at(`/${locale}/`));
       const actions = page.locator('[data-contact-actions] a');
-      await expect(actions).toHaveCount(2 + profile.profiles.length);
+      await expect(actions).toHaveCount(3 + profile.profiles.length);
 
       for (const action of await actions.all()) {
         await expect(action.locator('svg')).toHaveCount(1);
@@ -124,6 +198,11 @@ for (const locale of locales) {
       await expect(cv).toHaveAttribute('href', at(`/${locale}/cv/`));
       await expect(cv.locator('svg')).toHaveAttribute('data-icon', 'file');
       await expect(cv).toHaveAccessibleName(strings[locale].nav.cv);
+
+      const resume = page.locator('[data-contact="resume"]');
+      await expect(resume).toHaveAttribute('href', at(`/${locale}/resume/`));
+      await expect(resume.locator('svg')).toHaveAttribute('data-icon', 'file');
+      await expect(resume).toHaveAccessibleName(strings[locale].nav.resume);
     });
 
     test('shows every skill group as a card with its keywords', async ({ page }) => {
@@ -139,29 +218,56 @@ for (const locale of locales) {
       }
     });
 
-    test('counts what each section holds', async ({ page }) => {
+    test('shows one card per section, in the order the site reads in', async ({ page }) => {
       await page.goto(at(`/${locale}/`));
       const cards = page.locator('[data-section-card]');
-      await expect(cards).toHaveCount(3);
+      await expect(cards).toHaveCount(sections.length);
 
-      const separator = strings[locale].listSeparator;
-      const work = page.locator('[data-section-card="work"]');
-      await expect(work).toHaveAttribute('href', at(`/${locale}/work/`));
-      await expect(work.locator('[data-counts]')).toHaveText(
-        [countLine(locale, 'projects'), countLine(locale, 'experience')].join(separator),
-      );
+      // Experience before projects, on the home page as everywhere else
+      // (requirement 4), and the order asserted from the page rather than
+      // read off the template.
+      const order = await cards.evaluateAll((nodes) => nodes.map((node) => node.getAttribute('data-section-card')));
+      expect(order, `the section cards on /${locale}/`).toEqual(sections.map((section) => section.section));
+    });
 
-      const education = page.locator('[data-section-card="education"]');
-      await expect(education).toHaveAttribute('href', at(`/${locale}/education/`));
-      await expect(education.locator('[data-counts]')).toHaveText(
-        [countLine(locale, 'education'), countLine(locale, 'certificates')].join(separator),
-      );
+    test('leads each section card to its heading and counts what it holds', async ({ page }) => {
+      await page.goto(at(`/${locale}/`));
 
-      // The CV is one document rather than a list of entries, so its card
-      // says what it holds and counts nothing.
-      const cv = page.locator('[data-section-card="cv"]');
-      await expect(cv).toHaveAttribute('href', at(`/${locale}/cv/`));
-      await expect(cv.locator('[data-counts]')).toHaveCount(0);
+      for (const section of sections) {
+        const card = page.locator(`[data-section-card="${section.section}"]`);
+        await expect(card, `the ${section.section} card on /${locale}/`).toHaveAttribute('href', section.href(locale));
+        await expect(card.locator('h3')).toHaveText(section.name(locale));
+        if (section.counts) {
+          await expect(card.locator('[data-counts]'), `the count on the ${section.section} card`).toHaveText(
+            countLine(locale, section.counts),
+          );
+        } else {
+          await expect(card.locator('[data-counts]'), `the ${section.section} card counts nothing`).toHaveCount(0);
+        }
+      }
+    });
+
+    test('lands each section card on the heading it names', async ({ page }) => {
+      // The anchors are addresses on other pages, so following one is what
+      // proves the heading is there to land on.
+      for (const section of sections) {
+        const href = section.href(locale);
+        const anchor = href.includes('#') ? href.slice(href.indexOf('#') + 1) : undefined;
+        if (!anchor) continue;
+        await page.goto(href);
+        await expect(page.locator(`h2#${anchor}`), `${href} lands on a heading`).toHaveCount(1);
+      }
+    });
+
+    test('offers the two documents last, the resume after the CV', async ({ page }) => {
+      // The CV and the resume are documents rather than lists of entries, so
+      // each says what it holds, counts nothing, and comes after the sections
+      // (requirement 8, and requirement 4's order).
+      await page.goto(at(`/${locale}/`));
+
+      const order = await positions(page, ['[data-section-card="cv"]', '[data-section-card="resume"]']);
+      expect(order, 'both document cards are on the page').not.toContain(-1);
+      expect(order[1], 'the resume card comes after the CV card').toBeGreaterThan(order[0]!);
     });
   });
 }

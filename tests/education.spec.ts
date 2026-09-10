@@ -8,14 +8,16 @@ import { lowContrastPairs } from './contrast';
 import { at, locales } from './pages';
 import { fill, formatPeriod, plural, strings } from '../src/lib/i18n';
 import { byDateAscending, byStartAscending } from '../src/lib/order';
+import { isCertification, isCourse } from '../src/lib/shown';
 
 // The education page: the timeline of institutions with one node for the
-// online-courses phase, and the certificates under their own heading below it.
+// online-courses phase, then the courses and the certifications, each under
+// its own heading below it.
 //
 // What the page shows is read from src/content/ here, the way
 // scripts/check-dist.mjs reads it, so an expectation is the content rather
 // than a number typed twice: the courses the university entry lists, how many
-// certificates there are, and the dates of the first and the last.
+// online courses there are, and the dates of the first and the last.
 
 const content = fileURLToPath(new URL('../src/content/', import.meta.url));
 
@@ -29,11 +31,17 @@ function entries<T>(collection: string): T[] {
 
 type Text = Record<'en' | 'ar', string>;
 type EducationEntry = { institution: Text; status: string; period: { start: string }; courses?: Text[] };
-type CertificateEntry = { name: Text; date?: string };
+type CertificateEntry = { name: Text; kind: 'course' | 'certification'; date?: string };
 
 const education = entries<EducationEntry>('education').sort(byStartAscending);
+
+// The two sections the certificates collection renders as, told apart by the
+// field the page reads (src/lib/shown.ts). The timeline's node stands for the
+// courses, so it is the courses it counts and dates.
 const certificates = entries<CertificateEntry>('certificates');
-const dated = certificates.filter((entry) => entry.date).sort(byDateAscending);
+const courses = certificates.filter(isCourse);
+const certifications = certificates.filter(isCertification);
+const dated = courses.filter((entry) => entry.date).sort(byDateAscending);
 
 // The institution the timeline ends on, and the one whose certificate is
 // pending: the same entry today, and the test says which it means either way.
@@ -90,34 +98,56 @@ for (const locale of locales) {
       await expect(items.nth(last)).toContainText(mostRecent.institution[locale]);
     });
 
-    test('counts every certificate on the node and dates it from the first to the last', async ({ page }) => {
+    test('counts the courses on the node and dates it from the first to the last', async ({ page }) => {
       await page.goto(url);
-      const courses = page.locator(node);
-      await expect(courses).toContainText(t.education.onlineCourses.name);
-      await expect(courses).toContainText(
+      const online = page.locator(node);
+      await expect(online).toContainText(t.education.onlineCourses.name);
+      // The node counts the courses grid, worded with the courses noun, and
+      // leads to it (requirement 5).
+      await expect(online).toContainText(
         fill(t.education.onlineCourses.count, {
-          count: String(certificates.length),
-          noun: plural(locale, certificates.length, t.education.onlineCourses.noun),
+          count: String(courses.length),
+          noun: plural(locale, courses.length, t.education.onlineCourses.noun),
         }),
       );
-      await expect(courses).toContainText(formatPeriod(locale, period));
-      await expect(courses).toHaveAttribute('href', '#certificates');
+      await expect(online).toContainText(formatPeriod(locale, period));
+      await expect(online).toHaveAttribute('href', '#courses');
+      await expect(online).toContainText(t.education.onlineCourses.link);
     });
 
-    test('lists the certificates under the heading the node leads to', async ({ page }) => {
+    test('lists the courses under the heading the node leads to, and the certifications under their own', async ({
+      page,
+    }) => {
       await page.goto(url);
-      // The anchor is the heading below the timeline, so an inbound link to
-      // #certificates still lands on the certificates.
-      const heading = page.locator('h2#certificates');
-      await expect(heading).toHaveText(t.sections.certificates);
-      await expect(page.locator(timeline).locator('h2#certificates')).toHaveCount(0);
 
-      const list = page.locator('section[aria-labelledby="certificates"] > ul > li');
-      await expect(list).toHaveCount(certificates.length);
-      // In the order the site orders certificates: by date, the undated last.
-      const ordered = [...certificates].sort(byDateAscending);
-      await expect(list.first()).toContainText(ordered[0].name[locale]);
-      await expect(list.last()).toContainText(ordered[ordered.length - 1].name[locale]);
+      const coursesHeading = page.locator('h2#courses');
+      await expect(coursesHeading).toHaveText(t.sections.courses);
+      await expect(page.locator(timeline).locator('h2#courses')).toHaveCount(0);
+
+      // The certifications heading keeps the id the certificates section had,
+      // so an inbound link to #certificates still lands on a credential.
+      const certificationsHeading = page.locator('h2#certificates');
+      await expect(certificationsHeading).toHaveText(t.sections.certifications);
+
+      // Each grid holds its own kind, in the order the site orders them: by
+      // date, the undated last.
+      for (const [grid, expected] of [
+        ['courses', courses],
+        ['certifications', certifications],
+      ] as const) {
+        const list = page.locator(`[data-grid="${grid}"] > li`);
+        await expect(list, `the ${grid} grid on ${url}`).toHaveCount(expected.length);
+        // Reclassifying every entry of one kind empties that grid, which
+        // criterion 6 allows, and an empty grid has no first or last card to
+        // read. The count above is the whole assertion in that case.
+        if (expected.length === 0) continue;
+        const ordered = [...expected].sort(byDateAscending);
+        // The Arabic of a certificate's name is optional in the contract, so
+        // the page falls back to the English and the expectation follows it.
+        const nameOf = (entry: (typeof ordered)[number]) => entry.name[locale] ?? entry.name.en;
+        await expect(list.first()).toContainText(nameOf(ordered[0]!));
+        await expect(list.last()).toContainText(nameOf(ordered[ordered.length - 1]!));
+      }
     });
 
     test('meets the contrast criterion with the courses open', async ({ page, colorScheme }) => {

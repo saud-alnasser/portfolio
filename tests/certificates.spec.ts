@@ -6,22 +6,32 @@ import { expect, test, type Page } from '@playwright/test';
 import { parse as parseYaml } from 'yaml';
 import { lowContrastPairs } from './contrast';
 import { at, locales } from './pages';
-import { strings } from '../src/lib/i18n';
+import { formatDate, strings } from '../src/lib/i18n';
+import { byDateAscending } from '../src/lib/order';
+import { isCertification, isCourse } from '../src/lib/shown';
 
-// The certificate grid and the one dialog its cards open: the card is a link
-// to its PDF, so a visitor with no script gets the document itself, and the
-// script turns the click into the dialog showing the preview with the PDF one
-// click away. What the page must not do is load any of the 27 previews with
-// itself, which is what the dialog's empty <img> and the request count below
-// assert.
+// The two certificate grids and the one dialog their cards open: the card is
+// a link to its PDF, so a visitor with no script gets the document itself,
+// and the script turns the click into the dialog showing the preview with the
+// PDF one click away. What the page must not do is load any of the 27
+// previews with itself, which is what the dialog's empty <img> and the
+// request count below assert.
 //
-// How many certificates there are, and how many name a document, is read from
-// src/content/ the way tests/education.spec.ts reads it, so the number is the
-// content rather than a number typed twice.
+// Which entries are courses and which are certifications, how many of each,
+// and how many name a document is read from src/content/ the way
+// tests/education.spec.ts reads it, so the numbers are the content rather
+// than numbers typed twice, and reclassifying an entry moves its card between
+// the grids here as well as on the page.
 
 const content = fileURLToPath(new URL('../src/content/', import.meta.url));
 
-type CertificateEntry = { name: Record<'en' | 'ar', string>; issuer: string; document?: string };
+type CertificateEntry = {
+  name: Record<'en' | 'ar', string>;
+  issuer: string;
+  kind: 'course' | 'certification';
+  date?: string;
+  document?: string;
+};
 
 const certificates = readdirSync(path.join(content, 'certificates'))
   .filter((file) => file.endsWith('.yaml'))
@@ -30,17 +40,26 @@ const certificates = readdirSync(path.join(content, 'certificates'))
 
 const documented = certificates.filter((entry) => entry.document);
 
-const grid = '[data-grid="certificates"]';
-const cards = '[data-entry="certificate"]';
+// One row per grid on the education page, with the entries it holds in the
+// order the site puts them in: by date, the undated last.
+const grids = [
+  { grid: 'courses', entries: certificates.filter(isCourse).sort(byDateAscending) },
+  { grid: 'certifications', entries: certificates.filter(isCertification).sort(byDateAscending) },
+];
+
+// Both grids' cards, whichever kind they are: the dialog serves them alike.
+const cards = ':is([data-entry="course"], [data-entry="certification"])';
 const dialog = '[data-certificate-dialog]';
 const image = '[data-certificate-image]';
 const link = '[data-certificate-link]';
 const caption = '[data-certificate-caption]';
 const close = '[data-certificate-close]';
 
-// The number of tracks the grid lays its cards in, as the browser computes it.
-const columnsOf = (page: Page) =>
-  page.locator(grid).evaluate((node) => getComputedStyle(node).gridTemplateColumns.split(/\s+/).filter(Boolean).length);
+// The number of tracks a grid lays its cards in, as the browser computes it.
+const columnsOf = (page: Page, grid: string) =>
+  page
+    .locator(`[data-grid="${grid}"]`)
+    .evaluate((node) => getComputedStyle(node).gridTemplateColumns.split(/\s+/).filter(Boolean).length);
 
 // The reveal is a 500ms animation; a click waits it out first.
 const settled = (page: Page) => page.evaluate(() => Promise.all(document.getAnimations().map((a) => a.finished)));
@@ -49,11 +68,52 @@ for (const locale of locales) {
   const url = at(`/${locale}/education/`);
 
   test.describe(url, () => {
-    test('shows every certificate as a card, each with a document carrying its address', async ({ page }) => {
-      await page.goto(url);
-      await expect(page.locator(`${grid} > li`)).toHaveCount(certificates.length);
-      await expect(page.locator(cards)).toHaveCount(certificates.length);
+    for (const { grid, entries } of grids) {
+      test(`shows every ${grid} entry as a card, with its issuer and its date`, async ({ page }) => {
+        await page.goto(url);
+        await expect(page.locator(`[data-grid="${grid}"] > li`)).toHaveCount(entries.length);
 
+        const found = await page.locator(`[data-grid="${grid}"] [data-entry]`).evaluateAll((nodes) =>
+          nodes.map((node) => ({
+            kind: node.getAttribute('data-entry'),
+            name: node.querySelector('h3')?.textContent?.trim() ?? '',
+            text: node.textContent?.replace(/\s+/g, ' ').trim() ?? '',
+          })),
+        );
+
+        // Every entry of this kind, and nothing of the other kind.
+        expect(found.map((card) => card.name).sort(), `the ${grid} cards on ${url}`).toEqual(
+          entries.map((entry) => entry.name[locale] ?? entry.name.en).sort(),
+        );
+        const kind = grid === 'courses' ? 'course' : 'certification';
+        for (const [index, card] of found.entries()) {
+          expect(card.kind, `card ${index} of the ${grid} grid on ${url}`).toBe(kind);
+        }
+
+        // In date order, with the undated last: the dates the cards carry, in
+        // the order they are laid out, are the dates the content sorts into.
+        const dateOf = (name: string) => entries.find((entry) => (entry.name[locale] ?? entry.name.en) === name)?.date;
+        expect(
+          found.map((card) => dateOf(card.name)),
+          `the ${grid} cards on ${url} in date order, the undated last`,
+        ).toEqual(entries.map((entry) => entry.date));
+
+        // What a card says: its name, its issuer, and its date where the
+        // entry has one.
+        for (const [index, card] of found.entries()) {
+          const entry = entries.find((candidate) => (candidate.name[locale] ?? candidate.name.en) === card.name)!;
+          expect(card.text, `the issuer on card ${index} of the ${grid} grid on ${url}`).toContain(entry.issuer);
+          if (entry.date) {
+            expect(card.text, `the date on card ${index} of the ${grid} grid on ${url}`).toContain(
+              formatDate(locale, entry.date),
+            );
+          }
+        }
+      });
+    }
+
+    test('gives every card that names a document its address', async ({ page }) => {
+      await page.goto(url);
       const withDocument = page.locator(`${cards}[data-document]`);
       await expect(withDocument, `certificates naming a document on ${url}`).toHaveCount(documented.length);
 
@@ -92,59 +152,67 @@ for (const locale of locales) {
       expect(previews, `previews requested by ${url}`).toEqual([]);
     });
 
-    test('opens the dialog on a click, with the preview and the PDF', async ({ page }) => {
-      await page.goto(url);
-      await settled(page);
-      const card = page.locator(`${cards}[data-document]`).first();
-      const expected = {
-        preview: await card.getAttribute('data-preview'),
-        document: await card.getAttribute('data-document'),
-        caption: await card.getAttribute('data-caption'),
-      };
+    // The dialog is one dialog for both grids, so it is opened from each.
+    for (const { grid, entries } of grids) {
+      if (!entries.some((entry) => entry.document)) continue;
+      const documentedCards = `[data-grid="${grid}"] ${cards}[data-document]`;
 
-      await expect(page.locator(dialog)).not.toHaveAttribute('open');
-      await card.click();
-      await expect(page.locator(dialog)).toHaveAttribute('open', '');
-      await expect(page.locator(`${dialog} ${image}`)).toHaveAttribute('src', expected.preview!);
-      await expect(page.locator(`${dialog} ${image}`)).toHaveAttribute('alt', expected.caption!);
-      // The preview is a real file that arrives, not only an address, and the
-      // dialog reserved its box before it did: the image's size attributes are
-      // the card's, so the dialog does not grow when the file lands.
-      await expect
-        .poll(() => page.locator(`${dialog} ${image}`).evaluate((node) => (node as HTMLImageElement).naturalWidth), {
-          message: `the preview of ${url} loads`,
-        })
-        .toBeGreaterThan(0);
-      await expect(page.locator(`${dialog} ${image}`)).toHaveAttribute('width', (await card.getAttribute('data-preview-width'))!);
-      await expect(page.locator(`${dialog} ${image}`)).toHaveAttribute('height', (await card.getAttribute('data-preview-height'))!);
-      await expect(page.locator(`${dialog} ${link}`)).toHaveAttribute('href', expected.document!);
-      await expect(page.locator(`${dialog} ${link}`)).toContainText(strings[locale].certificate.document);
-      await expect(page.locator(`${dialog} ${caption}`)).toHaveText(expected.caption!);
-      // The click opened the dialog rather than following the link.
-      await expect(page).toHaveURL(new RegExp(`${url.replace(/\//g, '\\/')}$`));
-    });
+      test(`opens the dialog on a click in the ${grid} grid, with the preview and the PDF`, async ({ page }) => {
+        await page.goto(url);
+        await settled(page);
+        const card = page.locator(documentedCards).first();
+        const expected = {
+          preview: await card.getAttribute('data-preview'),
+          document: await card.getAttribute('data-document'),
+          caption: await card.getAttribute('data-caption'),
+        };
 
-    test('closes on Escape and returns focus to the card that opened it', async ({ page }) => {
-      await page.goto(url);
-      await settled(page);
-      const card = page.locator(`${cards}[data-document]`).nth(1);
-      await card.click();
-      await expect(page.locator(dialog)).toHaveAttribute('open', '');
-      await page.keyboard.press('Escape');
-      await expect(page.locator(dialog)).not.toHaveAttribute('open');
-      await expect(card).toBeFocused();
-    });
+        await expect(page.locator(dialog)).not.toHaveAttribute('open');
+        await card.click();
+        await expect(page.locator(dialog)).toHaveAttribute('open', '');
+        await expect(page.locator(`${dialog} ${image}`)).toHaveAttribute('src', expected.preview!);
+        await expect(page.locator(`${dialog} ${image}`)).toHaveAttribute('alt', expected.caption!);
+        // The preview is a real file that arrives, not only an address, and
+        // the dialog reserved its box before it did: the image's size
+        // attributes are the card's, so the dialog does not grow when the
+        // file lands.
+        await expect
+          .poll(() => page.locator(`${dialog} ${image}`).evaluate((node) => (node as HTMLImageElement).naturalWidth), {
+            message: `the preview of ${url} loads`,
+          })
+          .toBeGreaterThan(0);
+        await expect(page.locator(`${dialog} ${image}`)).toHaveAttribute('width', (await card.getAttribute('data-preview-width'))!);
+        await expect(page.locator(`${dialog} ${image}`)).toHaveAttribute('height', (await card.getAttribute('data-preview-height'))!);
+        await expect(page.locator(`${dialog} ${link}`)).toHaveAttribute('href', expected.document!);
+        await expect(page.locator(`${dialog} ${link}`)).toContainText(strings[locale].certificate.document);
+        await expect(page.locator(`${dialog} ${caption}`)).toHaveText(expected.caption!);
+        // The click opened the dialog rather than following the link.
+        await expect(page).toHaveURL(new RegExp(`${url.replace(/\//g, '\\/')}$`));
+      });
 
-    test('closes on the close control and returns focus to the card', async ({ page }) => {
-      await page.goto(url);
-      await settled(page);
-      const card = page.locator(`${cards}[data-document]`).first();
-      await card.click();
-      await expect(page.locator(`${dialog} ${close}`)).toHaveAccessibleName(strings[locale].certificate.close);
-      await page.locator(`${dialog} ${close}`).click();
-      await expect(page.locator(dialog)).not.toHaveAttribute('open');
-      await expect(card).toBeFocused();
-    });
+      test(`closes on Escape and returns focus to the ${grid} card that opened it`, async ({ page }) => {
+        await page.goto(url);
+        await settled(page);
+        const openable = page.locator(documentedCards);
+        const card = (await openable.count()) > 1 ? openable.nth(1) : openable.first();
+        await card.click();
+        await expect(page.locator(dialog)).toHaveAttribute('open', '');
+        await page.keyboard.press('Escape');
+        await expect(page.locator(dialog)).not.toHaveAttribute('open');
+        await expect(card).toBeFocused();
+      });
+
+      test(`closes on the close control and returns focus to the ${grid} card`, async ({ page }) => {
+        await page.goto(url);
+        await settled(page);
+        const card = page.locator(documentedCards).first();
+        await card.click();
+        await expect(page.locator(`${dialog} ${close}`)).toHaveAccessibleName(strings[locale].certificate.close);
+        await page.locator(`${dialog} ${close}`).click();
+        await expect(page.locator(dialog)).not.toHaveAttribute('open');
+        await expect(card).toBeFocused();
+      });
+    }
 
     test('meets the contrast criterion with the dialog closed and open', async ({ page, colorScheme }) => {
       await page.goto(url);
@@ -168,10 +236,12 @@ for (const locale of locales) {
   test.describe(`${url} at 360 pixels wide`, () => {
     test.use({ viewport: { width: 360, height: 780 } });
 
-    test('lays the certificates in one column and does not scroll sideways', async ({ page }) => {
+    test('lays both grids in one column and does not scroll sideways', async ({ page }) => {
       await page.goto(url);
       await page.evaluate(() => document.fonts.ready);
-      expect(await columnsOf(page), `columns of the certificate grid on ${url}`).toBe(1);
+      for (const { grid } of grids) {
+        expect(await columnsOf(page, grid), `columns of the ${grid} grid on ${url}`).toBe(1);
+      }
       const width = await page.evaluate(() => document.documentElement.scrollWidth);
       expect(width, `scrollWidth of ${url}`).toBeLessThanOrEqual(360);
     });
@@ -180,9 +250,11 @@ for (const locale of locales) {
   test.describe(`${url} at 1440 pixels wide`, () => {
     test.use({ viewport: { width: 1440, height: 900 } });
 
-    test('lays the certificates in two or more columns', async ({ page }) => {
+    test('lays both grids in two or more columns', async ({ page }) => {
       await page.goto(url);
-      expect(await columnsOf(page), `columns of the certificate grid on ${url}`).toBeGreaterThanOrEqual(2);
+      for (const { grid } of grids) {
+        expect(await columnsOf(page, grid), `columns of the ${grid} grid on ${url}`).toBeGreaterThanOrEqual(2);
+      }
     });
   });
 
@@ -206,10 +278,10 @@ for (const locale of locales) {
 test.describe('at 1440 pixels wide', () => {
   test.use({ viewport: { width: 1440, height: 900 } });
 
-  test('the Arabic certificate grid fills from the right and the English from the left', async ({ page }) => {
+  test('the Arabic course grid fills from the right and the English from the left', async ({ page }) => {
     const firstTwo = async (path: string) => {
       await page.goto(path);
-      const card = page.locator(cards);
+      const card = page.locator(`[data-grid="courses"] ${cards}`);
       return { first: (await card.nth(0).boundingBox())!, second: (await card.nth(1).boundingBox())! };
     };
 

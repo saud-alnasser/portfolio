@@ -1,14 +1,14 @@
 // The mechanism behind "one source of content": a project added to
-// src/content/projects/ appears on the work page, the CV page, and
-// resume.json in both languages, with no change to any file outside the
-// content source, and disappears again when removed. A certificate added to
-// src/content/certificates/ does the same on the education page, the CV page,
-// and resume.json.
+// src/content/projects/ appears on the work page, the CV page, the resume
+// page, and resume.json in both languages, with no change to any file outside
+// the content source, and disappears again when removed. A certificate added
+// to src/content/certificates/ does the same on the education page, the CV
+// page, and resume.json.
 //
 //   pnpm test:content
 //
 // The script writes a fixture project and a fixture certificate, builds,
-// asserts each fixture's name is in exactly its six outputs and nowhere else
+// asserts each fixture's name is in exactly its own outputs and nowhere else
 // in dist/, removes the fixtures, builds again, and asserts the names are
 // gone. At every step `git status` is compared with what it showed at the
 // start: nothing outside src/content/ may differ during the run, and nothing
@@ -20,6 +20,11 @@
 // page has nothing to open and must be neither a link nor a button. Every
 // real certificate carries its document, so this is the one place that card
 // is rendered and checked.
+//
+// The fixture project is finished and marked for the resume, so it reaches
+// the resume page as well as the CV; the fixture certificate is a course and
+// carries no marker, so it reaches the CV and stops there. Each takes the
+// path a real entry takes through src/lib/shown.ts.
 //
 // The fixture names start with `fixture-`, as src/content/README.md reserves for
 // placeholders, and carry a suffix no real entry would. `render:pdf` is not
@@ -44,7 +49,16 @@ const contentDir = 'src/content/';
 const project = {
   name: 'fixture-mechanism-probe-4f9c2e',
   file: path.join(root, contentDir, 'projects', 'fixture-mechanism-probe-4f9c2e.yaml'),
-  outputs: ['en/work/index.html', 'ar/work/index.html', 'en/cv/index.html', 'ar/cv/index.html', 'en/resume.json', 'ar/resume.json'],
+  outputs: [
+    'en/work/index.html',
+    'ar/work/index.html',
+    'en/cv/index.html',
+    'ar/cv/index.html',
+    'en/resume/index.html',
+    'ar/resume/index.html',
+    'en/resume.json',
+    'ar/resume.json',
+  ],
 };
 project.text = `# Written by scripts/test-content-mechanism.mjs and removed by it. If this
 # file is in the tree, that script was interrupted; delete it.
@@ -63,6 +77,8 @@ technologies:
 links:
   repository: https://example.invalid/${project.name}
 visibility: public
+status: completed
+resume: true
 `;
 
 const certificate = {
@@ -76,6 +92,7 @@ name:
   en: "${certificate.name}"
   ar: "${certificate.name}"
 issuer: "Fixture issuer"
+kind: course
 `;
 
 const fixtures = [project, certificate];
@@ -155,7 +172,7 @@ async function assertPresent(fixture) {
   }
   const elsewhere = found.filter((file) => !fixture.outputs.includes(file));
   if (elsewhere.length > 0) {
-    throw new Failure('fixture-leaked', `"${fixture.name}" also appears in ${elsewhere.map((file) => `dist/${file}`).join(', ')}, outside its six outputs`);
+    throw new Failure('fixture-leaked', `"${fixture.name}" also appears in ${elsewhere.map((file) => `dist/${file}`).join(', ')}, outside its ${fixture.outputs.length} outputs`);
   }
   console.log(`present: "${fixture.name}" in ${fixture.outputs.map((file) => `dist/${file}`).join(', ')} and nowhere else`);
 }
@@ -174,14 +191,14 @@ async function assertProjectLinked() {
 
 // The certificate's card on the education page is neither a link nor a
 // button and carries no document, because the entry names none. The card is
-// the nearest element before the name that is marked as a certificate entry;
-// its opening tag says what it is.
+// the nearest element before the name that is marked as a course entry, the
+// kind the fixture carries; its opening tag says what it is.
 async function assertCardUnopenable() {
   for (const locale of ['en', 'ar']) {
     const file = `${locale}/education/index.html`;
     const html = await readFile(path.join(dist, file), 'utf8');
     const at = html.indexOf(certificate.name);
-    const marker = html.lastIndexOf('data-entry="certificate"', at);
+    const marker = html.lastIndexOf('data-entry="course"', at);
     if (at === -1 || marker === -1) throw new Failure('fixture-missing', `dist/${file} has no certificate card named "${certificate.name}"`);
     const tag = html.slice(html.lastIndexOf('<', marker), html.indexOf('>', marker) + 1);
     const element = /^<([a-z0-9-]+)/i.exec(tag)?.[1]?.toLowerCase();

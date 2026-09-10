@@ -2,4 +2,5 @@ name:
   en: "Data Structures, Part 1"
   ar: "هياكل البيانات، الجزء الأول"
 issuer: "Code with Mosh"
+kind: course
 document: "files/code-with-mosh-data-structures-part-1.pdf"

@@ -1,10 +1,10 @@
-// Lighthouse on the home and CV pages of both languages, against a static
-// server of dist/ under the site's base path, so the audited pages are the
-// ones Pages will serve. Run after `pnpm build`:
+// Lighthouse on the home page and the two document pages of both languages,
+// against a static server of dist/ under the site's base path, so the audited
+// pages are the ones Pages will serve. Run after `pnpm build`:
 //
 //   pnpm lighthouse
 //
-// It serves dist/ on an ephemeral port, hands the four addresses to
+// It serves dist/ on an ephemeral port, hands the six addresses to
 // `lhci autorun` (the thresholds and the run count are in lighthouserc.json),
 // and closes the server when Lighthouse is done. Lighthouse's exit code is
 // this script's, so a score under a threshold fails the run the same way it
@@ -17,7 +17,7 @@ import { serve } from './serve-dist.mjs';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const dist = path.join(root, 'dist');
-const pages = ['/en/', '/ar/', '/en/cv/', '/ar/cv/'];
+const pages = ['/en/', '/ar/', '/en/cv/', '/ar/cv/', '/en/resume/', '/ar/resume/'];
 
 let server;
 try {

@@ -2,4 +2,5 @@ name:
   en: "Docker"
   ar: "Docker"
 issuer: "Code with Mosh"
+kind: course
 document: "files/code-with-mosh-docker.pdf"

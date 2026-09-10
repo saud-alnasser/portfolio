@@ -11,4 +11,5 @@ summary:
 technologies:
   - "Rust"
   - "JavaScript"
-visibility: described
+visibility: hidden
+status: in-progress

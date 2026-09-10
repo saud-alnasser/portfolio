@@ -2,4 +2,5 @@ name:
   en: "Git"
   ar: "Git"
 issuer: "Code with Mosh"
+kind: course
 document: "files/code-with-mosh-git.pdf"

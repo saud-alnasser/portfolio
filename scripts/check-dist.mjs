@@ -14,6 +14,7 @@ import { createRequire } from 'node:module';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { promisify } from 'node:util';
+import { getDocument } from 'pdfjs-dist/legacy/build/pdf.mjs';
 import { parse as parseYaml } from 'yaml';
 import { identifiersIn } from './identifiers.mjs';
 import { readmeWithProfile } from './readme-profile.mjs';
@@ -23,10 +24,20 @@ import { formatPeriod, localeInfo, strings } from '../src/lib/i18n.ts';
 import { gapReport, pick } from '../src/lib/localized.ts';
 import { byStartAscending, byStartDescending } from '../src/lib/order.ts';
 import { joinBase } from '../src/lib/paths.ts';
+import { isShown } from '../src/lib/shown.ts';
 import { base, site } from '../astro.config.mjs';
 
 const require = createRequire(import.meta.url);
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
+
+// The fonts pdf.js substitutes for the fourteen standard ones a PDF may use
+// without embedding, as scripts/certificate-previews.mjs finds them.
+const standardFontDataUrl = `${path.dirname(require.resolve('pdfjs-dist/package.json')).split(path.sep).join('/')}/standard_fonts/`;
+
+// The two documents the site publishes: the CV, which holds everything the
+// site shows, and the short resume. Both are rendered from a page of the
+// same name by scripts/render-pdf.mjs.
+const documents = ['cv', 'resume'];
 
 const context = {
   root,
@@ -48,33 +59,20 @@ class CheckFailure extends Error {
   }
 }
 
-// The YAML files of one collection that the site shows: every file that is not
-// marked `visibility: hidden`. The key is top-level in every schema that has
-// it, so a line-anchored match is enough and no YAML parser is needed.
+// The YAML files of one collection that the site shows, each parsed. Every
+// collection shows every file, except projects, which the site filters
+// through the one predicate every output reads (src/lib/shown.ts): a hidden
+// or unfinished project stays in the source and is expected in no output.
 async function visibleEntries(collection) {
   const dir = path.join(context.content, collection);
   const files = (await readdir(dir)).filter((name) => name.endsWith('.yaml')).sort();
   const entries = [];
   for (const file of files) {
-    const text = await readFile(path.join(dir, file), 'utf8');
-    const visibility = scalar(text, 'visibility');
-    if (visibility === 'hidden') continue;
-    entries.push({ file, text, visibility });
+    const data = parseYaml(await readFile(path.join(dir, file), 'utf8'));
+    if (collection === 'projects' && !isShown(data)) continue;
+    entries.push({ file, data });
   }
   return entries;
-}
-
-// A top-level scalar of a YAML file, with any surrounding quotes removed, so
-// `name: "Mudaraj"` and `name: Mudaraj` read the same.
-function scalar(text, key) {
-  const value = text.match(new RegExp(`^${key}:\\s*(.+?)\\s*$`, 'm'))?.[1];
-  return value?.replace(/^(["'])(.*)\1$/, '$2');
-}
-
-// The `name:` of a project file, which is authored once and so is the same in
-// every language's document.
-function projectName(text) {
-  return scalar(text, 'name');
 }
 
 async function readJson(file) {
@@ -105,7 +103,9 @@ async function jsonResume() {
   for (const [section, collection] of Object.entries(sections)) {
     expected[section] = await visibleEntries(collection);
   }
-  const described = expected.projects.filter((entry) => entry.visibility === 'described').map((entry) => projectName(entry.text));
+  // A project's `name:` is authored once, so it is the same in every
+  // language's document.
+  const described = expected.projects.filter((entry) => entry.data.visibility === 'described').map((entry) => entry.data.name);
 
   const lines = [];
   for (const locale of context.locales) {
@@ -175,31 +175,37 @@ async function extractText(file) {
   }
 }
 
-// The PDFs the render step writes: one per language, present, small enough to
-// attach to an application, and the English one yielding the facts a resume
-// parser needs, in reading order. The Arabic PDF is checked by eye, because
-// right-to-left extraction is not reliable enough to assert on.
-async function cvPdf() {
-  const name = 'cv pdf';
+// The PDFs the render step writes: the CV and the resume in each language,
+// present, small enough to attach to an application, and the English ones
+// yielding the facts a resume parser needs, in reading order. Both documents
+// print the same facts in the same order, because both come from one
+// component (src/components/CvDocument.astro), so one expectation covers
+// them. The Arabic PDFs are checked by eye, because right-to-left extraction
+// is not reliable enough to assert on.
+async function documentPdfs() {
+  const name = 'document pdfs';
   const limit = 1_000_000;
   const lines = [];
 
   const sizes = {};
-  for (const locale of context.locales) {
-    const file = path.join(context.dist, `cv.${locale}.pdf`);
-    try {
-      sizes[locale] = (await stat(file)).size;
-    } catch {
-      throw new CheckFailure(name, `${path.relative(root, file)} does not exist; run \`pnpm render:pdf\` after the build`);
-    }
-    if (sizes[locale] >= limit) {
-      throw new CheckFailure(name, `${path.relative(root, file)} is ${sizes[locale]} bytes, expected under ${limit}`);
+  for (const document of documents) {
+    for (const locale of context.locales) {
+      const file = path.join(context.dist, `${document}.${locale}.pdf`);
+      try {
+        sizes[`${document}.${locale}`] = (await stat(file)).size;
+      } catch {
+        throw new CheckFailure(name, `${path.relative(root, file)} does not exist; run \`pnpm render:pdf\` after the build`);
+      }
+      const size = sizes[`${document}.${locale}`];
+      if (size >= limit) {
+        throw new CheckFailure(name, `${path.relative(root, file)} is ${size} bytes, expected under ${limit}`);
+      }
     }
   }
 
-  // What the English CV page prints, from the content it prints it from, in
-  // the order it prints it (src/pages/[locale]/cv.astro): the name, the
-  // email, then each experience entry's position with its period and its
+  // What an English document page prints, from the content it prints it from,
+  // in the order it prints it (src/components/CvDocument.astro): the name,
+  // the email, then each experience entry's position with its period and its
   // organisation beneath, then each education entry's degree with its period
   // and its institution beneath.
   //
@@ -210,8 +216,8 @@ async function cvPdf() {
   const locale = 'en';
   const t = strings[locale];
   const profile = parseYaml(await readFile(path.join(context.content, 'profile.yaml'), 'utf8')).profile;
-  const experience = (await visibleEntries('experience')).map((entry) => parseYaml(entry.text)).sort(byStartDescending);
-  const education = (await visibleEntries('education')).map((entry) => parseYaml(entry.text)).sort(byStartAscending);
+  const experience = (await visibleEntries('experience')).map((entry) => entry.data).sort(byStartDescending);
+  const education = (await visibleEntries('education')).map((entry) => entry.data).sort(byStartAscending);
   const expected = [
     // The page sets the name in capitals, so that is what comes out of the
     // PDF whatever the content file says; it is the one item compared
@@ -230,11 +236,14 @@ async function cvPdf() {
     expected.push({ items: [entry.institution[locale]] });
   }
 
-  const file = path.join(context.dist, `cv.${locale}.pdf`);
-  const text = await extractText(file);
-  if (text === null) {
-    lines.push(`cv.${locale}.pdf: ${sizes[locale]} bytes; pdftotext is not on the PATH, so the text was not checked`);
-  } else {
+  for (const document of documents) {
+    const relative = `${document}.${locale}.pdf`;
+    const size = sizes[`${document}.${locale}`];
+    const text = await extractText(path.join(context.dist, relative));
+    if (text === null) {
+      lines.push(`${relative}: ${size} bytes; pdftotext is not on the PATH, so the text was not checked`);
+      continue;
+    }
     const found = text.split(/\r?\n/).map(squash);
     let cursor = 0;
     for (const group of expected) {
@@ -248,17 +257,58 @@ async function cvPdf() {
         throw new CheckFailure(
           name,
           absent
-            ? `cv.${locale}.pdf: "${absent}" is nowhere ${where}`
-            : `cv.${locale}.pdf: ${group.items.map((item) => `"${item}"`).join(' and ')} are not on one line, or on consecutive lines in that order, ${where}`,
+            ? `${relative}: "${absent}" is nowhere ${where}`
+            : `${relative}: ${group.items.map((item) => `"${item}"`).join(' and ')} are not on one line, or on consecutive lines in that order, ${where}`,
         );
       }
       cursor = index + 1;
     }
     const items = expected.reduce((total, group) => total + group.items.length, 0);
-    lines.push(`cv.${locale}.pdf: ${sizes[locale]} bytes, ${items} expected facts found in ${expected.length} groups in reading order`);
+    lines.push(`${relative}: ${size} bytes, ${items} expected facts found in ${expected.length} groups in reading order`);
   }
-  for (const other of context.locales.filter((l) => l !== locale)) {
-    lines.push(`cv.${other}.pdf: ${sizes[other]} bytes`);
+  for (const document of documents) {
+    for (const other of context.locales.filter((l) => l !== locale)) {
+      lines.push(`${document}.${other}.pdf: ${sizes[`${document}.${other}`]} bytes`);
+    }
+  }
+  return lines;
+}
+
+// The resume is the short document, and two pages is its budget. The render step counts
+// both papers as it writes, and this counts the A4 file that actually
+// shipped, so the rule holds over a dist/ assembled anywhere. The remedy for
+// a failure is content, as the effort's spec constrains, never a smaller type
+// size.
+async function resumePages() {
+  const name = 'resume pages';
+  const lines = [];
+  for (const locale of context.locales) {
+    const file = path.join(context.dist, `resume.${locale}.pdf`);
+    let data;
+    try {
+      data = await readFile(file);
+    } catch {
+      throw new CheckFailure(name, `${path.relative(root, file)} does not exist; run \`pnpm render:pdf\` after the build`);
+    }
+    const task = getDocument({ data: new Uint8Array(data), standardFontDataUrl });
+    let pages;
+    try {
+      pages = (await task.promise).numPages;
+    } finally {
+      await task.destroy();
+    }
+    // Two is the budget, not the target: the same document is one page under
+    // the fonts Windows resolves for the system stack and two under the Linux
+    // runner's, and the runner renders what ships. A third page is a resume
+    // that has stopped being the short document (the effort's spec,
+    // requirement 10).
+    if (pages > 2) {
+      throw new CheckFailure(
+        name,
+        `${path.relative(root, file)} has ${pages} pages, expected at most 2; shorten the content, never the type size`,
+      );
+    }
+    lines.push(`resume pages: resume.${locale}.pdf is ${pages} ${pages === 1 ? 'page' : 'pages'}, at most 2`);
   }
   return lines;
 }
@@ -613,8 +663,9 @@ async function gaps() {
     const dir = path.join(context.content, collection);
     for (const file of (await readdir(dir)).filter((entry) => entry.endsWith('.yaml')).sort()) {
       const entry = parseYaml(await readFile(path.join(dir, file), 'utf8'));
-      // A hidden project is never rendered, so the build records no gap for it.
-      if (entry.visibility === 'hidden') continue;
+      // A hidden or unfinished project is never rendered, so the build
+      // records no gap for it.
+      if (collection === 'projects' && !isShown(entry)) continue;
       walkValue(entry, collection, file.slice(0, -'.yaml'.length), '');
     }
   }
@@ -636,30 +687,32 @@ async function noOverclaim() {
   return [`no overclaim: neither "graduated" nor "awarded" in ${files.length} pages`];
 }
 
-// The CV page carries none of the layout hazards resume parsers document: no
-// table, no image, and the contact block in the flow of the document rather
-// than in a positioned header or footer.
-async function cvHazards() {
-  const name = 'cv hazards';
+// Neither document page carries the layout hazards resume parsers document:
+// no table, no image, and the contact block in the flow of the document
+// rather than in a positioned header or footer.
+async function documentHazards() {
+  const name = 'document hazards';
   const lines = [];
-  for (const locale of context.locales) {
-    const file = path.join(context.dist, locale, 'cv', 'index.html');
-    let html;
-    try {
-      html = await readFile(file, 'utf8');
-    } catch {
-      throw new CheckFailure(name, `dist/${locale}/cv/index.html does not exist`);
-    }
-    for (const tag of ['table', 'img']) {
-      if (new RegExp(`<${tag}[\\s>]`, 'i').test(html)) {
-        throw new CheckFailure(name, `dist/${locale}/cv/index.html contains a <${tag}> element`);
+  for (const document of documents) {
+    for (const locale of context.locales) {
+      const route = `${locale}/${document}/index.html`;
+      let html;
+      try {
+        html = await readFile(path.join(context.dist, locale, document, 'index.html'), 'utf8');
+      } catch {
+        throw new CheckFailure(name, `dist/${route} does not exist`);
       }
+      for (const tag of ['table', 'img']) {
+        if (new RegExp(`<${tag}[\\s>]`, 'i').test(html)) {
+          throw new CheckFailure(name, `dist/${route} contains a <${tag}> element`);
+        }
+      }
+      const main = html.match(/<main[\s>][\s\S]*?<\/main>/i)?.[0] ?? '';
+      if (!/mailto:/.test(main)) {
+        throw new CheckFailure(name, `dist/${route} has no email link inside <main>; the contact block must be in the flow of the document`);
+      }
+      lines.push(`document hazards: ${locale}/${document}/ has no table or image, and its contact block is in the flow`);
     }
-    const main = html.match(/<main[\s>][\s\S]*?<\/main>/i)?.[0] ?? '';
-    if (!/mailto:/.test(main)) {
-      throw new CheckFailure(name, `dist/${locale}/cv/index.html has no email link inside <main>; the contact block must be in the flow of the document`);
-    }
-    lines.push(`cv hazards: ${locale}/cv/ has no table or image, and its contact block is in the flow`);
   }
   return lines;
 }
@@ -676,7 +729,7 @@ async function readmeProfile() {
   return ['readme profile: README.md carries the profile as src/content/ states it'];
 }
 
-const checks = [jsonResume, cvPdf, localeTwins, hrefs, basePaths, metadata, sitemap, robots, identifiers, gaps, noOverclaim, cvHazards, readmeProfile];
+const checks = [jsonResume, documentPdfs, resumePages, localeTwins, hrefs, basePaths, metadata, sitemap, robots, identifiers, gaps, noOverclaim, documentHazards, readmeProfile];
 
 for (const check of checks) {
   try {

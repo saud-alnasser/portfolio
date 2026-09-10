@@ -7,19 +7,21 @@ import { base } from '../astro.config.mjs';
 import { joinBase } from '../src/lib/paths';
 
 export const locales = ['en', 'ar'] as const;
-export const routes = ['/', '/work/', '/education/', '/cv/'] as const;
+export const routes = ['/', '/work/', '/education/', '/cv/', '/resume/'] as const;
 
 export type Locale = (typeof locales)[number];
 export type Route = (typeof routes)[number];
 
 // The width of `main` at 1440 pixels, in pixels, per route: the `column`
 // each page passes to src/layouts/Base.astro, `grid` at max-w-5xl for the
-// pages laying cards in columns and `document` at max-w-3xl for the CV.
+// pages laying cards in columns and `document` at max-w-3xl for the two
+// document pages.
 export const columns: Record<Route, number> = {
   '/': 1024,
   '/work/': 1024,
   '/education/': 1024,
   '/cv/': 768,
+  '/resume/': 768,
 };
 
 // A path on the site as the server publishes it, under the base path from

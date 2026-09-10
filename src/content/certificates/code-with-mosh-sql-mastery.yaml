@@ -2,4 +2,5 @@ name:
   en: "SQL Mastery"
   ar: "إتقان SQL"
 issuer: "Code with Mosh"
+kind: course
 document: "files/code-with-mosh-sql-mastery.pdf"

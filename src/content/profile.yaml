@@ -8,15 +8,19 @@ profile:
     ar: مطور برمجيات
   summary:
     en: >-
-      Software developer in Riyadh, working mostly in Rust and TypeScript: an
-      offline-first desktop rent tracker, a Discord bot framework, a statically
-      typed programming language, and an engineering protocol for AI-assisted
-      software work.
+      Software developer in Riyadh, working mostly in Rust and TypeScript. Built
+      an offline-first desktop rent tracker on Tauri and SvelteKit, and
+      published an npm package that keeps a cache on the file system between
+      runs of a program. With a team of six, built a bilingual e-ticketing and
+      fan loyalty platform for Saudi football as a Saudi Electronic University
+      senior project.
     ar: >-
-      مطور برمجيات في الرياض، يعمل في الغالب بلغتي Rust وTypeScript: متتبع
-      لمدفوعات الإيجار على سطح المكتب يعمل دون اتصال أولاً، وإطار عمل لبوتات
-      Discord، ولغة برمجة ذات أنواع ساكنة، وبروتوكول هندسي للعمل البرمجي
-      بمساعدة الذكاء الاصطناعي.
+      مطور برمجيات في الرياض، يعمل في الغالب بلغتي Rust وTypeScript. بنى متتبعًا
+      لمدفوعات الإيجار على سطح المكتب يعمل دون اتصال أولاً باستخدام Tauri
+      وSvelteKit، ونشر حزمة npm تحتفظ بذاكرة تخزين مؤقت في نظام الملفات بين
+      تشغيلات البرنامج. وبنى مع فريق من ستة أعضاء منصة تذاكر إلكترونية وولاء
+      للمشجعين لكرة القدم السعودية بلغتين، مشروع تخرج في الجامعة السعودية
+      الإلكترونية.
   email: saud4services@gmail.com
   location:
     en: Riyadh, Saudi Arabia
