@@ -66,8 +66,13 @@ Both consumers build the address by appending it to a finished address rather th
 
 # Technical Approach
 
-1. **The gate, the token module, the render step, and the tests land together.** The integration gate renders the filled document on every pull request, and that render drives the form. A change that gates the form without moving `renderFilled()` to the marked address fails with `form-did-not-fill`, so splitting them produces a red branch by construction rather than by accident. This is the one ordering constraint in the effort, and it is why the first ticket is larger than it looks.
-2. **The documentation and the supersession line follow.** `docs/development.md` and the line in effort 7's spec depend on the behaviour existing and block nothing, so they land second.
+**The drivers move before the gate exists, and that is what keeps every branch green.** The integration gate renders the filled document on every pull request, and that render drives the form, so a branch that gates the form while `renderFilled()` still navigates to the plain address fails with `form-did-not-fill`. The order below inverts that rather than absorbing it into one large change: an ungated form opens at any address, so moving every driver to the marked address first changes no behaviour and passes on its own.
+
+1. **The token module, and every driver navigating to the marked address.** `scripts/form-marker.mjs`, `renderFilled()` in `scripts/render-pdf.mjs`, and the gated cases in `tests/document-form.spec.ts` and `tests/resume.spec.ts`. The fragment is inert until step 2, so this lands green and nothing about the site changes. Nothing in the suite pins a page address, which is what makes that true: `page.url()` appears nowhere under `tests/`.
+2. **The gate, and the tests that prove both paths.** The boolean and the latch in `src/layouts/Base.astro`, the three comments, and the new cases for a visitor's click, the skip link, and the no-script path at both addresses. Every driver already reaches the form through the marked address, so this is the first point at which the site behaves differently, and it is green on arrival.
+3. **The documentation and the supersession line.** `docs/development.md` and the line in effort 7's spec describe behaviour that step 2 creates, so they follow it and block nothing.
+
+**Written as one step until the tickets were cut**, which is when the inversion became visible: the constraint is real and the conclusion drawn from it was wrong, because it assumed the gate had to arrive first.
 
 # Testing Strategy
 
