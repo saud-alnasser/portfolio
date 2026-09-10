@@ -34,6 +34,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { getDocument } from 'pdfjs-dist/legacy/build/pdf.mjs';
 import { chromium } from 'playwright';
+import { marker } from './form-marker.mjs';
 import { placeholder } from './placeholder.mjs';
 import { serve } from './serve-dist.mjs';
 
@@ -187,7 +188,20 @@ async function renderFilled(browser, at, locale, output) {
   // ran, would otherwise leave the published document to be rendered under
   // the filled document's name.
   async function ready() {
-    const response = await page.goto(at(route), { waitUntil: 'networkidle' });
+    // The marked address (scripts/form-marker.mjs), which is where the form
+    // opens. This step has no way to it that a reader does not have, which is
+    // deliberate: a capture taken through an escape hatch would be a check
+    // over a document nobody can produce.
+    //
+    // Reloaded rather than opened again on the calls after the first, because
+    // the address now carries a fragment: a goto to the address the page is
+    // already at is a same-document navigation, which answers with no response
+    // at all and leaves standing the document the previous capture emptied.
+    const address = at(route) + marker;
+    const response =
+      page.url() === address
+        ? await page.reload({ waitUntil: 'networkidle' })
+        : await page.goto(address, { waitUntil: 'networkidle' });
     if (!response || !response.ok()) {
       throw new RenderFailure('page-not-loaded', `${route} answered ${response ? response.status() : 'nothing'}`);
     }

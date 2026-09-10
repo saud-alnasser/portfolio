@@ -116,7 +116,7 @@ Every task of every effort. The tracker carries the effort, never its tasks.
 | [[efforts/1-portfolio-site/tickets/13-base-path]] feat(site): serve the site under the /saud-alnasser/ base path of the project site | 1-portfolio-site | resolved | 09, 11, 12 |
 | [[efforts/1-portfolio-site/tickets/14-profile-readme]] docs(repo): open the README as the profile page and name the repository saud-alnasser everywhere | 1-portfolio-site | resolved | 13 |
 | [[efforts/1-portfolio-site/tickets/15-profile-readme-only]] docs(repo): make the README the profile page alone and move the site's documentation beside the code | 1-portfolio-site | resolved | 14 |
-| [[efforts/11-private-download-form/tickets/01-the-marked-address]] refactor(cv): the marker token in one place, and every driver navigating to the marked address | 11-private-download-form | open | — |
+| [[efforts/11-private-download-form/tickets/01-the-marked-address]] refactor(cv): the marker token in one place, and every driver navigating to the marked address | 11-private-download-form | resolved | — |
 | [[efforts/11-private-download-form/tickets/02-the-gate]] feat(cv): the download icon downloads, and the form opens only at the marked address | 11-private-download-form | open | 01 |
 | [[efforts/11-private-download-form/tickets/03-what-the-reader-after-needs]] docs(cv): the marked address in the development notes, and the line effort 7 needs | 11-private-download-form | open | 02 |
 | [[efforts/3-site-redesign/tickets/01-foundation-and-header]] feat(site): card, icon, and fold components, the wider column, and the header controls with icons | 3-site-redesign | resolved | — |

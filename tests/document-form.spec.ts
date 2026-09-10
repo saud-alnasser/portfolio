@@ -6,6 +6,7 @@ import { expect, test, type Page } from '@playwright/test';
 import { parse as parseYaml } from 'yaml';
 import { lowContrastPairs } from './contrast';
 import { at, locales } from './pages';
+import { marker } from '../scripts/form-marker.mjs';
 import { placeholder } from '../scripts/placeholder.mjs';
 import { strings } from '../src/lib/i18n';
 
@@ -59,6 +60,12 @@ async function slot(page: Page, which: 'email' | 'phone') {
 for (const locale of locales) {
   for (const variant of ['cv', 'resume'] as const) {
     const url = at(`/${locale}/${variant}/`);
+    // The same page at the address the form opens at, which every case below
+    // that wants the form navigates to by name. The marker is deliberately not
+    // in `url` and not in the shared setup: the plain address is what a reader
+    // of the site arrives at, and folding the marker into either would leave
+    // nothing asserting what happens there.
+    const marked = `${url}${marker}`;
     const t = strings[locale];
 
     test.describe(`the download form on ${url}`, () => {
@@ -67,7 +74,7 @@ for (const locale of locales) {
       });
 
       test('opens instead of downloading, and fills the contact line with what was typed', async ({ page }) => {
-        await page.goto(url);
+        await page.goto(marked);
         await settled(page);
         await page.locator(control).click();
         await expect(page.locator(dialog)).toHaveAttribute('open', '');
@@ -88,7 +95,7 @@ for (const locale of locales) {
       });
 
       test('carries the one value when only one is typed', async ({ page }) => {
-        await page.goto(url);
+        await page.goto(marked);
         await settled(page);
         await page.locator(control).click();
         await page.locator('[data-document-field="phone"]').fill(placeholder.phone);
@@ -100,7 +107,7 @@ for (const locale of locales) {
       });
 
       test('issues no network request while the form is open or generating', async ({ page }) => {
-        await page.goto(url);
+        await page.goto(marked);
         await settled(page);
 
         // Everything from here on: opening the dialog, typing, generating.
@@ -118,7 +125,7 @@ for (const locale of locales) {
       });
 
       test('empties the slots again after printing, and again when dismissed', async ({ page }) => {
-        await page.goto(url);
+        await page.goto(marked);
         await settled(page);
         await page.locator(control).click();
         await page.locator('[data-document-field="email"]').fill('reader@example.com');
@@ -146,7 +153,7 @@ for (const locale of locales) {
         // gets the last one's email and phone, on the document and in the
         // fields. `afterprint` is deliberately not dispatched here, which is
         // what makes this test about the clear on the way in.
-        await page.goto(url);
+        await page.goto(marked);
         await settled(page);
         await page.locator(control).click();
         await page.locator('[data-document-field="email"]').fill('first@example.com');
@@ -165,7 +172,7 @@ for (const locale of locales) {
       test('dismisses on Escape, on the close control, and on the backdrop, returning focus each time', async ({
         page,
       }) => {
-        await page.goto(url);
+        await page.goto(marked);
         await settled(page);
 
         for (const dismiss of ['escape', 'control', 'backdrop'] as const) {
@@ -183,7 +190,7 @@ for (const locale of locales) {
       });
 
       test('downloads the published document from the way out inside the form', async ({ page }) => {
-        await page.goto(url);
+        await page.goto(marked);
         await settled(page);
         await page.locator(control).click();
         const plain = page.locator(`${dialog} a[download]`);
@@ -195,7 +202,7 @@ for (const locale of locales) {
       });
 
       test('is completable by the keyboard alone, with both fields labelled', async ({ page }) => {
-        await page.goto(url);
+        await page.goto(marked);
         await settled(page);
 
         // Reached by tabbing rather than clicked, and opened with the key a
@@ -222,7 +229,7 @@ for (const locale of locales) {
       });
 
       test('meets the contrast criterion with the form open', async ({ page, colorScheme }) => {
-        await page.goto(url);
+        await page.goto(marked);
         await settled(page);
         // No second settle: opening the dialog cancels the page's reveal, and
         // a cancelled animation rejects the promise that waits on it.
@@ -242,7 +249,7 @@ for (const locale of locales) {
       test.use({ reducedMotion: 'reduce' });
 
       test('animates nothing when it opens', async ({ page }) => {
-        await page.goto(url);
+        await page.goto(marked);
         await page.locator(control).click();
         await expect(page.locator(dialog)).toHaveAttribute('open', '');
         const animations = await page.evaluate(() => document.getAnimations().length);

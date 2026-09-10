@@ -3,6 +3,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { expect, test, type Page } from '@playwright/test';
 import { parse as parseYaml } from 'yaml';
+import { marker } from '../scripts/form-marker.mjs';
 import { fill, formatPeriod, strings } from '../src/lib/i18n';
 import { isCertification, isCourse, isShown, onResume } from '../src/lib/shown';
 import { at, locales, type Locale } from './pages';
@@ -157,14 +158,15 @@ for (const locale of locales) {
       // Both palettes run this, because the ring is a token and a token can be
       // missing from one of them.
       //
-      // What Enter starts depends on script, and both halves are asserted.
-      // Here, with script, it opens the form that fills the contact line. The
-      // half where it downloads the published PDF directly is in
+      // What Enter starts depends on where the page was opened, and this is
+      // the half where it opens the form: the marked address
+      // (scripts/form-marker.mjs), which is the address the form opens at. The
+      // half where Enter downloads the published PDF instead is in
       // tests/document-form.spec.ts, under JavaScript disabled, which is the
       // case the no-script guarantee is about; the form's own way out
       // downloads the same file with script.
       test('takes focus from the keyboard, shows its ring, and acts on Enter', async ({ page }) => {
-        await page.goto(route);
+        await page.goto(`${route}${marker}`);
         const control = page.locator('.cv-actions [data-document-download]');
 
         // The header's controls come first in the reading order; 20 is more
