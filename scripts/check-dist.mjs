@@ -35,7 +35,7 @@ const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const standardFontDataUrl = `${path.dirname(require.resolve('pdfjs-dist/package.json')).split(path.sep).join('/')}/standard_fonts/`;
 
 // The two documents the site publishes: the CV, which holds everything the
-// site shows, and the one-page resume. Both are rendered from a page of the
+// site shows, and the short resume. Both are rendered from a page of the
 // same name by scripts/render-pdf.mjs.
 const documents = ['cv', 'resume'];
 
@@ -274,7 +274,7 @@ async function documentPdfs() {
   return lines;
 }
 
-// The resume is one page, which is what it is for. The render step counts
+// The resume is the short document, and two pages is its budget. The render step counts
 // both papers as it writes, and this counts the A4 file that actually
 // shipped, so the rule holds over a dist/ assembled anywhere. The remedy for
 // a failure is content, as the effort's spec constrains, never a smaller type

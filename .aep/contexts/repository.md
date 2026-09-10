@@ -27,7 +27,7 @@ Decided so far:
   collections, chosen in `[[efforts/1-portfolio-site/plan]]` on 2026-09-08;
   the site is static files only, in English and Arabic, with two documents
   derived from the same content, a CV that carries the whole record and a
-  one-page resume for an application, each as a printable page and a PDF
+  short resume for an application, each as a printable page and a PDF
   rendered at build time, beside a JSON Resume document that follows the CV
 - work lands as **stacked changes through Graphite** (`[[rules/version-control]]`)
 - what it shows is specified in `[[efforts/1-portfolio-site/spec]]`

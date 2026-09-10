@@ -68,7 +68,7 @@ One file per project.
 | `links` | `repository`, `live` | no | optional. Either key may be absent; omit `links` entirely for a project with no public link |
 | `visibility` | one of `public`, `described`, `hidden` | no | `public` shows the entry with its links; `described` shows the name and summary without links, for private work; `hidden` keeps the file but shows nothing anywhere |
 | `status` | one of `completed`, `in-progress` | no | whether the work is finished. Only a `completed` project is shown: an `in-progress` one stays in the file and appears in no output, not on the work page, not in the home page's count, not in the CV, the resume, or the JSON Resume document. A project whose state is not known is `in-progress` until it is |
-| `resume` | `true` | no | optional. Marks the project for the one-page resume; absent means it stays off. The CV shows every completed project whatever this says |
+| `resume` | `true` | no | optional. Marks the project for the short resume; absent means it stays off. The CV shows every completed project whatever this says |
 | `order` | whole number | no | optional. Lower numbers sort first; entries without one sort by `period.start`, newest first |
 
 Whether a project appears is decided in one place, `src/lib/shown.ts`: not
@@ -127,7 +127,7 @@ Reclassifying an entry means changing this one field.
 | `date` | date | no | optional. When it was issued |
 | `url` | URL | no | optional. Where it can be verified |
 | `document` | file path | no | optional. The certificate's PDF, relative to this folder, as `files/code-with-mosh-react.pdf`. The build refuses an entry whose PDF or preview does not exist, naming the file |
-| `resume` | `true` | no | optional. Marks the entry for the one-page resume; absent means it stays off. The CV lists every entry whatever this says |
+| `resume` | `true` | no | optional. Marks the entry for the short resume; absent means it stays off. The CV lists every entry whatever this says |
 
 ### The certificate documents
 
@@ -167,6 +167,6 @@ One file per skill group.
 2. Fill in every field. Leave `links` out if the work is private and set
    `visibility: described`. Set `status: completed` only when the work is
    finished; until then it is `in-progress` and appears nowhere. Add
-   `resume: true` if the project belongs on the one-page resume.
+   `resume: true` if the project belongs on the short resume.
 3. Run `pnpm build`. If it fails, the message names the file and the field.
 4. Commit. Nothing outside `src/content/` changes.

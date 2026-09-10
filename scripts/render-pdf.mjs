@@ -15,9 +15,9 @@
 // exits non-zero with the reason named, so CI reports what went wrong rather
 // than uploading a site with a broken download.
 //
-// The resume is one page, which is what it is for, so it is rendered a second
-// time at Letter to a buffer and both renders are counted with pdfjs-dist.
-// Either running past one page fails the step naming the locale, the paper,
+// The resume is the short document, so it is rendered a second time at Letter
+// to a buffer and both renders are counted with pdfjs-dist.
+// Either running past its page budget fails the step naming the locale, the paper,
 // and the count, here rather than in a pull request: the remedy is content,
 // as the effort's spec constrains, never a smaller type size.
 

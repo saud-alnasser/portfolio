@@ -6,12 +6,15 @@ import { fill, locales, strings, type Locale } from '../../lib/i18n';
 import { localized } from '../../lib/localized';
 import { withBase } from '../../lib/paths';
 
-// The one-page resume, the document to send with an application, and the page
+// The short resume, the document to send with an application, and the page
 // the render step writes to /resume.<locale>.pdf. It is the CV's template
 // with fewer sections and fewer entries, from the same component
 // (src/components/CvDocument.astro), so this page is the actions row and
-// nothing else. It is one page on A4 and on Letter in both languages, which
-// scripts/render-pdf.mjs counts and refuses to publish past.
+// nothing else. It runs to at most two pages at either paper in either
+// language, which scripts/render-pdf.mjs counts and refuses to publish past.
+// How many it actually takes depends on the machine: the same document is one
+// page under the fonts Windows resolves for the system stack and two under
+// the Linux runner's, which is why the budget is two rather than one.
 //
 // The machine-readable document stays the CV's, at /<locale>/resume.json,
 // which Astro writes beside this route's resume/index.html; the actions rows

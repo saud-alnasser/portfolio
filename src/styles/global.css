@@ -225,7 +225,7 @@ details[open] > summary .fold-chevron {
  * browser print and the `page.pdf` the render step calls read this one rule,
  * because the render step passes no margin option of its own.
  *
- * 10mm all round is where most of the one-page fit comes from, and less than
+ * 10mm all round is where most of the shortening comes from, and less than
  * half of it is the extra height: the column is 60 CSS pixels wider, which
  * takes wrapped lines out of every paragraph in the document. It stays well
  * inside the unprintable border a desktop printer keeps, which is around
@@ -287,7 +287,7 @@ details[open] > summary .fold-chevron {
   }
 
   /*
-   * The resume, which is the same template on one page: the article carries
+   * The resume, which is the same template made short: the article carries
    * `cv-compact` and the document prints a size smaller, in a narrower page
    * box, with tighter bands and tighter gaps between its entries. 10pt is
    * what the template's own sample reads at and the floor the spec sets, so

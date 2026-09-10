@@ -16,7 +16,7 @@ export function isShown(project: { visibility: Visibility; status: ProjectStatus
   return project.visibility !== 'hidden' && project.status === 'completed';
 }
 
-// An entry marked for the one-page resume. Absent means no.
+// An entry marked for the short resume. Absent means no.
 export function onResume(entry: { resume?: boolean }): boolean {
   return entry.resume === true;
 }

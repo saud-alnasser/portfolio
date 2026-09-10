@@ -55,7 +55,7 @@ export type Visibility = (typeof visibilities)[number];
 export type ProjectStatus = (typeof projectStatuses)[number];
 export type CertificateKind = (typeof certificateKinds)[number];
 
-// Whether an entry appears on the one-page resume. Absent means no; the site
+// Whether an entry appears on the short resume. Absent means no; the site
 // reads it through src/lib/shown.ts and the JSON Resume document never
 // carries it.
 const resume = z.boolean().optional();
