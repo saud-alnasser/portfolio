@@ -2,6 +2,8 @@
 import { getEntry } from 'astro:content';
 import Base from '../../layouts/Base.astro';
 import CvDocument from '../../components/CvDocument.astro';
+import DocumentDownload from '../../components/DocumentDownload.astro';
+import DocumentForm from '../../components/DocumentForm.astro';
 import { fill, locales, strings, type Locale } from '../../lib/i18n';
 import { localized } from '../../lib/localized';
 import { withBase } from '../../lib/paths';
@@ -9,8 +11,8 @@ import { withBase } from '../../lib/paths';
 // The CV a person reads, one page per language, and the page the render step
 // writes to /cv.<locale>.pdf. It holds everything the site shows; the resume
 // beside it holds what an application needs. Both are the same document
-// component (src/components/CvDocument.astro), so this page is the actions
-// row and nothing else.
+// component (src/components/CvDocument.astro), so this page is the download
+// control, the document, and the form that control opens, and nothing else.
 
 export function getStaticPaths() {
   return locales.map((l) => ({ params: { locale: l.code } }));
@@ -23,13 +25,10 @@ const profile = (await getEntry('profile', 'profile'))!;
 const name = localized(locale, 'profile', profile.id)('name', profile.data.name);
 
 // What this page offers beside itself: the PDF the render step writes beside
-// dist/, the JSON Resume document from the endpoint at resume.json.ts, and
-// the other document.
+// dist/, and nothing else. The JSON Resume document keeps its address at
+// resume.json.ts, and the header navigation is how a reader reaches the
+// resume, so neither needs a link here.
 const pdf = withBase(`/cv.${locale}.pdf`);
-const json = withBase(`/${locale}/resume.json`);
-const resume = withBase(`/${locale}/resume/`);
-
-const link = 'text-primary underline underline-offset-4 hover:decoration-2';
 ---
 
 <Base
@@ -39,11 +38,9 @@ const link = 'text-primary underline underline-offset-4 hover:decoration-2';
   path="/cv/"
   column="document"
 >
-  <nav aria-label={t.cv.documents} class="cv-actions mb-10 flex flex-wrap gap-x-6 gap-y-2 text-sm">
-    <a href={pdf} download data-document-link="pdf" class={link}>{t.cv.downloadPdf}</a>
-    <a href={json} data-document-link="json" class={link}>{t.cv.downloadJson}</a>
-    <a href={resume} data-document-link="resume" class={link}>{t.cv.resumeLink}</a>
-  </nav>
+  <DocumentDownload locale={locale} pdf={pdf} document={t.cv.title} />
 
   <CvDocument locale={locale} variant="cv" />
+
+  <DocumentForm locale={locale} pdf={pdf} document={t.cv.title} slot="dialog" />
 </Base>

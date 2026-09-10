@@ -155,7 +155,9 @@ export async function resumeFor(locale: Locale, site: URL) {
     basics: {
       name: text('name', person.name),
       label: text('label', person.label),
-      email: person.email,
+      // No `email`, and no phone: the site publishes no contact detail in
+      // any file, this document included. No field of the schema is
+      // required, so the document still validates without them.
       url: absolute('/', site),
       summary: text('summary', person.summary),
       // The content source carries one localized location text, so it goes in

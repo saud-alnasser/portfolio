@@ -68,6 +68,10 @@ const profile = defineCollection({
       label: localized,
       summary: localized,
       email: z.string().email(),
+      // Required, and authored as a fact rather than inferred from `location`:
+      // a document that states a nationality is claiming one, and the two are
+      // not the same thing for a person living where they do not hold it.
+      nationality: localized,
       location: localized,
       profiles: z
         .array(

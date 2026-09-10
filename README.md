@@ -9,7 +9,6 @@ platform for Saudi football as a Saudi Electronic University senior project.
 
 - 🌐 Portfolio: [saud-alnasser.github.io/saud-alnasser/](https://saud-alnasser.github.io/saud-alnasser/en/) · [بالعربية](https://saud-alnasser.github.io/saud-alnasser/ar/)
 - 📄 CV: [read it](https://saud-alnasser.github.io/saud-alnasser/en/cv/)
-- ✉️ Email: [saud4services@gmail.com](mailto:saud4services@gmail.com)
 
 ## 🧰 What I work with
 

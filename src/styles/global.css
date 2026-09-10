@@ -198,9 +198,30 @@ details[open] > summary .fold-chevron {
   overflow-wrap: break-word;
 }
 
+/* The contact line's separator bars sit at the trailing edge of each item, so
+   the last one has nothing to separate from and is hidden. Trailing rather
+   than leading because the first two items are the slots the download form
+   fills: empty, a leading bar would be stranded at the head of the line on
+   every published document.
+
+   Those two items carry both a `flex` utility and the `hidden` attribute, and
+   the attribute wins: Tailwind's preflight declares it important. Checked on
+   2026-09-10, because a class beating a plain user agent rule is the usual
+   way round. */
+.cv-contact > li:last-child > [aria-hidden='true'] {
+  display: none;
+}
+
 /* A section heading's band. `print-color-adjust: exact` is what carries it
-   onto paper: a browser drops background colours when printing unless the
-   page insists, and the PDF the render step writes is a print. */
+   onto paper: a browser drops background colours when printing unless the page
+   insists, and the PDF the render step writes is a print.
+
+   Measured in Chromium on 2026-09-10, because a reader's own print dialog has
+   a background-graphics setting and it was not obvious which wins: the band's
+   tint is painted with that setting on and with it off, so the declaration
+   overrides the reader rather than deferring to them. Firefox and Safari were
+   not measured. Either answer was acceptable, since the band is the template's
+   one tint and the document reads and parses without it. */
 .cv-band {
   background-color: var(--band);
   -webkit-print-color-adjust: exact;
@@ -243,7 +264,8 @@ details[open] > summary .fold-chevron {
 
   /* The chrome around the document, which on paper would be noise or, for the
      site footer, a footer carrying contact details: the navigation, the theme
-     control, the language switch, and the download links. */
+     control, the language switch, and the download control the document page
+     opens with. */
   body > header,
   body > footer,
   .cv-actions {

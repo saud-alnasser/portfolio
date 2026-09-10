@@ -26,7 +26,7 @@ pnpm install
 pnpm dev          # local server
 pnpm check        # type and template checks
 pnpm build        # writes dist/
-pnpm render:pdf   # writes the four document PDFs; fails if a resume runs past two pages (needs Playwright's Chromium)
+pnpm render:pdf   # writes the four document PDFs to dist/ and four filled ones to .artifacts/; fails if a resume runs past two pages (needs Playwright's Chromium)
 pnpm check:dist   # the checks CI runs over dist/
 pnpm test         # the Playwright tests, against a static server of dist/
 pnpm test:content # adds a temporary project and a temporary certificate, rebuilds, and checks each shows everywhere it should
@@ -38,6 +38,34 @@ pnpm certificates:previews # renders the preview image beside every certificate 
 ```
 
 Node 22.12 or later (CI uses 24) and pnpm 12. The site is static files only.
+
+## Contact details, and the documents that carry them
+
+The site publishes no email address and no phone number, anywhere: not on a
+page, not in either `resume.json`, not in a rendered PDF, and not in
+`README.md`, which is what GitHub shows on the profile. It is a static site
+built from a public repository, so there is no server to hand one reader a
+file another does not get, and the only thing that keeps a contact detail
+private is that it is never built into a published file. The address stays in
+`src/content/profile.yaml` because it is a fact about Saud that another output
+may want; nothing renders it, and `no contact details` in
+`scripts/check-dist.mjs` fails the build if anything starts to.
+
+A reader who wants a document carrying contact details types them into the
+form the download control on a document page opens. The values go into the
+contact line of the page they are already looking at, the page prints itself,
+and the reader saves the result as a PDF. Nothing is stored and nothing is
+sent.
+
+`pnpm render:pdf` produces that document too, once per document per language,
+by driving the same form, and writes it to **`.artifacts/`**. That directory is
+gitignored and outside `dist/`, deliberately: the deploy uploads `dist/` and
+nothing else, so a document carrying contact details written there would
+publish the very thing this arrangement exists to keep out. The filled copies
+exist so the extraction check and the page budget run over the document a
+reader actually gets; the placeholder values they carry are in
+`scripts/placeholder.mjs`, obviously not real, and written once because both
+the render step and the check read them.
 
 The certificate previews are committed with their PDFs, so `pnpm
 certificates:previews` runs on a developer's machine after a PDF is added or

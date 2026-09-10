@@ -3,7 +3,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { expect, test, type Page } from '@playwright/test';
 import { parse as parseYaml } from 'yaml';
-import { formatPeriod, strings } from '../src/lib/i18n';
+import { fill, formatPeriod, strings } from '../src/lib/i18n';
 import { isCertification, isCourse, isShown, onResume } from '../src/lib/shown';
 import { at, locales, type Locale } from './pages';
 
@@ -28,8 +28,17 @@ function entries(collection: string): any[] {
     .map((file) => parseYaml(readFileSync(path.join(dir, file), 'utf8')));
 }
 
+const profile = parseYaml(readFileSync(path.join(content, 'profile.yaml'), 'utf8')).profile;
 const projects = entries('projects').filter((data) => isShown(data));
 const certificates = entries('certificates');
+
+// The repository link a document prints for a project, or nothing. Only a
+// `public` project shows its links, exactly as src/components/CvDocument.astro
+// decides it, so a `described` entry such as Mudaraj is expected to carry no
+// link at all rather than a link the content never gave it.
+function published(project: any): string | undefined {
+  return project.visibility === 'public' ? project.links?.repository : undefined;
+}
 
 // What each document holds, counted from the content the way the site counts
 // it. The CV takes every entry its kind admits; the resume takes only what an
@@ -99,8 +108,8 @@ for (const locale of locales) {
         await expect(page.locator('[data-cv-section="certifications"] > ul > li')).toHaveCount(counts.certifications);
         await expect(page.locator('[data-cv-section="courses"] > ul > li')).toHaveCount(counts.courses);
 
-        // Named, not only counted: the resume carries the two projects the
-        // content marks and neither of the others.
+        // Named, not only counted: the resume carries the projects the
+        // content marks and none of the others.
         for (const project of projects) {
           const shown = variant === 'cv' || onResume(project);
           const heading = page.getByRole('heading', { name: project.name, exact: true });
@@ -108,27 +117,165 @@ for (const locale of locales) {
         }
       });
 
-      test('links its own PDF and the other document', async ({ page }) => {
+      // The row each document page opens with holds one thing: the control
+      // that downloads that page's own PDF. It is a link, so a browser
+      // running no script still gets the published document, its content is
+      // an icon and no visible text, and its name and its tooltip are the
+      // same words, which is what makes what a screen reader announces and
+      // what a pointer shows one fact rather than two.
+      test('opens with one control, which downloads its own PDF', async ({ page }) => {
         await page.goto(route);
-        await expect(page.locator('[data-document-link="pdf"]')).toHaveAttribute(
-          'href',
-          at(`/${variant}.${locale}.pdf`),
+        const row = page.locator('.cv-actions');
+        await expect(row.locator('> *')).toHaveCount(1);
+
+        const control = row.locator('[data-document-download]');
+        const name = fill(strings[locale].cv.downloadPdf, { document: strings[locale][variant].title });
+        await expect(control).toHaveCount(1);
+        await expect(control).toHaveAttribute('href', at(`/${variant}.${locale}.pdf`));
+        await expect(control).toHaveAttribute('download', '');
+        await expect(control).toHaveAccessibleName(name);
+        await expect(control).toHaveAttribute('title', name);
+        await expect(control.locator('[data-icon="download"]')).toHaveCount(1);
+        // No visible text: every word the control carries is inside the
+        // sr-only span that names it, so nothing beside the icon reads on
+        // screen. Asserted on the child nodes rather than on innerText,
+        // because sr-only clips its text rather than hiding it.
+        const visible = await control.evaluate((element) =>
+          Array.from(element.childNodes)
+            .filter((node) => !(node instanceof Element && node.classList.contains('sr-only')))
+            .map((node) => node.textContent ?? '')
+            .join('')
+            .trim(),
         );
+        expect(visible, `visible text of the control on ${route}`).toBe('');
+
+      });
+
+      // The keyboard path, end to end, which is what the effort's criterion 8
+      // asks for: tab to the control from the top of the page, see the ring
+      // the stylesheet draws on :focus-visible, and press Enter to act on it.
+      // Both palettes run this, because the ring is a token and a token can be
+      // missing from one of them.
+      //
+      // What Enter starts depends on script, and both halves are asserted.
+      // Here, with script, it opens the form that fills the contact line. The
+      // half where it downloads the published PDF directly is in
+      // tests/document-form.spec.ts, under JavaScript disabled, which is the
+      // case the no-script guarantee is about; the form's own way out
+      // downloads the same file with script.
+      test('takes focus from the keyboard, shows its ring, and acts on Enter', async ({ page }) => {
+        await page.goto(route);
+        const control = page.locator('.cv-actions [data-document-download]');
+
+        // The header's controls come first in the reading order; 20 is more
+        // presses than that and few enough to fail rather than hang.
+        let focused = false;
+        for (let press = 0; press < 20 && !focused; press += 1) {
+          await page.keyboard.press('Tab');
+          focused = await page.evaluate(() => !!document.activeElement?.matches('[data-document-download]'));
+        }
+        expect(focused, `the control on ${route} is reachable by Tab`).toBe(true);
+
+        const ring = await control.evaluate((element) => {
+          const style = getComputedStyle(element);
+          return {
+            visible: element.matches(':focus-visible'),
+            width: style.outlineWidth,
+            style: style.outlineStyle,
+            colour: style.outlineColor,
+          };
+        });
+        expect(ring.visible, `the control on ${route} matches :focus-visible`).toBe(true);
+        expect(ring.style, `the outline style on ${route}`).toBe('solid');
+        expect(Number.parseFloat(ring.width), `the outline width on ${route}`).toBeGreaterThan(0);
+        expect(ring.colour, `the outline colour on ${route}`).not.toBe('rgba(0, 0, 0, 0)');
+
+        await page.keyboard.press('Enter');
+        await expect(page.locator('[data-document-dialog]'), `what Enter opens on ${route}`).toHaveAttribute('open', '');
+      });
+
+      // What the row no longer offers. The header navigation is what carries
+      // a reader between the two documents, and the JSON Resume document
+      // keeps its address without a link pointing at it.
+      test('links neither the JSON Resume document nor the other document', async ({ page }) => {
+        await page.goto(route);
         const other = variant === 'cv' ? 'resume' : 'cv';
-        await expect(page.locator(`[data-document-link="${other}"]`)).toHaveAttribute(
-          'href',
-          at(`/${locale}/${other}/`),
+        await expect(page.locator(`main a[href$="resume.json"]`)).toHaveCount(0);
+        await expect(page.locator(`main a[href="${at(`/${locale}/${other}/`)}"]`)).toHaveCount(0);
+
+        // The header's first list is the site's routes; the second holds the
+        // language menu, whose own links to this route in the other language
+        // are not what carries a reader between the two documents.
+        const nav = page.getByRole('navigation', { name: strings[locale].nav.label }).locator('ul').first();
+        await expect(nav.locator(`a[href="${at(`/${locale}/cv/`)}"]`)).toHaveCount(1);
+        await expect(nav.locator(`a[href="${at(`/${locale}/resume/`)}"]`)).toHaveCount(1);
+      });
+
+      test('carries a contact line with the nationality and no contact detail', async ({ page }) => {
+        await page.goto(route);
+        const contact = page.locator('[data-cv-contact]');
+        await expect(contact).toHaveCount(1);
+
+        // The nationality is what a Saudi employer's eligibility gate reads,
+        // and it is authored on the profile rather than inferred from the
+        // location.
+        await expect(contact).toContainText(profile.nationality[locale] ?? profile.nationality.en);
+        await expect(contact).toContainText(profile.location[locale] ?? profile.location.en);
+
+        // Nothing published carries an address or a number. The two slots the
+        // download form fills are present, empty, and hidden, which is the
+        // state a published document is in and the state the page returns to
+        // after one is generated.
+        expect(await contact.innerText()).not.toContain(profile.email);
+        await expect(page.locator('a[href^="mailto:"]')).toHaveCount(0);
+        for (const slot of ['email', 'phone']) {
+          const item = contact.locator(`[data-contact-slot="${slot}"]`);
+          await expect(item, `the ${slot} slot`).toHaveCount(1);
+          await expect(item).toBeHidden();
+          expect(await item.locator('span').first().textContent()).toBe('');
+        }
+      });
+
+      test('carries no positioned element inside the document', async ({ page }) => {
+        await page.goto(route);
+        // The fourth thing the effort's criterion 7 names, beside the table,
+        // the image, and the contact block's place in the flow: a resume
+        // parser reads a positioned header or footer out of order, or not at
+        // all. `documentHazards` in scripts/check-dist.mjs proves the other
+        // three from the built HTML; this one needs layout, so it is here.
+        //
+        // Scoped to the document, not the page. The site's own accessible
+        // names are `sr-only`, which Tailwind implements as
+        // `position: absolute`, and the download form is a `<dialog>`, which
+        // is positioned whenever it is open. Both sit outside `article.cv`
+        // and neither prints, which is why the document is the right subject
+        // and a page-wide rule would refuse the site's own markup.
+        const positioned = await page.evaluate(() =>
+          [...document.querySelectorAll('article.cv *')]
+            .filter((element) => ['fixed', 'absolute'].includes(getComputedStyle(element).position))
+            .map((element) => `${element.tagName.toLowerCase()}.${element.className}`),
         );
+        expect(positioned, `positioned elements inside the document on ${route}`).toEqual([]);
+      });
+
+      test('separates the contact line with a bar after every item but the last', async ({ page }) => {
+        await page.goto(route);
+        // The bars are trailing, so hiding the two slots at the head of the
+        // line cannot strand one. What that has to hold on paper, in both
+        // directions, is no leading bar and no doubled bar: exactly one fewer
+        // visible bar than there are visible items.
+        const items = page.locator('[data-cv-contact] > li:not([hidden])');
+        const bars = page.locator('[data-cv-contact] > li:not([hidden]) > [aria-hidden="true"]:visible');
+        await expect(bars).toHaveCount((await items.count()) - 1);
+
+        const last = page.locator('[data-cv-contact] > li:not([hidden])').last();
+        await expect(last.locator('[aria-hidden="true"]')).toBeHidden();
       });
     });
   }
 
-  test(`the CV page in ${locale} keeps its JSON Resume link and its course list`, async ({ page }) => {
+  test(`the CV page in ${locale} keeps its course list`, async ({ page }) => {
     await page.goto(at(`/${locale}/cv/`));
-    await expect(page.locator('[data-document-link="json"]')).toHaveAttribute(
-      'href',
-      at(`/${locale}/resume.json`),
-    );
     // The course list under the education entry is what the resume drops.
     const course = courseNames(locale)[0];
     if (course) await expect(page.locator('[data-cv-section="education"]')).toContainText(course);
@@ -165,7 +312,9 @@ for (const locale of locales) {
     for (const project of marked) {
       const entry = page.locator('[data-cv-section="projects"] > ol > li', { hasText: project.name });
       await expect(entry, `${project.name} on the CV`).toContainText(t.project.technologies);
-      await expect(entry.locator(`a[href="${project.links.repository}"]`)).toHaveCount(1);
+      const repository = published(project);
+      if (repository) await expect(entry.locator(`a[href="${repository}"]`)).toHaveCount(1);
+      else await expect(entry.locator('a'), `${project.name} on the CV`).toHaveCount(0);
     }
 
     await page.goto(at(`/${locale}/resume/`));
@@ -182,7 +331,7 @@ for (const locale of locales) {
         project.summary[locale] ?? project.summary.en,
       ]);
       await expect(entry, `${project.name} on the resume`).not.toContainText(t.project.technologies);
-      await expect(entry.locator(`a[href="${project.links.repository}"]`)).toHaveCount(0);
+      await expect(entry.locator('a'), `${project.name} on the resume`).toHaveCount(0);
     }
   });
 }

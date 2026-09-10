@@ -84,7 +84,6 @@ const en = {
   },
   home: {
     contact: 'Contact',
-    email: 'Email',
     location: 'Location',
     sections: 'On this site',
     // One line per section card, saying what that section holds. The card
@@ -160,19 +159,36 @@ const en = {
     close: 'Close',
   },
   // The two document pages. Their section headings are the ones resume
-  // parsers expect; the other headings reuse the site's own, above. The rows
-  // of links at the top of each page share these labels, because the resume
-  // offers the same PDF download the CV does.
+  // parsers expect; the other headings reuse the site's own, above. The row
+  // at the top of each page shares these labels, because both pages offer the
+  // same control and differ only in which document it downloads.
   cv: {
     title: 'Curriculum vitae',
     description:
       'The curriculum vitae of {name}: the whole record of experience, education, skills, certifications, courses, and projects, with PDF and JSON Resume downloads.',
-    // The accessible name of the row of links a document page opens with:
-    // its own downloads and the other document.
+    // The accessible name of the row a document page opens with, which holds
+    // the one control that downloads that page's own document.
     documents: 'Documents',
-    downloadPdf: 'Download PDF',
-    downloadJson: 'Download JSON Resume',
-    resumeLink: 'View the resume',
+    // The download control's name and its hover tooltip, which are the same
+    // words. {document} is the title of the document being downloaded, so the
+    // control says which of the two it is rather than only that it is a PDF.
+    downloadPdf: 'Download {document} as PDF',
+    // The form the download control opens where the browser runs script. The
+    // site publishes no contact detail, so a document that carries one is
+    // made in the reader's own browser from what they type here: `note` says
+    // that a print dialog is what opens next, because a print dialog nobody
+    // asked for reads as a bug, and `plain` is the way out that produces the
+    // published document instead.
+    form: {
+      title: 'Add your contact details',
+      note: 'What you type goes into this document in your browser and is sent nowhere, stored nowhere, and kept by nobody. Generating opens your print dialog: choose Save as PDF as the destination.',
+      email: 'Email address',
+      phone: 'Phone number',
+      optional: 'Both are optional. Leave one empty and the document carries the other.',
+      generate: 'Generate the document',
+      plain: 'Download without contact details',
+      close: 'Close',
+    },
     summary: 'Summary',
     // The template names these two sections; the other headings on the page
     // are the site's own, above.
@@ -186,7 +202,6 @@ const en = {
     title: 'Resume',
     description:
       'The short resume of {name}: the summary, experience, education, key skills, and selected projects, with a PDF download.',
-    cvLink: 'View the full CV',
   },
   period: {
     present: 'Present',
@@ -238,7 +253,6 @@ const ar: Strings = {
   },
   home: {
     contact: 'التواصل',
-    email: 'البريد الإلكتروني',
     location: 'الموقع الجغرافي',
     sections: 'في هذا الموقع',
     experience: 'الوظائف والتدريب العملي.',
@@ -311,9 +325,17 @@ const ar: Strings = {
     description:
       'سيرة {name} الذاتية: السجل الكامل للخبرة العملية والتعليم والمهارات والشهادات والدورات والمشاريع، مع تنزيلها بصيغة PDF وبصيغة JSON Resume.',
     documents: 'المستندات',
-    downloadPdf: 'تنزيل PDF',
-    downloadJson: 'تنزيل JSON Resume',
-    resumeLink: 'عرض السيرة المختصرة',
+    downloadPdf: 'تنزيل {document} بصيغة PDF',
+    form: {
+      title: 'أضف بيانات التواصل',
+      note: 'ما تكتبه يُضاف إلى هذا المستند داخل متصفحك، ولا يُرسل إلى أي جهة ولا يُحفظ في أي مكان. عند الإنشاء تُفتح نافذة الطباعة: اختر الحفظ بصيغة PDF.',
+      email: 'البريد الإلكتروني',
+      phone: 'رقم الجوال',
+      optional: 'كلاهما اختياري. اترك أحدهما فارغًا ويحمل المستند الآخر.',
+      generate: 'إنشاء المستند',
+      plain: 'تنزيل بدون بيانات التواصل',
+      close: 'إغلاق',
+    },
     summary: 'الملخص',
     experience: 'الخبرة العملية',
     skills: 'المهارات الأساسية',
@@ -324,7 +346,6 @@ const ar: Strings = {
     title: 'السيرة المختصرة',
     description:
       'السيرة المختصرة لـ{name}: الملخص والخبرة العملية والتعليم والمهارات الأساسية ومشاريع مختارة، مع تنزيلها بصيغة PDF.',
-    cvLink: 'عرض السيرة الذاتية الكاملة',
   },
   period: {
     present: 'الآن',

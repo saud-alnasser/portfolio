@@ -92,6 +92,7 @@ Start at [[protocol]].
 | 1-portfolio-site | implemented | [[efforts/1-portfolio-site/spec]] | 6 | 0 | 15 |
 | 3-site-redesign | implemented | [[efforts/3-site-redesign/spec]] | 0 | 1 | 8 |
 | 5-sections-and-resume | implemented | [[efforts/5-sections-and-resume/spec]] | 0 | 0 | 6 |
+| 7-document-downloads-and-contact-details | implemented | [[efforts/7-document-downloads-and-contact-details/spec]] | 1 | 0 | 6 |
 
 ## Tickets
 
@@ -128,3 +129,9 @@ Every task of every effort. The tracker carries the effort, never its tasks.
 | [[efforts/5-sections-and-resume/tickets/04-readme-and-summary]] docs(repo): the README links the CV page alone, and the profile summary names finished work only | 5-sections-and-resume | resolved | 01 |
 | [[efforts/5-sections-and-resume/tickets/05-what-the-effort-falsified]] fix(site): the CV stops calling itself one page, and the repository context catches up | 5-sections-and-resume | resolved | 03 |
 | [[efforts/5-sections-and-resume/tickets/06-two-pages]] fix(cv): the resume may run to two pages, because one was not true everywhere | 5-sections-and-resume | resolved | 03 |
+| [[efforts/7-document-downloads-and-contact-details/tickets/01-content-contract]] feat(content): a nationality on the profile, Mudaraj on the resume, and the email recorded as unrendered | 7-document-downloads-and-contact-details | resolved | — |
+| [[efforts/7-document-downloads-and-contact-details/tickets/02-contact-details-out]] feat(site): the contact line without an email, and the email out of every other output | 7-document-downloads-and-contact-details | resolved | 01 |
+| [[efforts/7-document-downloads-and-contact-details/tickets/03-one-download-icon]] feat(cv): one download icon per document page, in place of the actions row | 7-document-downloads-and-contact-details | resolved | — |
+| [[efforts/7-document-downloads-and-contact-details/tickets/04-form-and-print]] feat(cv): the form that fills the contact line, and the print that generates the document | 7-document-downloads-and-contact-details | resolved | 02, 03 |
+| [[efforts/7-document-downloads-and-contact-details/tickets/05-the-checks]] test(cv): no published file carries a contact detail, and the generated document extracts | 7-document-downloads-and-contact-details | resolved | 04 |
+| [[efforts/7-document-downloads-and-contact-details/tickets/06-nothing-positioned]] test(cv): nothing inside the document is positioned, which is the clause of criterion 7 nobody checked | 7-document-downloads-and-contact-details | resolved | 04 |

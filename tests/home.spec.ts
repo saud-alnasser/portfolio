@@ -165,29 +165,27 @@ for (const locale of locales) {
       }
     });
 
-    test('says nothing the footer already says', async ({ page }) => {
-      // Requirement 5: the contact details are actions, so the address is in
-      // the link and the footer keeps its email line to itself.
+    test('carries no contact detail anywhere on the page', async ({ page }) => {
+      // The site publishes no address and no number, the footer included.
+      // docs/development.md says why, and what a reader who wants one does
+      // instead.
       await page.goto(at(`/${locale}/`));
-      const text = await page.locator('main').innerText();
-      expect(text, `the email address in main on /${locale}/`).not.toContain(profile.email);
-      await expect(page.locator('body > footer')).toContainText(profile.email);
+      const text = await page.locator('body').innerText();
+      expect(text, `the email address anywhere on /${locale}/`).not.toContain(profile.email);
+      await expect(page.locator('a[href^="mailto:"]')).toHaveCount(0);
     });
 
     test('offers the contact actions with icons and names', async ({ page }) => {
       await page.goto(at(`/${locale}/`));
       const actions = page.locator('[data-contact-actions] a');
-      await expect(actions).toHaveCount(3 + profile.profiles.length);
+      await expect(actions).toHaveCount(2 + profile.profiles.length);
 
       for (const action of await actions.all()) {
         await expect(action.locator('svg')).toHaveCount(1);
         await expect(action).toHaveAccessibleName(/\S/);
       }
 
-      const email = page.locator('[data-contact="email"]');
-      await expect(email).toHaveAttribute('href', `mailto:${profile.email}`);
-      await expect(email.locator('svg')).toHaveAttribute('data-icon', 'mail');
-      await expect(email).toHaveAccessibleName(strings[locale].home.email);
+      await expect(page.locator('[data-contact="email"]')).toHaveCount(0);
 
       const github = page.locator('[data-contact="github"]');
       await expect(github).toHaveAttribute('href', profile.profiles[0]!.url);

@@ -71,9 +71,12 @@ const nav = [
       The only script on the site. It applies a stored theme before first
       paint, so the page never flashes the other palette, wires the theme
       control once the document is parsed, closes the language menu on Escape
-      and on a click outside it, and opens a certificate card in the page's
-      dialog. The menu itself opens and closes without it, and a certificate
-      card without it is the link to its PDF that it already is.
+      and on a click outside it, opens a certificate card in the page's
+      dialog, and turns a document page's download control into the form that
+      fills the contact line and prints. The last three all work without it:
+      the menu opens and closes on its own, a certificate card is the link to
+      its PDF that it already is, and the download control is the link to the
+      published PDF that it already is.
     -->
     <script is:inline>
       (function () {
@@ -152,10 +155,106 @@ const nav = [
           });
         }
 
+        // Turns the download control on a document page into the form that
+        // fills the document's contact line, then prints it. The values go
+        // into the two hidden slots the contact line already has, the page is
+        // printed, and the slots are emptied again; docs/development.md says
+        // why the document is made here rather than published. Nothing is
+        // stored and nothing is sent.
+        //
+        // Without this the control is the link to the published PDF it
+        // already is, which is what a reader with no script gets, and a
+        // browser whose dialog cannot open modally is left alone for the same
+        // reason: the link is cancelled only where the dialog will open.
+        function documents() {
+          var dialog = document.querySelector('[data-document-dialog]');
+          var contact = document.querySelector('[data-cv-contact]');
+          if (!dialog || !contact || typeof dialog.showModal !== 'function') return;
+          var form = dialog.querySelector('[data-document-form]');
+          var opener = null;
+          // Set between the generate and the close it causes, so the close
+          // handler prints instead of clearing. Printing is deferred to the
+          // close event rather than called beside it, because a modal dialog
+          // would otherwise be part of what prints, and because the order of
+          // a queued close event against a synchronous print is not something
+          // to depend on.
+          var generating = false;
+
+          function slot(which) {
+            return contact.querySelector('[data-contact-slot="' + which + '"]');
+          }
+
+          // Back to the state a published document is in: both slots empty and
+          // hidden. Idempotent, because both the close path and afterprint
+          // call it.
+          function clear() {
+            ['email', 'phone'].forEach(function (which) {
+              var item = slot(which);
+              if (!item) return;
+              item.querySelector('span').textContent = '';
+              item.hidden = true;
+            });
+            if (form) form.reset();
+          }
+
+          document.addEventListener('click', function (event) {
+            if (event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+            var control = event.target.closest ? event.target.closest('[data-document-download]') : null;
+            if (!control) return;
+            event.preventDefault();
+            // The third of three clears, and the one that needs no event to
+            // fire: a dismissed dialog clears on close and a printed document
+            // clears on afterprint, but a browser that fires neither would
+            // otherwise hand the next reader of this tab the last one's
+            // details, on the document and in the fields.
+            clear();
+            opener = control;
+            dialog.showModal();
+          });
+
+          if (form) {
+            form.addEventListener('submit', function (event) {
+              // Nothing is submitted anywhere: the form has no action, its
+              // method is `dialog`, and this cancels even that.
+              event.preventDefault();
+              ['email', 'phone'].forEach(function (which) {
+                var item = slot(which);
+                var value = form.querySelector('[data-document-field="' + which + '"]').value.trim();
+                if (!item) return;
+                item.querySelector('span').textContent = value;
+                item.hidden = value === '';
+              });
+              generating = true;
+              dialog.close();
+            });
+          }
+
+          dialog.addEventListener('click', function (event) {
+            var close = event.target.closest ? event.target.closest('[data-document-close]') : null;
+            if (close || event.target === dialog) dialog.close();
+          });
+
+          dialog.addEventListener('close', function () {
+            if (opener) opener.focus();
+            opener = null;
+            if (generating) {
+              generating = false;
+              window.print();
+              return;
+            }
+            clear();
+          });
+
+          // The other half of the clear. `afterprint` is not uniformly
+          // reliable, which is why the close path clears as well.
+          window.addEventListener('afterprint', clear);
+        }
+
         document.addEventListener('DOMContentLoaded', function () {
           document.addEventListener('click', dismiss);
           document.addEventListener('keydown', dismiss);
           certificates();
+          documents();
 
           var control = document.querySelector('[data-theme-toggle]');
           if (!control) return;
@@ -227,10 +326,10 @@ const nav = [
     <slot name="dialog" />
 
     <footer class:list={['mx-auto w-full px-6 pb-12 text-sm text-muted-foreground', width]}>
-      <div class="flex flex-wrap justify-between gap-x-8 gap-y-2 border-t border-border pt-6">
-        <a href={`mailto:${profile.data.email}`} class="hover:text-primary motion-safe:transition-colors">
-          {profile.data.email}
-        </a>
+      {/* No contact line. The site publishes no address and no number; a
+          reader who wants one types it into the form a document page offers,
+          and docs/development.md says why. */}
+      <div class="flex flex-wrap justify-end gap-x-8 gap-y-2 border-t border-border pt-6">
         <span>{siteName}</span>
       </div>
     </footer>

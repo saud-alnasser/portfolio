@@ -63,6 +63,7 @@ const profileText = localized(locale, 'profile', profile.id);
 const name = profileText('name', profile.data.name);
 const label = profileText('label', profile.data.label);
 const summary = profileText('summary', profile.data.summary);
+const nationality = profileText('nationality', profile.data.nationality);
 const location = profileText('location', profile.data.location);
 
 // The same orders as the pages and the resume endpoint (src/lib/order.ts), so
@@ -140,29 +141,47 @@ const muted = 'text-sm text-muted-foreground';
   <header class="cv-entry border-b border-border pb-5 text-center">
     <h1 class="text-3xl font-semibold uppercase tracking-[0.025em]">{name}</h1>
     <p class="mt-1 text-muted-foreground">{label}</p>
-    {/* One line, in the flow of the document. The bars separate the items
-        for a reader and are hidden from a screen reader, which has the
-        list. */}
+    {/* One line, in the flow of the document. The bars separate the items for
+        a reader and are hidden from a screen reader, which has the list.
+        Every item carries its bar at the trailing edge and the last one's is
+        hidden in global.css, because the first two items are empty until a
+        reader fills them and a leading bar would be stranded the rest of the
+        time. An optional item added at the end would break that; the front is
+        where they belong.
+
+        The two slots are what the download form writes into. The published
+        document renders them hidden and empty, which is the whole of how this
+        site publishes no contact detail; docs/development.md says why. */}
     <ul
       aria-label={t.home.contact}
+      data-cv-contact
       class="cv-contact mt-3 flex flex-wrap items-center justify-center gap-x-2 gap-y-1 text-sm"
     >
-      <li>
-        <a href={`mailto:${profile.data.email}`} class={link}>{profile.data.email}</a>
+      <li data-contact-slot="email" hidden class="flex items-center gap-x-2">
+        <span></span>
+        <span aria-hidden="true" class="text-muted-foreground">|</span>
+      </li>
+      <li data-contact-slot="phone" hidden class="flex items-center gap-x-2">
+        <span></span>
+        <span aria-hidden="true" class="text-muted-foreground">|</span>
       </li>
       <li class="flex items-center gap-x-2">
+        <span>{nationality}</span>
         <span aria-hidden="true" class="text-muted-foreground">|</span>
+      </li>
+      <li class="flex items-center gap-x-2">
         <span>{location}</span>
+        <span aria-hidden="true" class="text-muted-foreground">|</span>
       </li>
       {
         profile.data.profiles.map((p) => (
           <li class="flex items-center gap-x-2">
-            <span aria-hidden="true" class="text-muted-foreground">
-              |
-            </span>
             <a href={p.url} class={link}>
               {p.url}
             </a>
+            <span aria-hidden="true" class="text-muted-foreground">
+              |
+            </span>
           </li>
         ))
       }
@@ -309,12 +328,12 @@ const muted = 'text-sm text-muted-foreground';
                     <p class={muted}>{text('role', data.role)}</p>
                     <p class="mt-2 leading-6">{text('summary', data.summary)}</p>
                     {/* The technologies and the repository are the record's,
-                        not the application's: two lines an entry, and the
-                        resume carries two entries, which is the third of the
-                        page budget the plan allots. Every technology is
-                        already in the key skills above, and the repository is
-                        one click from the portfolio link in the contact
-                        line. Both are on the CV, whole. */}
+                        not the application's: two lines an entry, over the
+                        entries the content marks for the resume, which is a
+                        third of the page budget. Every technology is already
+                        in the key skills above, and the repository is one
+                        click from the portfolio link in the contact line.
+                        Both are on the CV, whole. */}
                     {!resume && (
                       <>
                         <p class={`leading-6 ${muted}`}>

@@ -17,6 +17,7 @@ import { promisify } from 'node:util';
 import { getDocument } from 'pdfjs-dist/legacy/build/pdf.mjs';
 import { parse as parseYaml } from 'yaml';
 import { identifiersIn } from './identifiers.mjs';
+import { placeholder } from './placeholder.mjs';
 import { readmeWithProfile } from './readme-profile.mjs';
 // The site's own date wording and orders, so the expectation reads exactly
 // what the CV page printed. Node strips the types on import.
@@ -42,6 +43,9 @@ const documents = ['cv', 'resume'];
 const context = {
   root,
   dist: path.join(root, 'dist'),
+  // Where the render step writes the documents it fills through the download
+  // form. Outside dist/ deliberately: dist/ is what the deploy uploads.
+  artifacts: path.join(root, '.artifacts'),
   content: path.join(root, 'src', 'content'),
   locales: ['en', 'ar'],
   // The site's base path with its slash ("/saud-alnasser/", or "/" at the
@@ -141,6 +145,16 @@ async function jsonResume() {
       }
     }
 
+    // The nationality is a fact for the two documents and for nothing else,
+    // so it may not appear as a field here. Asserted as the absence of a key
+    // rather than of a string: the authored English value is "Saudi", which
+    // occurs in this document inside "Saudi Arabia", "Saudi Electronic
+    // University", and a project summary, all of them true content.
+    const keys = JSON.stringify(resume).match(/"nationality"/g);
+    if (keys) {
+      throw new CheckFailure(name, `${locale}: the document carries a nationality field, which belongs to the two documents alone`);
+    }
+
     if (resume.basics?.url !== context.siteRoot) {
       throw new CheckFailure(name, `${locale}: basics.url is ${JSON.stringify(resume.basics?.url)}, expected the site's root ${context.siteRoot}`);
     }
@@ -205,7 +219,7 @@ async function documentPdfs() {
 
   // What an English document page prints, from the content it prints it from,
   // in the order it prints it (src/components/CvDocument.astro): the name,
-  // the email, then each experience entry's position with its period and its
+  // then each experience entry's position with its period and its
   // organisation beneath, then each education entry's degree with its period
   // and its institution beneath.
   //
@@ -223,7 +237,10 @@ async function documentPdfs() {
     // PDF whatever the content file says; it is the one item compared
     // without case.
     { items: [profile.name[locale]], caseless: true },
-    { items: [profile.email] },
+    // The email was the second group and the document no longer prints it, so
+    // the published PDFs anchor on the name alone. The contact line is checked
+    // over the filled documents below, which are the only copies that have
+    // one.
   ];
   for (const entry of experience) {
     expected.push({ items: [entry.position[locale], formatPeriod(locale, entry.period)] });
@@ -236,17 +253,45 @@ async function documentPdfs() {
     expected.push({ items: [entry.institution[locale]] });
   }
 
-  for (const document of documents) {
-    const relative = `${document}.${locale}.pdf`;
-    const size = sizes[`${document}.${locale}`];
-    const text = await extractText(path.join(context.dist, relative));
+  // Each document twice: the published file, which carries no contact line at
+  // all, and the copy rendered through the download form to .artifacts/,
+  // which is the only place a contact line still exists. The published file
+  // lost the email as an anchor when the site stopped publishing it, so the
+  // filled copy is what keeps the contact line's place in the reading order
+  // checkable rather than merely intended.
+  //
+  // The contact line follows the name, which is where the email sat before
+  // this effort and where the document's own header puts it.
+  // One group, because the two are one line of the document: the group
+  // mechanism above is what allows items to share an extracted line, in order,
+  // and the contact line puts the email before the phone.
+  const contact = [{ items: [placeholder.email, placeholder.phone] }];
+  const subjects = documents.flatMap((document) => [
+    { document, relative: `${document}.${locale}.pdf`, directory: context.dist, groups: expected },
+    {
+      document,
+      relative: `${document}.${locale}.filled.pdf`,
+      directory: context.artifacts,
+      groups: [expected[0], ...contact, ...expected.slice(1)],
+    },
+  ]);
+
+  for (const { relative, directory, groups } of subjects) {
+    const file = path.join(directory, relative);
+    let size;
+    try {
+      size = (await stat(file)).size;
+    } catch {
+      throw new CheckFailure(name, `${relative} does not exist; run \`pnpm render:pdf\` after the build`);
+    }
+    const text = await extractText(file);
     if (text === null) {
       lines.push(`${relative}: ${size} bytes; pdftotext is not on the PATH, so the text was not checked`);
       continue;
     }
     const found = text.split(/\r?\n/).map(squash);
     let cursor = 0;
-    for (const group of expected) {
+    for (const group of groups) {
       const index = matchGroup(found, cursor, group);
       if (index === -1) {
         // Which half of the failure it is: a fact the page no longer prints,
@@ -263,8 +308,8 @@ async function documentPdfs() {
       }
       cursor = index + 1;
     }
-    const items = expected.reduce((total, group) => total + group.items.length, 0);
-    lines.push(`${relative}: ${size} bytes, ${items} expected facts found in ${expected.length} groups in reading order`);
+    const items = groups.reduce((total, group) => total + group.items.length, 0);
+    lines.push(`${relative}: ${size} bytes, ${items} expected facts found in ${groups.length} groups in reading order`);
   }
   for (const document of documents) {
     for (const other of context.locales.filter((l) => l !== locale)) {
@@ -282,8 +327,14 @@ async function documentPdfs() {
 async function resumePages() {
   const name = 'resume pages';
   const lines = [];
-  for (const locale of context.locales) {
-    const file = path.join(context.dist, `resume.${locale}.pdf`);
+  const files = context.locales.flatMap((locale) => [
+    path.join(context.dist, `resume.${locale}.pdf`),
+    // The filled copy is the document a reader actually gets, and it is a
+    // contact line longer than the published one, so the budget covers it or
+    // the budget is about the wrong document.
+    path.join(context.artifacts, `resume.${locale}.filled.pdf`),
+  ]);
+  for (const file of files) {
     let data;
     try {
       data = await readFile(file);
@@ -308,7 +359,7 @@ async function resumePages() {
         `${path.relative(root, file)} has ${pages} pages, expected at most 2; shorten the content, never the type size`,
       );
     }
-    lines.push(`resume pages: resume.${locale}.pdf is ${pages} ${pages === 1 ? 'page' : 'pages'}, at most 2`);
+    lines.push(`resume pages: ${path.basename(file)} is ${pages} ${pages === 1 ? 'page' : 'pages'}, at most 2`);
   }
   return lines;
 }
@@ -690,6 +741,13 @@ async function noOverclaim() {
 // Neither document page carries the layout hazards resume parsers document:
 // no table, no image, and the contact block in the flow of the document
 // rather than in a positioned header or footer.
+//
+// The fourth hazard, an element of the document itself being positioned, is
+// asserted in tests/resume.spec.ts instead. A computed `position` needs
+// layout and this reads the built HTML as text, and the assertion has to be
+// scoped to the document rather than the page: the site's accessible names
+// are `sr-only`, which is `position: absolute`, and the download form is a
+// `<dialog>`.
 async function documentHazards() {
   const name = 'document hazards';
   const lines = [];
@@ -707,13 +765,158 @@ async function documentHazards() {
           throw new CheckFailure(name, `dist/${route} contains a <${tag}> element`);
         }
       }
+      // The contact block used to prove itself by its `mailto:`. The document
+      // publishes no address now, so the proof is the block's own marker: a
+      // contact list inside <main> is in the flow, and one moved into a
+      // positioned header or footer is not, which is the hazard.
       const main = html.match(/<main[\s>][\s\S]*?<\/main>/i)?.[0] ?? '';
-      if (!/mailto:/.test(main)) {
-        throw new CheckFailure(name, `dist/${route} has no email link inside <main>; the contact block must be in the flow of the document`);
+      if (!/data-cv-contact/.test(main)) {
+        throw new CheckFailure(name, `dist/${route} has no [data-cv-contact] inside <main>; the contact block must be in the flow of the document`);
       }
       lines.push(`document hazards: ${locale}/${document}/ has no table or image, and its contact block is in the flow`);
     }
   }
+  return lines;
+}
+
+// Nothing the site publishes carries a contact detail. This is the check the
+// whole effort rests on, and docs/development.md says why the site works this
+// way.
+//
+// It reads the address from the content source rather than from a literal
+// here. A check that greps for an address the content no longer holds finds
+// nothing and reports success, and the failure would be invisible; reading it
+// from src/content/profile.yaml is what keeps this true if the address ever
+// changes, and an empty field fails loudly rather than quietly matching
+// nothing. Phone shapes come from scripts/identifiers.mjs, which is where this
+// repository writes them once.
+async function noContactDetails() {
+  const name = 'no contact details';
+  const profile = parseYaml(await readFile(path.join(context.content, 'profile.yaml'), 'utf8')).profile;
+  const email = typeof profile?.email === 'string' ? profile.email.trim() : '';
+  if (email === '') {
+    throw new CheckFailure(
+      name,
+      'src/content/profile.yaml holds no email, so this check has nothing to look for; it must fail rather than pass over an address it cannot see',
+    );
+  }
+
+  // A published file may carry neither the address itself nor a link that
+  // would reveal it, and a phone number is refused by shape because none is
+  // ever authored.
+  // `exact` marks the two rules that look for a literal string, which are the
+  // two safe to run over bytes that are not text.
+  const forbidden = [
+    { what: `the email address ${email}`, exact: true, test: (text) => text.includes(email) },
+    { what: 'a mailto: link', exact: true, test: (text) => text.includes('mailto:') },
+    { what: 'something shaped like a phone number', test: (text) => identifiersIn(text).length > 0 },
+  ];
+
+  // Every file, because the criterion says every file: the pages, the JSON
+  // documents, the sitemap, the stylesheet, the bundled fonts, the certificate
+  // previews, and every PDF rather than the four documents by name.
+  //
+  // A font or an image is read as latin1 and asked only whether the address or
+  // a mailto: is in its bytes. Those are exact strings and cannot match by
+  // accident; the phone rule matches by shape, and a shape run over compressed
+  // binary matches noise. Measured rather than assumed on 2026-09-10: over the
+  // 29 non-text files this tree publishes, the shape rules hit once, inside
+  // NotoNaskhArabic-Bold.ttf, which is a font and not a student number.
+  //
+  // So the shape half of this check does not reach binary files, and nothing
+  // else covers them either: `identifiers` above reads the same text kinds and
+  // the PDFs. That is a real gap against the criterion's words and it is left
+  // open deliberately, because closing it means either a permanently failing
+  // check or an exemption list, and because no phone number is authored
+  // anywhere in this repository for a binary to carry.
+  const textual = ['.html', '.json', '.xml', '.txt', '.css', '.js', '.svg', '.md'];
+  const files = await walk(context.dist);
+  let pdfs = 0;
+  let read = 0;
+  for (const file of files) {
+    const full = path.join(context.dist, file);
+    const extension = path.extname(file);
+    let text;
+    let rules = forbidden;
+    if (extension === '.pdf') {
+      pdfs += 1;
+      text = await extractText(full);
+      if (text === null) continue;
+      read += 1;
+    } else if (textual.includes(extension)) {
+      text = await readFile(full, 'utf8');
+    } else {
+      text = await readFile(full, 'latin1');
+      rules = forbidden.filter((rule) => rule.exact);
+    }
+    const hit = rules.find((rule) => rule.test(text));
+    if (hit) {
+      // Which is worth the four words: a PDF is judged on the text it
+      // extracts, and every other file on the bytes it is.
+      const where = extension === '.pdf' ? `the text of dist/${file}` : `dist/${file}`;
+      throw new CheckFailure(name, `${where} carries ${hit.what}`);
+    }
+  }
+
+  // The README is what GitHub renders on the profile page, so it is published
+  // in every sense that matters even though it is not under dist/.
+  const readme = await readFile(path.join(root, 'README.md'), 'utf8');
+  const hit = forbidden.find((rule) => rule.test(readme));
+  if (hit) throw new CheckFailure(name, `README.md carries ${hit.what}`);
+
+  const pdfNote =
+    pdfs === 0
+      ? ''
+      : read === pdfs
+        ? `, the text of ${pdfs} PDFs among them`
+        : ` (pdftotext is not on the PATH, so ${pdfs} PDFs were not read)`;
+  return [`no contact details: no address, no mailto:, no number in ${files.length} published files${pdfNote}, or README.md`];
+}
+
+// The nationality is a fact for the two documents and for nothing else. The
+// JSON Resume documents are checked by key in `jsonResume` above; the pages
+// and the README are checked here, and by element rather than by string,
+// because the authored English value is "Saudi" and it occurs in "Saudi
+// Arabia", in a university's name, and in a project summary, all of them true
+// content. Rendered as its own item the value stands alone between its tags,
+// which is what the documents do and what nothing else may do.
+async function nationalityWhereItBelongs() {
+  const name = 'nationality';
+  const profile = parseYaml(await readFile(path.join(context.content, 'profile.yaml'), 'utf8')).profile;
+  const lines = [];
+
+  for (const locale of context.locales) {
+    const value = profile.nationality?.[locale] ?? profile.nationality?.en;
+    if (!value) {
+      throw new CheckFailure(name, `src/content/profile.yaml holds no nationality for ${locale}`);
+    }
+    const alone = `>${value}<`;
+
+    for (const document of documents) {
+      const route = `${locale}/${document}/index.html`;
+      const html = await readFile(path.join(context.dist, locale, document, 'index.html'), 'utf8');
+      if (!html.includes(alone)) {
+        throw new CheckFailure(name, `dist/${route} does not show the nationality as authored`);
+      }
+    }
+
+    const home = await readFile(path.join(context.dist, locale, 'index.html'), 'utf8');
+    if (home.includes(alone)) {
+      throw new CheckFailure(name, `dist/${locale}/index.html shows the nationality, which belongs to the two documents alone`);
+    }
+    lines.push(`nationality: ${locale} shows "${value}" on both documents and not on the home page`);
+  }
+
+  const readme = await readFile(path.join(root, 'README.md'), 'utf8');
+  const { current } = await readmeWithProfile();
+  const block = current.slice(current.indexOf('<!-- profile -->'));
+  for (const locale of context.locales) {
+    const value = profile.nationality?.[locale] ?? profile.nationality?.en;
+    if (new RegExp(`(^|[\\n:*\\-] *)${value}( *$|[\\n])`, 'm').test(block) || readme.includes(`Nationality`)) {
+      throw new CheckFailure(name, 'README.md carries the nationality, which belongs to the two documents alone');
+    }
+  }
+  lines.push('nationality: README.md carries none');
   return lines;
 }
 
@@ -729,7 +932,7 @@ async function readmeProfile() {
   return ['readme profile: README.md carries the profile as src/content/ states it'];
 }
 
-const checks = [jsonResume, documentPdfs, resumePages, localeTwins, hrefs, basePaths, metadata, sitemap, robots, identifiers, gaps, noOverclaim, documentHazards, readmeProfile];
+const checks = [jsonResume, documentPdfs, resumePages, localeTwins, hrefs, basePaths, metadata, sitemap, robots, identifiers, noContactDetails, nationalityWhereItBelongs, gaps, noOverclaim, documentHazards, readmeProfile];
 
 for (const check of checks) {
   try {
