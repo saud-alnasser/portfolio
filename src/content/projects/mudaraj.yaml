@@ -3,11 +3,11 @@ period:
   start: "2025-09"
   end: "2026-04"
 role:
-  en: "Developer, in a senior project team of six"
-  ar: "مطور ضمن فريق مشروع تخرج من ستة أعضاء"
+  en: "Developer, in a team of six; a Saudi Electronic University bachelor's senior project, built as a prototype"
+  ar: "مطور ضمن فريق من ستة أعضاء؛ مشروع تخرج بكالوريوس في الجامعة السعودية الإلكترونية، بُني نموذجًا أوليًا"
 summary:
-  en: "A centralised e-ticketing and fan loyalty platform for Saudi football, built as the Saudi Electronic University senior project: match browsing and seat selection, QR-code tickets validated at the stadium, a points-based loyalty programme, and a bilingual English and Arabic interface, developed with Scrum."
-  ar: "منصة مركزية للتذاكر الإلكترونية وولاء المشجعين لكرة القدم السعودية، بُنيت مشروع تخرج في الجامعة السعودية الإلكترونية: تصفح المباريات واختيار المقاعد، وتذاكر برموز QR يُتحقق منها عند الملعب، وبرنامج ولاء قائم على النقاط، وواجهة ثنائية اللغة بالعربية والإنجليزية، طُورت وفق منهجية Scrum."
+  en: "A centralised e-ticketing and fan loyalty platform for Saudi football: match browsing and seat selection, QR-code tickets validated at the stadium, a points-based loyalty programme, and a bilingual English and Arabic interface, developed with Scrum."
+  ar: "منصة مركزية للتذاكر الإلكترونية وولاء المشجعين لكرة القدم السعودية: تصفح المباريات واختيار المقاعد، وتذاكر برموز QR يُتحقق منها عند الملعب، وبرنامج ولاء قائم على النقاط، وواجهة ثنائية اللغة بالعربية والإنجليزية، طُورت وفق منهجية Scrum."
 technologies:
   - "Svelte"
   - "SvelteKit"
