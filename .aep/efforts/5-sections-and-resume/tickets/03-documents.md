@@ -30,3 +30,24 @@ New `src/components/CvDocument.astro`, `src/pages/[locale]/cv.astro`, new `src/p
 
 ## Notes
 The plan's technical approach step 3. Stacks on 01; independent of 02 and 04 except for the shared edits to `index.astro` and `i18n.ts` with 02, which the orchestrator reconciles.
+
+### Parked on 2026-09-10, on the one-page rule
+
+**Not failed and not resolved.** Everything the ticket asks for is built and green except the fourth criterion, and that one cannot be met by building harder: **the resume renders to two pages at A4 and at Letter, in both languages**, at the 10pt the constraint fixes as the floor. The render step and the dist check both refuse it, which is the guard working rather than a defect.
+
+The work is committed as `e757cd6` on `tickets/5-sections-and-resume/03-documents`, whose worktree is kept. It is committed so it is not held only in a working tree while the rule is decided; it is **not integrated** into the effort branch. The implementer's full record, with every measurement and every check quoted, is the change record it wrote for that run.
+
+**The evidence**, the implementer's and the orchestrator's independently:
+
+| | Article, at the print column | A4 leaves 1002px | Letter leaves 935px |
+| --- | --- | --- | --- |
+| `/en/resume/` | 1224px | 222px over | 289px over |
+| `/ar/resume/` | 1164px | 162px over | 229px over |
+
+Rendered and counted with `pdfjs-dist` by the orchestrator on the built pages: `resume.en.pdf` and `resume.ar.pdf` are two pages at both papers; `cv.en.pdf` and `cv.ar.pdf` are five. Cutting **every** multi-line paragraph in the resume to one line gives back 240px in English and 180px in Arabic, which leaves each about 49px short of Letter. The plan's three named levers, at their maximum, reach 160px of the 289px English needs, and the third of them is the profile summary, which ticket 04 owns.
+
+**No criterion is ticked**, including the eight the implementer verified. A tick is what a resumed run trusts without re-deriving, and every height, page count, and test expectation here moves the moment a remedy is applied, so the ticket is re-verified whole when it resumes rather than half-trusted.
+
+**One criterion is unverified rather than unmet**, separately from the finding: Lighthouse audits all six pages and then dies with `EPERM` removing its own temporary directory, twice, inside `chrome-launcher`. That is the environment, not the site, and it needs a run where the process may delete that directory.
+
+The remedies the implementer costed, none taken, are in the report that carried this to Saud. This is the plan's own named return-to-plan finding under "Technical risks", except that it lands in both languages rather than only Arabic.
