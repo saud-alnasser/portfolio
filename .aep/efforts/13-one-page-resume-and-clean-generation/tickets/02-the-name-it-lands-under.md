@@ -1,5 +1,5 @@
 ---
-status: open
+status: resolved
 ---
 
 # feat(cv): a generated document saved under the published document's name
@@ -10,12 +10,12 @@ A document generated through the form lands on disk as `resume.en.pdf` or `cv.ar
 
 ## Acceptance Criteria
 
-- [ ] Generating on each of the four document pages sets the page's title to the download control's `href` basename without its extension at the moment `window.print()` is called: `resume.en`, `resume.ar`, `cv.en`, `cv.ar` (criterion 5).
-- [ ] The page's own title is back after the print call returns, after `afterprint`, and after a dismissal that never printed. All three, because `afterprint` is not uniformly reliable and the contact line beside it already clears on the same three paths (criterion 5).
-- [ ] A case that opens the form and dismisses it asserts the title never changed. A test that only ever generates would not see this one (criterion 5).
-- [ ] The file name is written down nowhere: no new string, no new attribute, no second copy of it. It is read from the address the control already links (criterion 5).
-- [ ] With no script, all four pages behave exactly as they do today and the control is the plain link to the published PDF, marker or no marker.
-- [ ] `pnpm build`, `pnpm test`, `pnpm check`, `pnpm render:pdf`, and `pnpm check:dist` pass.
+- [x] Generating on each of the four document pages sets the page's title to the download control's `href` basename without its extension at the moment `window.print()` is called: `resume.en`, `resume.ar`, `cv.en`, `cv.ar` (criterion 5).
+- [x] The page's own title is back after the print call returns, after `afterprint`, and after a dismissal that never printed. All three, because `afterprint` is not uniformly reliable and the contact line beside it already clears on the same three paths (criterion 5).
+- [x] A case that opens the form and dismisses it asserts the title never changed. A test that only ever generates would not see this one (criterion 5).
+- [x] The file name is written down nowhere: no new string, no new attribute, no second copy of it. It is read from the address the control already links (criterion 5).
+- [x] With no script, all four pages behave exactly as they do today and the control is the plain link to the published PDF, marker or no marker.
+- [x] `pnpm build`, `pnpm test`, `pnpm check`, `pnpm render:pdf`, and `pnpm check:dist` pass.
 
 ## Relevant areas
 

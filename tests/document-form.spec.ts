@@ -28,7 +28,9 @@ import { strings } from '../src/lib/i18n';
 // window.print() is replaced before the page loads rather than left to run.
 // A headless browser has no print dialog to complete, and what these tests are
 // about is the state of the document at the moment printing is asked for,
-// which is what a reader's print dialog would be handed.
+// which is what a reader's print dialog would be handed. The page's title is
+// part of that state: Chrome names a printed PDF after it, so the title the
+// stub records is the name the file would have landed under.
 
 const content = fileURLToPath(new URL('../src/content/', import.meta.url));
 const profile = parseYaml(readFileSync(path.join(content, 'profile.yaml'), 'utf8')).profile;
@@ -43,6 +45,9 @@ const settled = (page: Page) => page.evaluate(() => Promise.all(document.getAnim
 
 // Counts the print calls instead of making them, and lets a test fire the
 // afterprint the browser would fire once a reader is done with the dialog.
+// It records the page's title at each call as well, because that is what
+// names the file and it is only observable while the call is happening: the
+// page takes its own title back the moment print() returns.
 //
 // The count lands a task after the dialog's `open` attribute goes, because
 // printing happens in the close handler and `close()` removes the attribute
@@ -50,13 +55,46 @@ const settled = (page: Page) => page.evaluate(() => Promise.all(document.getAnim
 async function stubPrint(page: Page) {
   await page.addInitScript(() => {
     (window as any).__prints = 0;
+    (window as any).__printedAs = [];
     window.print = () => {
       (window as any).__prints += 1;
+      (window as any).__printedAs.push(document.title);
     };
   });
 }
 
 const prints = (page: Page) => page.evaluate(() => (window as any).__prints as number);
+
+const printedAs = (page: Page) => page.evaluate(() => (window as any).__printedAs as string[]);
+
+// Every value assigned to the page's title, recorded at the assignment.
+//
+// A test asserting the title never moved cannot read it once the form is
+// closed and call that proof, for the reason watchOpen gives: a title set and
+// put back inside one task reads exactly like one that was never touched. A
+// MutationObserver has that same blindness here, and it was tried first — it
+// delivers one batch after the task that produced it, so the move and the
+// restore arrive together and only the value that survived them is still
+// readable.
+//
+// Installed before the page loads, the way window.print() is, because what
+// these tests are about is what the page did at the moment it asked to print.
+async function watchTitle(page: Page) {
+  await page.addInitScript(() => {
+    (window as any).__titles = [];
+    const own = Object.getOwnPropertyDescriptor(Document.prototype, 'title')!;
+    Object.defineProperty(document, 'title', {
+      configurable: true,
+      get: () => own.get!.call(document),
+      set: (value) => {
+        (window as any).__titles.push(value);
+        own.set!.call(document, value);
+      },
+    });
+  });
+}
+
+const titles = (page: Page) => page.evaluate(() => (window as any).__titles as string[]);
 
 // Counts the times the dialog gained its `open` attribute, from the moment this
 // is installed. A test asserting that nothing opened cannot read the attribute
@@ -106,6 +144,7 @@ for (const locale of locales) {
     test.describe(`the download form on ${url}`, () => {
       test.beforeEach(async ({ page }) => {
         await stubPrint(page);
+        await watchTitle(page);
       });
 
       // What every reader but one gets, and it sits beside the marked case
@@ -322,6 +361,59 @@ for (const locale of locales) {
         expect(await slot(page, 'phone'), 'the phone slot on reopening').toEqual({ text: '', hidden: true });
         await expect(page.locator('[data-document-field="email"]'), 'the email field on reopening').toHaveValue('');
         await expect(page.locator('[data-document-field="phone"]'), 'the phone field on reopening').toHaveValue('');
+      });
+
+      // The name the generated file lands under. Chrome names a printed PDF
+      // after the page's title, so the title has to be the published
+      // document's name at the moment printing is asked for and the page's own
+      // again once it is over — in the tab, the history entry, and anything
+      // bookmarked from it.
+      test('prints under the name the published document has, and takes its own title back', async ({ page }) => {
+        await page.goto(marked);
+        await settled(page);
+        const own = await page.title();
+
+        await page.locator(control).click();
+        await page.locator('[data-document-field="email"]').fill('reader@example.com');
+        await page.locator(generate).click();
+        await expect.poll(() => prints(page), { message: `window.print() on ${url}` }).toBe(1);
+
+        // The basename of the control's own href without its extension, which
+        // is the name the published download already has.
+        expect(await printedAs(page), `the title while printing on ${url}`).toEqual([`${variant}.${locale}`]);
+
+        // print() blocks until the reader is done with the dialog, so this is
+        // the restore that normally runs, and it has happened by now.
+        expect(await page.title(), `the title after printing on ${url}`).toBe(own);
+        expect(await titles(page), `the titles ${url} took`).toEqual([`${variant}.${locale}`, own]);
+
+        // And the other half of it, asserted on its own: a browser that left
+        // the title behind gets it back from afterprint, which is the same
+        // belt the contact line's clear wears and for the same reason.
+        await page.evaluate(() => {
+          document.title = 'left behind';
+        });
+        await page.evaluate(() => window.dispatchEvent(new Event('afterprint')));
+        expect(await page.title(), `the title after afterprint on ${url}`).toBe(own);
+      });
+
+      // The path a test that only ever generates would never see. The title is
+      // what a tab, a history entry, and a bookmark read, so a reader who opens
+      // the form and changes their mind has to watch it stand completely still.
+      test('never moves the title for a reader who dismisses the form', async ({ page }) => {
+        await page.goto(marked);
+        await settled(page);
+        const own = await page.title();
+
+        await page.locator(control).click();
+        await expect(page.locator(dialog)).toHaveAttribute('open', '');
+        await page.locator('[data-document-field="email"]').fill('reader@example.com');
+        await page.keyboard.press('Escape');
+        await expect(page.locator(dialog)).not.toHaveAttribute('open');
+
+        expect(await prints(page), `window.print() on a dismissed form on ${url}`).toBe(0);
+        expect(await titles(page), `the titles ${url} took while the form was dismissed`).toEqual([]);
+        expect(await page.title(), `the title after a dismissal on ${url}`).toBe(own);
       });
 
       test('dismisses on Escape, on the close control, and on the backdrop, returning focus each time', async ({

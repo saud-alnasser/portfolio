@@ -159,10 +159,11 @@ const nav = [
         // Turns the download control on a document page into the form that
         // fills the document's contact line, then prints it, and only where
         // the page was opened at the marked address. The values go into the
-        // two hidden slots the contact line already has, the page is printed,
-        // and the slots are emptied again; docs/development.md says why the
-        // document is made here rather than published, and at which address.
-        // Nothing is stored and nothing is sent.
+        // two hidden slots the contact line already has, the page prints under
+        // the name the published document already has, and the slots and the
+        // title are both put back; docs/development.md says why the document is
+        // made here rather than published, and at which address. Nothing is
+        // stored and nothing is sent.
         //
         // Everywhere else the control is the link to the published PDF it
         // already is: at an unmarked address, with no script at all, and in a
@@ -184,6 +185,32 @@ const nav = [
 
           function slot(which) {
             return contact.querySelector('[data-contact-slot="' + which + '"]');
+          }
+
+          // Chrome names a printed PDF after the page's title and appends
+          // `.pdf`, so the title is what decides the name a generated document
+          // lands under, and for the length of the print it is the published
+          // document's: `/saud-alnasser/resume.en.pdf` gives `resume.en`, and
+          // the extension comes back on the way out. Read off the control's own
+          // address rather than written down here, so the file a reader
+          // generates and the one the site publishes cannot disagree.
+          function named(control) {
+            return control.getAttribute('href').split('/').pop().replace(/\.[^.]+$/, '');
+          }
+
+          // The page's own title, and putting it back. It goes everywhere the
+          // clear below goes and once more besides, the moment print() returns,
+          // because a title left behind renames the tab, the history entry, and
+          // anything bookmarked from it, and `afterprint` is no more reliable
+          // here than it is for the contact line.
+          //
+          // It writes only where the title has actually moved, because a reader
+          // who opens the form and changes their mind has to see it stand
+          // completely still, and assigning a title its own value still replaces
+          // the text anything watching the document is watching.
+          var title = document.title;
+          function restore() {
+            if (document.title !== title) document.title = title;
           }
 
           // Back to the state a published document is in: both slots empty and
@@ -234,8 +261,10 @@ const nav = [
             // fire: a dismissed dialog clears on close and a printed document
             // clears on afterprint, but a browser that fires neither would
             // otherwise hand the next reader of this tab the last one's
-            // details, on the document and in the fields.
+            // details, on the document and in the fields, and leave the tab
+            // still calling itself by the last document's file name.
             clear();
+            restore();
             opener = control;
             dialog.showModal();
           });
@@ -263,19 +292,26 @@ const nav = [
           });
 
           dialog.addEventListener('close', function () {
-            if (opener) opener.focus();
+            var control = opener;
             opener = null;
+            if (control) control.focus();
             if (generating) {
               generating = false;
+              document.title = named(control);
               window.print();
+              restore();
               return;
             }
             clear();
+            restore();
           });
 
-          // The other half of the clear. `afterprint` is not uniformly
-          // reliable, which is why the close path clears as well.
-          window.addEventListener('afterprint', clear);
+          // The other half of both. `afterprint` is not uniformly reliable,
+          // which is why the close path clears and restores as well.
+          window.addEventListener('afterprint', function () {
+            clear();
+            restore();
+          });
         }
 
         document.addEventListener('DOMContentLoaded', function () {
