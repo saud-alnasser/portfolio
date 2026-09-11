@@ -240,20 +240,30 @@ details[open] > summary .fold-chevron {
 
 /*
  * The resume's own page box. `@page` is a document-level at-rule and no
- * selector can scope it to one article, so the narrower margins are declared
- * on a named page and the resume document's root box is put on that page
- * below. The CV's root carries no page name and keeps the box above. Both a
- * browser print and the `page.pdf` the render step calls read this one rule,
- * because the render step passes no margin option of its own.
+ * selector can scope it to one article, so the box is declared on a named
+ * page and the resume document's root box is put on that page below. The CV's
+ * root carries no page name and keeps the box above. Both a browser print and
+ * the `page.pdf` the render step calls read this one rule, because the render
+ * step passes no margin option of its own.
  *
- * 10mm all round is where most of the shortening comes from, and less than
- * half of it is the extra height: the column is 60 CSS pixels wider, which
- * takes wrapped lines out of every paragraph in the document. It stays well
- * inside the unprintable border a desktop printer keeps, which is around
- * 6mm at its worst edge.
+ * No margin at all, and the resume's white space is its own padding instead.
+ * Chrome draws its print header and footer inside the paper margin, laid out
+ * from the paper edge rather than from the edge of the text, so a small margin
+ * buys a small header only in theory: the furniture is present or it is
+ * absent, and this box is the switch. A resume a reader generates through the
+ * download form therefore comes out carrying nothing the document did not
+ * write, which is what it had been carrying until now — a title, an address, a
+ * page number, and a timestamp, none of them the document's. Measured at three
+ * page boxes with the furniture switched off and on, in this effort's
+ * print-furniture-and-the-page-box prototype, and scripts/render-pdf.mjs takes
+ * one render with it switched on so a margin creeping back fails the step.
+ *
+ * Only a document that fits one page can do this. Padding applies at the ends
+ * of a box rather than at every fragment of it, so the CV, which runs to five
+ * pages, keeps the box above and keeps the furniture that comes with it.
  */
 @page resume {
-  margin: 10mm;
+  margin: 0;
 }
 
 @media print {
@@ -321,6 +331,22 @@ details[open] > summary .fold-chevron {
   :root:has(.cv-compact) {
     font-size: 10pt;
     page: resume;
+  }
+
+  /* The white space the page box above gave up, carried by the document
+     itself. It goes on the article rather than on `main` because the article
+     is the box that has to fit on one page, and padding that is part of that
+     box is padding the fit has to account for.
+
+     10mm all round is where most of the resume's shortening comes from, and
+     less than half of it is the extra height: the column is 60 CSS pixels
+     wider than the CV's, which takes wrapped lines out of every paragraph in
+     the document. It stays well inside the unprintable border a desktop
+     printer keeps, which is around 6mm at its worst edge. Unchanged from the
+     margin it replaces, so the text falls exactly where it fell before and
+     the one-page fit is measured against the same usable height. */
+  .cv-compact {
+    padding: 10mm;
   }
 
   /* Above a band, which is the gap between one section and the next

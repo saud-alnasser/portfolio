@@ -121,7 +121,7 @@ Every task of every effort. The tracker carries the effort, never its tasks.
 | [[efforts/11-private-download-form/tickets/02-the-gate]] feat(cv): the download icon downloads, and the form opens only at the marked address | 11-private-download-form | resolved | 01 |
 | [[efforts/11-private-download-form/tickets/03-what-the-reader-after-needs]] docs(cv): the marked address in the development notes, and the line effort 7 needs | 11-private-download-form | resolved | 02 |
 | [[efforts/11-private-download-form/tickets/04-the-prose-that-still-says-otherwise]] docs(cv): the four places that still say the control presents the form | 11-private-download-form | resolved | 02 |
-| [[efforts/13-one-page-resume-and-clean-generation/tickets/01-nothing-in-the-margin]] feat(cv): a page box with no room for the browser's header and footer | 13-one-page-resume-and-clean-generation | open | — |
+| [[efforts/13-one-page-resume-and-clean-generation/tickets/01-nothing-in-the-margin]] feat(cv): a page box with no room for the browser's header and footer | 13-one-page-resume-and-clean-generation | resolved | — |
 | [[efforts/13-one-page-resume-and-clean-generation/tickets/02-the-name-it-lands-under]] feat(cv): a generated document saved under the published document's name | 13-one-page-resume-and-clean-generation | resolved | — |
 | [[efforts/13-one-page-resume-and-clean-generation/tickets/03-the-pair-redesigned]] feat(cv): both documents redesigned as one pair, in type rather than in markup | 13-one-page-resume-and-clean-generation | open | 01 |
 | [[efforts/13-one-page-resume-and-clean-generation/tickets/04-the-address-as-a-code]] feat(cv): the GitHub address as a QR code with the mark at its centre | 13-one-page-resume-and-clean-generation | open | 03 |

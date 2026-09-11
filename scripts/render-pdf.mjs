@@ -18,6 +18,13 @@
 // The resume is the short document, so it is rendered a second time at Letter
 // to a buffer and both renders are counted with pdfjs-dist.
 //
+// Every document is then rendered again with the browser's print header and
+// footer switched on, which is where a reader's own print dialog starts and
+// where the document a reader generates through the download form therefore
+// comes from. The resume must carry none of it and the CV must carry all of
+// it; the second half is the control, without which the first would pass on a
+// renderer that had quietly stopped drawing furniture at all.
+//
 // Each document is then rendered once more, filled through the download form
 // the way a reader fills it, to .artifacts/ rather than dist/. That copy is
 // the only one carrying contact details, and it exists so the extraction
@@ -54,16 +61,21 @@ const locales = ['en', 'ar'];
 const standardFontDataUrl = `${path.dirname(require.resolve('pdfjs-dist/package.json')).split(path.sep).join('/')}/standard_fonts/`;
 
 // The two documents the site publishes, each as a route and the file it is
-// written to. `pages` is what the document is allowed to run to.
+// written to. `pages` is what the document is allowed to run to, and
+// `furniture` is whether the browser's print header and footer belong on it.
 const documents = [
-  { route: 'cv', file: 'cv', pages: null },
+  // The CV keeps the furniture, which is the mechanism rather than a choice:
+  // Chrome draws it in the paper margin, a document that breaks across pages
+  // needs that margin on every one of them, and the CV runs to five. It is
+  // therefore the control the resume's half of the check is read against.
+  { route: 'cv', file: 'cv', pages: null, furniture: true },
   // Two, not one. The document is one page under the fonts Windows resolves
   // for the system stack and two under the Linux runner's, and it is the
   // runner that renders what ships, so a one-page rule here was a rule about
   // the renderer rather than about the document. Two is a budget and not a
   // target: the resume is still the short document, and a third page is
   // still refused (the effort's spec, requirement 10).
-  { route: 'resume', file: 'resume', pages: 2 },
+  { route: 'resume', file: 'resume', pages: 2, furniture: false },
 ];
 
 class RenderFailure extends Error {
@@ -82,6 +94,66 @@ async function pageCount(data) {
   } finally {
     await task.destroy();
   }
+}
+
+// Every run of text in a rendered PDF, with the page it is on and where on
+// that page it was placed, so two renders of the same document can be compared
+// run for run rather than as one blob of text.
+async function textRuns(data) {
+  const task = getDocument({ data: new Uint8Array(data), standardFontDataUrl });
+  const runs = [];
+  try {
+    const document = await task.promise;
+    for (let number = 1; number <= document.numPages; number += 1) {
+      const content = await (await document.getPage(number)).getTextContent();
+      for (const item of content.items) {
+        if (item.str.trim()) {
+          runs.push({
+            page: number,
+            where: `${number} ${item.transform[4].toFixed(1)} ${item.transform[5].toFixed(1)} ${item.str}`,
+            text: item.str,
+          });
+        }
+      }
+    }
+  } finally {
+    await task.destroy();
+  }
+  return runs;
+}
+
+// A date and a time, whatever order and whatever separators the renderer's
+// locale puts them in: Chrome's print header writes `9/11/26, 5:34 AM` here
+// and something else on a machine set to another locale, and what is being
+// recognised is a timestamp rather than one format of one.
+const dateStamp = /\d{1,2}[/.-]\d{1,2}[/.-]\d{2,4},?\s+\d{1,2}:\d{2}(?::\d{2})?(?:\s*[AaPp]\.?[Mm]\.?)?/g;
+// A page number, the way the print footer writes it: `3/5`.
+const pageNumber = /\b\d+\s*\/\s*\d+\b/g;
+
+// The letters and digits of a string, in one fixed order. The Arabic title is
+// drawn shaped and extracts left to right one letter at a time, so it cannot
+// be compared as a string: NFKC undoes the shaping, sorting undoes the order,
+// and the Farsi yeh is folded to the Arabic one because that is the letter the
+// shaped forms normalise to and, measured on the Arabic CV, the only code
+// point the two sides differ by.
+const letters = (value) =>
+  [...value.normalize('NFKC').replaceAll('ی', 'ي')]
+    .filter((character) => /\p{L}|\p{N}/u.test(character))
+    .sort()
+    .join('');
+
+// Whether every letter of `wanted` is in `within`, as many times as `wanted`
+// has it. Both are the sorted form above, so one walk forward answers it.
+function carriesLetters(within, wanted) {
+  let at = 0;
+  for (const letter of wanted) {
+    at = within.indexOf(letter, at);
+    if (at === -1) {
+      return false;
+    }
+    at += 1;
+  }
+  return true;
 }
 
 // One page to one file. The page is loaded with the network idle so every
@@ -146,6 +218,103 @@ async function render(browser, at, locale, output) {
   const loaded = fonts.filter((face) => face.status === 'loaded').map((face) => `${face.family} ${face.weight}`);
   const pages = counts.map(({ paper, count }) => `${count} ${count === 1 ? 'page' : 'pages'} at ${paper}`).join(', ');
   return `${path.relative(root, file)}: ${size} bytes${pages ? `, ${pages}` : ''}${loaded.length > 0 ? `, fonts ${loaded.join(', ')}` : ''}`;
+}
+
+// The same document once more, taken the way a reader's print dialog takes
+// it: with "Headers and footers" ticked, which is where the dialog starts and
+// where the file Saud generates therefore comes from. Nothing is written; what
+// is being measured is what the renderer draws that the document did not.
+//
+// The furniture is found by subtracting the published render from this one.
+// The switch adds the header and the footer and moves nothing else, so the
+// runs this render has and the published file does not are the furniture and
+// nothing but it. That subtraction is what keeps the document's own words from
+// answering for the renderer's: the resume says the name in its header too,
+// and a check over the whole extracted text would read that as a page title.
+//
+// The page box is the only switch a page has over any of this (the effort's
+// evidence, print-furniture-and-the-page-box), so the resume, whose box has no
+// margin, must come back with nothing, and the CV, whose box has one on every
+// page it breaks over, must come back with all four fields on all of them.
+// Without that second half the first passes on a renderer that has quietly
+// stopped drawing furniture at all, which is a check that cannot fail.
+async function renderFurniture(browser, at, locale, output) {
+  const route = `/${locale}/${output.route}/`;
+  const address = at(route);
+  const file = path.join(dist, `${output.file}.${locale}.pdf`);
+  const page = await browser.newPage();
+  let title;
+  let furnished;
+  try {
+    const response = await page.goto(address, { waitUntil: 'networkidle' });
+    if (!response || !response.ok()) {
+      throw new RenderFailure('page-not-loaded', `${route} answered ${response ? response.status() : 'nothing'}`);
+    }
+    // The same wait the published render makes. The two renders are compared
+    // run for run, so a page whose fonts had not arrived would lay out
+    // differently and every line of it would read as something the renderer
+    // had added.
+    await page.evaluate(() => document.fonts.ready);
+    title = await page.title();
+    furnished = await page.pdf({ format: 'A4', printBackground: true, displayHeaderFooter: true });
+  } finally {
+    await page.close();
+  }
+
+  const published = new Set((await textRuns(await readFile(file))).map((run) => run.where));
+  const drawn = (await textRuns(furnished)).filter((run) => !published.has(run.where));
+  const margins = new Map();
+  for (const run of drawn) {
+    margins.set(run.page, `${margins.get(run.page) ?? ''} ${run.text}`);
+  }
+
+  // The four fields the print dialog's one checkbox turns on together, each
+  // looked for in what is left once whatever would answer for it has been
+  // taken out: the address carries digits a date pattern matches, and a date
+  // carries a slash a page number matches. The title is compared as a set of
+  // letters rather than as a string, for the reason `letters` above gives.
+  const reported = [];
+  for (const [number, text] of [...margins].sort(([one], [two]) => one - two)) {
+    const withoutAddress = text.replaceAll(address, ' ');
+    const withoutStamp = withoutAddress.replace(dateStamp, ' ');
+    const carried = [
+      ['the page title', carriesLetters(letters(withoutAddress), letters(title))],
+      ['the page address', text.includes(address)],
+      ['a page number', withoutStamp.match(pageNumber) !== null],
+      ['a date stamp', withoutAddress.match(dateStamp) !== null],
+    ];
+    reported.push({ number, carried });
+  }
+
+  if (!output.furniture) {
+    const found = reported.flatMap(({ number, carried }) =>
+      carried.filter(([, yes]) => yes).map(([field]) => `${field} on page ${number}`),
+    );
+    if (found.length > 0) {
+      throw new RenderFailure(
+        'print-furniture',
+        `${locale} ${output.route} printed with the header and footer on carries ${found.join(', ')}; the browser draws those in the paper margin, so the page box has one again`,
+      );
+    }
+    return `${route} with the header and footer on: nothing in the margin`;
+  }
+
+  const pages = await pageCount(furnished);
+  const absent = [];
+  for (let number = 1; number <= pages; number += 1) {
+    const carried = reported.find((entry) => entry.number === number)?.carried ?? [];
+    const missing = carried.length === 0 ? ['everything'] : carried.filter(([, yes]) => !yes).map(([field]) => field);
+    if (missing.length > 0) {
+      absent.push(`${missing.join(', ')} on page ${number}`);
+    }
+  }
+  if (absent.length > 0) {
+    throw new RenderFailure(
+      'print-furniture-not-drawn',
+      `${locale} ${output.route} printed with the header and footer on is missing ${absent.join(', ')}; it is the control the resume's check is read against, so a resume passing while this fails proves nothing`,
+    );
+  }
+  return `${route} with the header and footer on: the title, the address, a page number and a date stamp on all ${pages} pages, the control`;
 }
 
 // The same document, filled through the form a reader uses, written outside
@@ -328,6 +497,7 @@ try {
   for (const locale of locales) {
     for (const output of documents) {
       console.log(await render(browser, server.at, locale, output));
+      console.log(await renderFurniture(browser, server.at, locale, output));
       console.log(await renderFilled(browser, server.at, locale, output));
     }
   }

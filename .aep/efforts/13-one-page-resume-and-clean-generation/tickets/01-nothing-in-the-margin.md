@@ -1,5 +1,5 @@
 ---
-status: open
+status: resolved
 ---
 
 # feat(cv): a page box with no room for the browser's header and footer
@@ -10,11 +10,11 @@ The resume prints in a page box with no margin and carries its own white space i
 
 ## Acceptance Criteria
 
-- [ ] `@page resume` carries no margin and the resume's article carries the white space the box used to, at the same 10mm, so the published `resume.en.pdf` and `resume.ar.pdf` render with their text in the same place as before. Compared by rendering the file before and after and reading back where the first line falls (criterion 1).
-- [ ] `scripts/render-pdf.mjs` renders each resume page a further time with the header and footer switched on and fails, naming the locale, when the extracted text of that render carries the page title, the page address, a page number, or a date stamp (criterion 1).
-- [ ] The same render of each CV page fails when it does **not** carry them. That is the positive control, and without it the check passes on a renderer that has quietly stopped drawing furniture at all (criterion 1).
-- [ ] Tried once, both ways: putting a margin back on the resume's page box fails the resume half, and taking the furniture out of the CV fails the control half. A check neither half can fail is not a check.
-- [ ] `pnpm build`, `pnpm render:pdf`, `pnpm check:dist`, `pnpm test`, `pnpm check`, and `pnpm test:content` all pass, and the resume's page count is no worse than it is on `main`.
+- [x] `@page resume` carries no margin and the resume's article carries the white space the box used to, at the same 10mm, so the published `resume.en.pdf` and `resume.ar.pdf` render with their text in the same place as before. Compared by rendering the file before and after and reading back where the first line falls (criterion 1).
+- [x] `scripts/render-pdf.mjs` renders each resume page a further time with the header and footer switched on and fails, naming the locale, when the extracted text of that render carries the page title, the page address, a page number, or a date stamp (criterion 1).
+- [x] The same render of each CV page fails when it does **not** carry them. That is the positive control, and without it the check passes on a renderer that has quietly stopped drawing furniture at all (criterion 1).
+- [x] Tried once, both ways: putting a margin back on the resume's page box fails the resume half, and taking the furniture out of the CV fails the control half. A check neither half can fail is not a check.
+- [x] `pnpm build`, `pnpm render:pdf`, `pnpm check:dist`, `pnpm test`, `pnpm check`, and `pnpm test:content` all pass, and the resume's page count is no worse than it is on `main`.
 
 ## Relevant areas
 
