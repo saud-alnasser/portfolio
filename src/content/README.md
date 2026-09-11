@@ -47,11 +47,20 @@ languages, so who Saud is stays authored once; the dist check fails when the
 README is behind. The record itself — the skills, the projects, the rest —
 is on the site, and the README links to it rather than repeating it.
 
+**There are two summaries, because there are two documents.** Each names only
+the work its own document prints as an entry, which is what one field could
+not do once the CV and the resume stopped carrying the same projects. Which
+document reads which is decided in one place, in
+`src/components/CvDocument.astro`, and the reason they differ is recorded in
+the comment above them in `profile.yaml`. Editing one does not change the
+other, so check which document you mean first.
+
 | Field | Type | Per language | Meaning |
 | --- | --- | --- | --- |
 | `name` | text | yes | the name as it should appear |
 | `label` | text | yes | one line saying what Saud does, such as "Software developer" |
-| `summary` | text | yes | two or three sentences for the top of the site and the CV |
+| `summary` | text | yes | two or three sentences introducing Saud, read by the top of the site, the CV, the README profile block, and both JSON Resume documents. The resume does not read it |
+| `resumeSummary` | text | yes | the same, for the short resume alone, which reads this in place of `summary`. Two or three sentences naming only what the resume itself prints. Its length is measured rather than assumed, because the resume has one page to fit: see the comment above the field |
 | `email` | email address | no | Saud's address. Held here and rendered nowhere; see below |
 | `nationality` | text | yes | the nationality as a hiring document states it, such as "Saudi". Required, and authored rather than read off `location`: where someone lives and what they hold are two facts |
 | `location` | text | yes | city and country |

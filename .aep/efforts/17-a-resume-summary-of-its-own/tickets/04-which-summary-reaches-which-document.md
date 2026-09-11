@@ -1,5 +1,5 @@
 ---
-status: open
+status: resolved
 blocked-by: [01, 02]
 ---
 
@@ -11,10 +11,10 @@ blocked-by: [01, 02]
 
 ## Acceptance Criteria
 
-- [ ] The `profile.yaml` field table carries a row for `resumeSummary`, per language, saying it is the resume's opening paragraph and is read by nothing else (criterion 7).
-- [ ] The `summary` row says it reaches the top of the site, the CV, the README profile block, and both JSON documents, and that the resume does not read it (criterion 7).
-- [ ] The prose above the table, which explains that the README profile block is written from `summary` by `pnpm readme`, still reads correctly now that a second summary exists beside it (criterion 7).
-- [ ] `pnpm check:dist` and `pnpm test:content` pass (criterion 6).
+- [x] The `profile.yaml` field table carries a row for `resumeSummary`, per language, saying it is the resume's opening paragraph and is read by nothing else (criterion 7). The row reads "the same, for the short resume alone, which reads this in place of `summary`", and names the page budget its length is measured against.
+- [x] The `summary` row says it reaches the top of the site, the CV, the README profile block, and both JSON documents, and that the resume does not read it (criterion 7). All four outputs named in the row, and it ends "The resume does not read it".
+- [x] The prose above the table, which explains that the README profile block is written from `summary` by `pnpm readme`, still reads correctly now that a second summary exists beside it (criterion 7). That sentence already named the field rather than saying "the summary", so it stayed as written; a paragraph was added before the table saying there are two, that each names only what its own document prints, where the choice is made, and to check which document you mean before editing one.
+- [x] `pnpm check:dist` and `pnpm test:content` pass (criterion 6). Both pass, and `pnpm check` (0 errors, 0 warnings) and `pnpm test` (604 passed) with them.
 
 ## Relevant areas
 
