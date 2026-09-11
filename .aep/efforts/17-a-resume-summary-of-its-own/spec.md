@@ -37,16 +37,16 @@ Each document opens with a paragraph it can back up. The resume's names the two 
 7. **The format is documented where the format is documented.** `src/content/README.md` describes the new field the way it describes `summary`, including which document each one reaches, so the next person to edit either knows which one they are editing.
 8. **The resume is still one page, with headroom the runner will not eat.** Both languages, both papers, published and filled, at or above the 10mm floor at Letter. Measured rather than assumed, and the number recorded.
 
-# Acceptance criteria
+# Acceptance Criteria
 
-- [ ] The profile schema requires a second localized summary; a `profile.yaml` without it fails the build, and `CvDocument.astro` selects between the two on `variant` in one place.
-- [ ] The English resume summary names `rentable` and Mudaraj and no other project. `cachescribe`, PL/0, Monkey, and the language in draft appear nowhere in it, in either language.
-- [ ] The resume summary calls Mudaraj a prototype built for a bachelor's senior project, and `git diff` shows `src/content/projects/mudaraj.yaml` unchanged.
-- [ ] Neither language's `summary` mentions a statically typed language, a bytecode virtual machine, or a language in draft, and both still name the npm package, the PL/0 compiler, and the Monkey interpreter.
-- [ ] The home page hero and `basics.summary` in both `resume.json` documents carry the edited `summary`, and `pnpm check:dist` reports `readme profile: README.md carries the profile as src/content/ states it`.
-- [ ] `pnpm build` prints `[localized] 0 gaps`, and `pnpm check`, `pnpm check:dist`, `pnpm test`, and `pnpm test:content` all pass.
-- [ ] `src/content/README.md` documents both summary fields and which output each reaches.
-- [ ] `pnpm render:pdf` writes `resume.en.pdf` and `resume.ar.pdf`, and the filled copy of each, at one page on A4 and one page at Letter, each reporting at least 10mm free at Letter. The number goes in the commit.
+1. The profile schema requires a second localized summary; a `profile.yaml` without it fails the build, and `CvDocument.astro` selects between the two on `variant` in one place.
+2. The English resume summary names `rentable` and Mudaraj and no other project. `cachescribe`, PL/0, Monkey, and the language in draft appear nowhere in it, in either language.
+3. The resume summary calls Mudaraj a prototype built for a bachelor's senior project, and `git diff` shows `src/content/projects/mudaraj.yaml` unchanged.
+4. Neither language's `summary` mentions a statically typed language, a bytecode virtual machine, or a language in draft, and both still name the npm package, the PL/0 compiler, and the Monkey interpreter.
+5. The home page hero and `basics.summary` in both `resume.json` documents carry the edited `summary`, and `pnpm check:dist` reports `readme profile: README.md carries the profile as src/content/ states it`.
+6. `pnpm build` prints `[localized] 0 gaps`, and `pnpm check`, `pnpm check:dist`, `pnpm test`, and `pnpm test:content` all pass.
+7. `src/content/README.md` documents both summary fields and which output each reaches.
+8. `pnpm render:pdf` writes `resume.en.pdf` and `resume.ar.pdf`, and the filled copy of each, at one page on A4 and one page at Letter, each reporting at least 10mm free at Letter. The number goes in the commit.
 
 # Constraints
 
@@ -56,7 +56,7 @@ Each document opens with a paragraph it can back up. The resume's names the two 
 - **Two or three sentences each.** `src/content/README.md` sets that for `summary` and the new field is the same kind of text.
 - **Everything the prior efforts constrain still binds.** Two languages with one set of facts, two themes, parser-safe documents, no contact detail in any published file, the form behind its marked address, the quality gates, and the resume's one page.
 
-# Out of scope
+# Out of Scope
 
 - **Nova's status.** The clause comes out of the summary; `src/content/projects/nova-lang.yaml` keeps `status: in-progress` and stays off every output. Marking an entry `completed` is a claim about whether the work is finished and it is Saud's to make, not a side effect of editing a paragraph. When he makes it, the entry appears on the work page and the CV on its own, which is the route every other project takes.
 - **Mudaraj's entry and `rentable`'s entry.** Both untouched. Only the summary above them changes.
