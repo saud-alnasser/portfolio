@@ -6,41 +6,64 @@ profile:
   label:
     en: Software developer
     ar: مطور برمجيات
-  # Rewritten twice on 2026-09-11. It was first cut to one sentence so the
-  # resume reached one page, and the sentence that survived named the work
-  # only as categories: offline-first desktop software, a published npm
-  # package, a bilingual web platform. Saud read it on the generated document
-  # and it told him nothing, which is the whole job of the first paragraph an
-  # employer reads. So the detail is back, paid for out of the headroom the
-  # bundled face and the content cuts bought, and measured rather than
-  # assumed: lengthening this again means running `pnpm render:pdf` and
-  # reading the free height at Letter against the floor in
-  # scripts/render-pdf.mjs.
+  # Two summaries, because there are two documents and they carry different
+  # entries. Split on 2026-09-11, by Saud's decision, after one field had been
+  # rewritten twice in a day trying to serve both:
   #
-  # Mudaraj is named nowhere in it, by Saud's decision on 2026-09-11. It is a
-  # prototype and a senior project, its own entry on the document says so in
-  # its role line, and a summary that leads with it claims more for it than
-  # the entry does. The entry stays; the summary stops pointing at it.
+  #   summary        the CV, the home page hero, the README profile block,
+  #                  and basics.summary in both resume.json documents
+  #   resumeSummary  the resume, and nothing else
   #
-  # The npm package stays in, and deliberately: the resume no longer carries
-  # cachescribe, so this clause is the only place that work appears at all on
-  # the document an application takes. The CV, the work page, and both JSON
-  # documents still carry the entry whole.
+  # The rule each one follows is the same: name nothing the document itself
+  # does not print as an entry. That is what one field could not do. The CV
+  # carries the whole record, the resume carries two projects, and the
+  # paragraph that named the resume's missing work was the paragraph the CV
+  # had to open with too.
+  #
+  # That rule is why `summary` lost a clause the same day: a statically typed
+  # language on a bytecode virtual machine, in draft. That is Nova, and
+  # nothing publishes it. src/content/projects/nova-lang.yaml is
+  # `status: in-progress`, and isShown() in src/lib/shown.ts shows a project
+  # only where its status is `completed`, so Nova reaches no page, no
+  # document, and no JSON file. The clause was the only place it was named
+  # anywhere, and a reader following it arrived at nothing. Do not restore it
+  # on the grounds that the entry is in the source: when its status changes,
+  # Nova reaches the work page and the CV on its own, the way every other
+  # project gets there.
+  #
+  # Keeping them apart is the cost of the split, and it is the reason they sit
+  # a few lines apart under one comment rather than in two files.
+  #
+  # Length on the resume is measured, never assumed. Lengthening
+  # `resumeSummary` means running `pnpm render:pdf` and reading the free
+  # height at Letter against the floor in scripts/render-pdf.mjs; `summary`
+  # has no budget, because the CV has no page count to hold.
   summary:
     en: >-
       Software developer in Riyadh, working mostly in Rust and TypeScript.
       Built an offline-first desktop rent tracker on Tauri, SvelteKit, and
       Turso, and published an npm package that keeps a cache on the file
       system between runs. Most of the rest is language work in Rust: a PL/0
-      compiler, an interpreter for the Monkey language, and a statically typed
-      language on a bytecode virtual machine, in draft.
+      compiler and an interpreter for the Monkey language.
     ar: >-
       مطور برمجيات في الرياض، يعمل في الغالب بلغتي Rust وTypeScript. بنى
       متتبعًا لمدفوعات الإيجار على سطح المكتب يعمل دون اتصال أولاً باستخدام
       Tauri وSvelteKit وTurso، ونشر حزمة npm تحتفظ بذاكرة تخزين مؤقت في نظام
       الملفات بين تشغيلات البرنامج. وأغلب ما تبقى عمل في اللغات بلغة Rust:
-      مترجم للغة PL/0، ومفسر للغة Monkey، ولغة ذات أنواع ساكنة تعمل على آلة
-      افتراضية للبايت كود، في طور المسودة.
+      مترجم للغة PL/0 ومفسر للغة Monkey.
+  resumeSummary:
+    en: >-
+      Software developer in Riyadh, working mostly in Rust and TypeScript.
+      Sole developer of rentable, an offline-first desktop tracker for rent
+      payments on Tauri, SvelteKit, and Turso. One of a team of six on
+      Mudaraj, an e-ticketing and fan loyalty platform for Saudi football,
+      built as a prototype for a bachelor's senior project.
+    ar: >-
+      مطور برمجيات في الرياض، يعمل في الغالب بلغتي Rust وTypeScript. المطور
+      الوحيد لـ rentable، متتبع لمدفوعات الإيجار على سطح المكتب يعمل دون
+      اتصال أولاً، مبني على Tauri وSvelteKit وTurso. وأحد أعضاء فريق من ستة
+      في Mudaraj، منصة للتذاكر الإلكترونية وولاء المشجعين لكرة القدم
+      السعودية، بُنيت نموذجًا أوليًا لمشروع تخرج بكالوريوس.
   email: saud4services@gmail.com
   nationality:
     en: Saudi

@@ -67,6 +67,10 @@ const profile = defineCollection({
       name: localized,
       label: localized,
       summary: localized,
+      // The resume's opening paragraph, and the only field it reads in place
+      // of `summary`. Required, so the resume cannot ship with a hole where
+      // that paragraph goes; why there are two is in src/content/profile.yaml.
+      resumeSummary: localized,
       email: z.string().email(),
       // Required, and authored as a fact rather than inferred from `location`:
       // a document that states a nationality is claiming one, and the two are

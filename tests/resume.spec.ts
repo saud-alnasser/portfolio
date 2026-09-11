@@ -77,6 +77,25 @@ const sectionsExpected = (variant: 'cv' | 'resume') => [
   ...tailOrder[variant].filter((id) => held[variant][id] > 0),
 ];
 
+// The paragraph each document opens with, and the other place the two differ.
+// The CV prints the profile's `summary`, which the home page, the README, and
+// both JSON Resume documents also read; the resume prints `resumeSummary`,
+// which nothing else reads. Which document gets which is decided in one place
+// (src/components/CvDocument.astro), and the two fields sit a few lines apart
+// in src/content/profile.yaml, so the only thing holding them the right way
+// round is this.
+const summaryField = { cv: 'summary', resume: 'resumeSummary' } as const;
+
+// One document's summary in one language, with the fallback the page falls
+// back by: a profile field's Arabic is optional in the contract and
+// src/lib/localized.ts renders the English when it is absent, so an
+// expectation read straight off the `ar` key would fail on a gap that is
+// legal. Same shape as `courseNames` below.
+function summaryText(variant: 'cv' | 'resume', locale: Locale): string {
+  const authored = profile[summaryField[variant]];
+  return authored[locale] ?? authored.en;
+}
+
 // The course list under an education entry, in one language: the block the CV
 // keeps and the resume drops. Each course is authored as an { en, ar } map.
 function courseNames(locale: Locale): string[] {
@@ -100,6 +119,17 @@ for (const locale of locales) {
       test('prints its sections in the order the template fixes', async ({ page }) => {
         await page.goto(route);
         expect(await sectionsOf(page), `the sections of ${route}`).toEqual(sectionsExpected(variant));
+      });
+
+      // The one paragraph on the page that is authored per document rather
+      // than shared. Asserted against the field src/content/profile.yaml
+      // holds for this variant, so swapping the two in
+      // src/components/CvDocument.astro fails here instead of shipping a
+      // resume opening with the CV's paragraph.
+      test('opens with the summary authored for its own document', async ({ page }) => {
+        await page.goto(route);
+        const section = page.locator('[data-cv-section="summary"]');
+        await expect(section.locator('p'), `the summary on ${route}`).toHaveText(summaryText(variant, locale));
       });
 
       test('carries exactly the entries the content marks for it', async ({ page }) => {

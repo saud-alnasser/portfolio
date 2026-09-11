@@ -36,7 +36,7 @@ import QrCode from './QrCode.astro';
 //   cv                                    resume
 //   ------------------------------------  ------------------------------------
 //   name, label, contact line             the same
-//   summary                               the same
+//   summary, from `summary`               its own, from `resumeSummary`
 //   experience, every entry with bullets  the same
 //   education, with the course list       education, without the course list
 //   skills, the keywords in columns       skills, one line per group
@@ -65,7 +65,13 @@ const profile = (await getEntry('profile', 'profile'))!;
 const profileText = localized(locale, 'profile', profile.id);
 const name = profileText('name', profile.data.name);
 const label = profileText('label', profile.data.label);
-const summary = profileText('summary', profile.data.summary);
+// One summary per document, decided here rather than by either page. Each
+// names only what its own document prints as an entry, which is what one
+// field could not do for two documents carrying different ones
+// (src/content/profile.yaml).
+const summary = resume
+  ? profileText('resumeSummary', profile.data.resumeSummary)
+  : profileText('summary', profile.data.summary);
 const nationality = profileText('nationality', profile.data.nationality);
 const location = profileText('location', profile.data.location);
 
