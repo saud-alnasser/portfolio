@@ -142,7 +142,26 @@ const PAGE_PADDING_MM = 10;
 const INK = 250;
 const INK_SCALE = 3;
 
-async function freeHeight(data) {
+// How much content is on the last page, in millimetres of ink from its
+// topmost row to its lowest. The mirror of the measurement below, and it
+// exists for the failure rather than for the success: a document that runs
+// over says so with a page count, and a page count does not say by how much.
+//
+// Without it the remedy for an overrun is guesswork, and the machine that
+// decides is a CI runner rather than the one the cutting is done on: the
+// English resume is one page here with 15mm to spare and two on the runner,
+// because the system font stack resolves to different faces. So the failure
+// carries the number the next cut has to beat.
+async function overflowHeight(data) {
+  const rows = await inkRows(data);
+  if (rows === null) return null;
+  return ((rows.bottom - rows.top) / INK_SCALE / 72) * 25.4;
+}
+
+// The topmost and lowest rows of the last page that are not paper, in device
+// pixels of the render below. Both measurements above are a subtraction away
+// from these, so the page is drawn once and read twice.
+async function inkRows(data) {
   const task = getDocument({ data: new Uint8Array(data), standardFontDataUrl });
   try {
     const document = await task.promise;
@@ -152,27 +171,32 @@ async function freeHeight(data) {
     await page.render({ canvas, viewport }).promise;
     const { data: pixels, width, height } = canvas.getContext('2d').getImageData(0, 0, canvas.width, canvas.height);
 
-    // Up from the bottom edge, because that is the end being measured and the
-    // answer is usually within the last fifth of the page.
-    let bottom = null;
-    for (let y = height - 1; y >= 0 && bottom === null; y -= 1) {
+    const inked = (y) => {
       for (let x = 0; x < width; x += 1) {
         const at = (y * width + x) * 4;
-        if (pixels[at] < INK || pixels[at + 1] < INK || pixels[at + 2] < INK) {
-          bottom = y;
-          break;
-        }
+        if (pixels[at] < INK || pixels[at + 1] < INK || pixels[at + 2] < INK) return true;
       }
-    }
-    if (bottom === null) return null;
+      return false;
+    };
 
-    // Rows below the lowest ink, as millimetres of paper, less the padding the
-    // document carries there anyway.
-    const mm = ((height - 1 - bottom) / INK_SCALE / 72) * 25.4;
-    return mm - PAGE_PADDING_MM;
+    let top = null;
+    for (let y = 0; y < height && top === null; y += 1) if (inked(y)) top = y;
+    if (top === null) return null;
+    let bottom = null;
+    for (let y = height - 1; y >= 0 && bottom === null; y -= 1) if (inked(y)) bottom = y;
+    return { top, bottom, height };
   } finally {
     await task.destroy();
   }
+}
+
+async function freeHeight(data) {
+  const rows = await inkRows(data);
+  if (rows === null) return null;
+  // Rows below the lowest ink, as millimetres of paper, less the padding the
+  // document carries there anyway.
+  const mm = ((rows.height - 1 - rows.bottom) / INK_SCALE / 72) * 25.4;
+  return mm - PAGE_PADDING_MM;
 }
 
 // The floor, in millimetres of the last page's content box at Letter.
@@ -305,12 +329,12 @@ async function render(browser, at, locale, output) {
     await page.pdf({ path: file, format: 'A4', printBackground: true });
     if (output.pages !== null) {
       const a4 = await readFile(file);
-      counts.push({ paper: 'A4', count: await pageCount(a4), free: await freeHeight(a4) });
+      counts.push({ paper: 'A4', count: await pageCount(a4), free: await freeHeight(a4), over: await overflowHeight(a4) });
       // The paper the file is not written on. A document that fits A4 and not
       // Letter fits nothing a reader in either market prints it on, and the
       // buffer costs one more render.
       const letter = await page.pdf({ format: 'Letter', printBackground: true });
-      counts.push({ paper: 'Letter', count: await pageCount(letter), free: await freeHeight(letter) });
+      counts.push({ paper: 'Letter', count: await pageCount(letter), free: await freeHeight(letter), over: await overflowHeight(letter) });
     }
   } finally {
     await page.close();
@@ -325,11 +349,13 @@ async function render(browser, at, locale, output) {
   if (size === 0) {
     throw new RenderFailure('file-not-written', `${path.relative(root, file)} is empty`);
   }
-  for (const { paper, count } of counts) {
+  for (const { paper, count, over } of counts) {
     if (count > output.pages) {
       throw new RenderFailure(
         'resume-too-long',
-        `${locale} at ${paper} runs to ${count} pages, expected at most ${output.pages}; shorten the content, never the type size`,
+        `${locale} at ${paper} runs to ${count} pages, expected at most ${output.pages}` +
+          (over === null ? '' : `, with ${over.toFixed(1)}mm of content on the last one`) +
+          `; cutting that much plus the ${HEADROOM_MM}mm floor brings it back. Shorten the content, never the type size`,
       );
     }
   }
@@ -569,12 +595,12 @@ async function renderFilled(browser, at, locale, output) {
     const a4 = await readFile(file);
     await carriesContact(a4, path.basename(file));
     if (output.pages !== null) {
-      counts.push({ paper: 'A4', count: await pageCount(a4), free: await freeHeight(a4) });
+      counts.push({ paper: 'A4', count: await pageCount(a4), free: await freeHeight(a4), over: await overflowHeight(a4) });
       await ready();
       await filled();
       const letter = await page.pdf({ format: 'Letter', printBackground: true });
       await carriesContact(letter, 'the Letter render');
-      counts.push({ paper: 'Letter', count: await pageCount(letter), free: await freeHeight(letter) });
+      counts.push({ paper: 'Letter', count: await pageCount(letter), free: await freeHeight(letter), over: await overflowHeight(letter) });
     }
   } finally {
     await page.close();
@@ -589,11 +615,13 @@ async function renderFilled(browser, at, locale, output) {
   if (size === 0) {
     throw new RenderFailure('file-not-written', `${path.relative(root, file)} is empty`);
   }
-  for (const { paper, count } of counts) {
+  for (const { paper, count, over } of counts) {
     if (count > output.pages) {
       throw new RenderFailure(
         'resume-too-long',
-        `${locale} filled at ${paper} runs to ${count} pages, expected at most ${output.pages}; shorten the content, never the type size`,
+        `${locale} filled at ${paper} runs to ${count} pages, expected at most ${output.pages}` +
+          (over === null ? '' : `, with ${over.toFixed(1)}mm of content on the last one`) +
+          `; cutting that much plus the ${HEADROOM_MM}mm floor brings it back. Shorten the content, never the type size`,
       );
     }
   }
