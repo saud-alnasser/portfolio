@@ -91,7 +91,7 @@ Start at [[protocol]].
 | --- | --- | --- | --- | --- | --- |
 | 1-portfolio-site | implemented | [[efforts/1-portfolio-site/spec]] | 6 | 0 | 15 |
 | 11-private-download-form | accepted | [[efforts/11-private-download-form/spec]] | 0 | 0 | 4 |
-| 13-one-page-resume-and-clean-generation | accepted | [[efforts/13-one-page-resume-and-clean-generation/spec]] | 0 | 1 | 0 |
+| 13-one-page-resume-and-clean-generation | accepted | [[efforts/13-one-page-resume-and-clean-generation/spec]] | 0 | 1 | 7 |
 | 3-site-redesign | implemented | [[efforts/3-site-redesign/spec]] | 0 | 1 | 8 |
 | 5-sections-and-resume | implemented | [[efforts/5-sections-and-resume/spec]] | 0 | 0 | 6 |
 | 7-document-downloads-and-contact-details | implemented | [[efforts/7-document-downloads-and-contact-details/spec]] | 1 | 0 | 6 |
@@ -121,6 +121,13 @@ Every task of every effort. The tracker carries the effort, never its tasks.
 | [[efforts/11-private-download-form/tickets/02-the-gate]] feat(cv): the download icon downloads, and the form opens only at the marked address | 11-private-download-form | resolved | 01 |
 | [[efforts/11-private-download-form/tickets/03-what-the-reader-after-needs]] docs(cv): the marked address in the development notes, and the line effort 7 needs | 11-private-download-form | resolved | 02 |
 | [[efforts/11-private-download-form/tickets/04-the-prose-that-still-says-otherwise]] docs(cv): the four places that still say the control presents the form | 11-private-download-form | resolved | 02 |
+| [[efforts/13-one-page-resume-and-clean-generation/tickets/01-nothing-in-the-margin]] feat(cv): a page box with no room for the browser's header and footer | 13-one-page-resume-and-clean-generation | open | — |
+| [[efforts/13-one-page-resume-and-clean-generation/tickets/02-the-name-it-lands-under]] feat(cv): a generated document saved under the published document's name | 13-one-page-resume-and-clean-generation | open | — |
+| [[efforts/13-one-page-resume-and-clean-generation/tickets/03-the-pair-redesigned]] feat(cv): both documents redesigned as one pair, in type rather than in markup | 13-one-page-resume-and-clean-generation | open | 01 |
+| [[efforts/13-one-page-resume-and-clean-generation/tickets/04-the-address-as-a-code]] feat(cv): the GitHub address as a QR code with the mark at its centre | 13-one-page-resume-and-clean-generation | open | 03 |
+| [[efforts/13-one-page-resume-and-clean-generation/tickets/05-back-to-one-page]] fix(cv): the resume back to one page, with headroom the runner will not eat | 13-one-page-resume-and-clean-generation | open | 03, 04 |
+| [[efforts/13-one-page-resume-and-clean-generation/tickets/06-which-document-this-is]] feat(cv): one line on each document page saying what that document is for | 13-one-page-resume-and-clean-generation | open | — |
+| [[efforts/13-one-page-resume-and-clean-generation/tickets/07-the-prose-that-still-says-two]] docs(cv): nothing still says the resume may run to two pages | 13-one-page-resume-and-clean-generation | open | 05 |
 | [[efforts/3-site-redesign/tickets/01-foundation-and-header]] feat(site): card, icon, and fold components, the wider column, and the header controls with icons | 3-site-redesign | resolved | — |
 | [[efforts/3-site-redesign/tickets/02-home-page]] feat(site): lay the home page out as a hero, contact actions, skill cards, and section cards | 3-site-redesign | resolved | 01 |
 | [[efforts/3-site-redesign/tickets/03-work-page]] feat(site): render projects and experience as card grids with folded highlights | 3-site-redesign | resolved | 01 |
