@@ -6,7 +6,7 @@ import { expect, test } from '@playwright/test';
 import { parse as parseYaml } from 'yaml';
 import { lowContrastPairs } from './contrast';
 import { at, locales } from './pages';
-import { fill, formatPeriod, plural, strings } from '../src/lib/i18n';
+import { fill, formatPeriod, plural, strings, type Locale } from '../src/lib/i18n';
 import { byDateAscending, byStartAscending } from '../src/lib/order';
 import { isCertification, isCourse } from '../src/lib/shown';
 
@@ -30,14 +30,21 @@ function entries<T>(collection: string): T[] {
 }
 
 type Text = Record<'en' | 'ar', string>;
-// The status is the vocabulary the wording table is keyed by, so an entry
-// whose status has no wording is a type error here rather than an empty
-// assertion at run time.
-type EducationStatus = keyof (typeof strings)['en']['education']['status'];
+// A status the content may carry: the ones the page has a wording for, and
+// `completed`, which it deliberately has none for.
+type EducationStatus = 'completed' | keyof (typeof strings)['en']['education']['status'];
 type EducationEntry = { institution: Text; status: EducationStatus; period: { start: string }; courses?: Text[] };
 type CertificateEntry = { name: Text; kind: 'course' | 'certification'; date?: string };
 
 const education = entries<EducationEntry>('education').sort(byStartAscending);
+
+// What the page says under an entry, or nothing: a completed degree is said
+// by its end date, so the line under it is shown only where the wording adds
+// something (src/components/Education.astro).
+function statusOf(locale: Locale, entry: EducationEntry): string | null {
+  return entry.status === 'completed' ? null : strings[locale].education.status[entry.status];
+}
+const statuses = education.filter((entry) => entry.status !== 'completed');
 
 // The two sections the certificates collection renders as, told apart by the
 // field the page reads (src/lib/shown.ts). The timeline's node stands for the
@@ -65,12 +72,13 @@ for (const locale of locales) {
   const url = at(`/${locale}/education/`);
 
   test.describe(url, () => {
-    test('shows the university as a card with its status and its courses folded', async ({ page }) => {
+    test('shows the university as a card with its courses folded', async ({ page }) => {
       await page.goto(url);
-      const card = page.locator(timeline).filter({ has: page.locator(`[data-status="${degree.status}"]`) });
+      const card = page.locator(timeline).filter({ hasText: degree.institution[locale] });
       await expect(card).toHaveCount(1);
-      await expect(card.locator('[data-status]')).toHaveText(t.education.status[degree.status]);
-      await expect(card).toContainText(degree.institution[locale]);
+      const status = statusOf(locale, degree);
+      if (status === null) await expect(card.locator('[data-status]')).toHaveCount(0);
+      else await expect(card.locator('[data-status]')).toHaveText(status);
 
       const courses = degree.courses!;
       const fold = card.locator('details');
@@ -97,7 +105,9 @@ for (const locale of locales) {
       // The institutions and the one node, and nothing else: the certificates
       // have left the timeline.
       await expect(items).toHaveCount(education.length + 1);
-      await expect(items.locator('[data-status]')).toHaveCount(education.length);
+      // The entries whose status the page has a wording for, which today is
+      // none of them: the one degree is complete and its dates say so.
+      await expect(items.locator('[data-status]')).toHaveCount(statuses.length);
 
       const last = education.length;
       await expect(items.nth(last - 1).locator(node), 'the node sits before the last institution').toHaveCount(1);

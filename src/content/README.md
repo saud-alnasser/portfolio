@@ -131,7 +131,7 @@ keeps separate Education, Certifications, and Courses sections.
 | `area` | text | yes | the field, such as "Computer science" |
 | `studyType` | text | yes | the qualification, such as "Bachelor of Science" or "High school diploma" |
 | `period` | `start`, optional `end` | no | when; `end` is the completion term where course work is finished |
-| `status` | one of `completed`, `certificate-pending`, `in-progress` | no | shown as it is. `certificate-pending` means the course work is complete and the certificate has not been issued; the site never says "graduated" or "awarded" for it |
+| `status` | one of `completed`, `certificate-pending`, `in-progress` | no | shown only where it says something the period does not: `completed` prints nothing, because `end` has already said it. `certificate-pending` means the course work is complete and the certificate has not been issued; the site never says "graduated" or "awarded" for it |
 | `courses` | list of text | yes, each item | optional. Notable courses |
 
 ## `certificates/`

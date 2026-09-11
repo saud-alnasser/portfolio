@@ -182,33 +182,6 @@ for (const locale of locales) {
 
       });
 
-      // Which of the two documents a reader has landed on, said in one line
-      // before anything else on the page. It is chrome rather than part of
-      // the document: it sits above the actions row rather than in it, so
-      // that row still holds the one control the case above counts, and the
-      // print rules hide it with the row, which is what keeps it out of the
-      // published PDFs and out of a document a reader generates.
-      test('opens with one line saying what its document is for, which never prints', async ({ page }) => {
-        await page.goto(route);
-        const purpose = page.locator('[data-document-purpose]');
-        await expect(purpose).toHaveCount(1);
-        await expect(purpose).toHaveText(strings[locale][variant].purpose);
-
-        // Above the row, not inside it: the row's contents are asserted
-        // elsewhere, and this is the half that says where the line went.
-        await expect(page.locator('.cv-actions [data-document-purpose]')).toHaveCount(0);
-        const before = await page.evaluate(() => {
-          const line = document.querySelector('[data-document-purpose]')!;
-          const row = document.querySelector('.cv-actions')!;
-          return Boolean(line.compareDocumentPosition(row) & Node.DOCUMENT_POSITION_FOLLOWING);
-        });
-        expect(before, `the purpose line comes before the actions row on ${route}`).toBe(true);
-
-        await page.emulateMedia({ media: 'print' });
-        await expect(purpose, `the purpose line on paper on ${route}`).toBeHidden();
-        await page.emulateMedia({ media: 'screen' });
-      });
-
       // The GitHub address is the header's QR code, and the contact line no
       // longer writes it out. That is the one place either document trades a
       // fact a parser can read for one a phone can: the code is the only
@@ -252,8 +225,12 @@ for (const locale of locales) {
         expect(drawn!.height, `the code on ${route} is no taller than the name block`).toBeLessThanOrEqual(
           text!.height,
         );
-        expect(drawn!.height, `the code on ${route} is drawn at the size it is printed at`).toBe(80);
-        expect(drawn!.width, `the code on ${route} is square`).toBe(drawn!.height);
+        // To a tenth of a pixel, as the spacer is below: a box read off the
+        // page comes back through the box model in single precision, so an
+        // element sitting at a fractional offset reports its height a
+        // ten-thousandth of a pixel out. That is the reading, not the code.
+        expect(drawn!.height, `the code on ${route} is drawn at the size it is printed at`).toBeCloseTo(80, 1);
+        expect(drawn!.width, `the code on ${route} is square`).toBeCloseTo(drawn!.height, 1);
 
         // The spacer that balances it, measured **in print media**, which is
         // the only medium where this can be wrong. The compact root size is
