@@ -31,9 +31,13 @@
 // check has a contact line to run over; dist/ is what the deploy uploads, so
 // nothing carrying a contact detail may be written there.
 // Any of those renders running past the page budget fails the step naming the
-// locale, the paper, and the count, here rather than in a pull request: the
-// remedy is content, as the effort's spec constrains, never a smaller type
-// size.
+// locale, the paper, and the count, here rather than in a pull request. So
+// does a resume that fits its one page by less than 10mm at Letter, which is
+// the near miss a page count cannot see and the one that widened the budget on
+// 2026-09-10. Every resume render reports how much of its last page is unused,
+// so the number is in the log rather than only in a failure. The remedy for
+// either refusal is content, as the effort's spec constrains, never a smaller
+// type size.
 
 import { mkdir, readFile, stat } from 'node:fs/promises';
 import { createRequire } from 'node:module';
@@ -158,7 +162,7 @@ function refuseNearMiss(which, counts) {
     if (paper !== 'Letter' || count !== 1 || free === null) continue;
     if (free < HEADROOM_MM) {
       throw new RenderFailure(
-        'resume-too-tight',
+        'resume-has-no-headroom',
         `${which} at ${paper} fits on one page with ${free.toFixed(1)}mm to spare, and the floor is ${HEADROOM_MM}mm; ` +
           'it renders here and the runner resolves the system font stack to different faces, which is how a one-page ' +
           'resume became two on 2026-09-10. Shorten the content, never the type size',

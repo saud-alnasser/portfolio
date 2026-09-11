@@ -15,7 +15,7 @@ Everything the site publishes is under
 | `/en/cv/`, `/ar/cv/` | the CV page, printable: everything the site shows |
 | `/cv.en.pdf`, `/cv.ar.pdf` | the CV as a PDF, rendered at build time |
 | `/en/resume/`, `/ar/resume/` | the resume page, printable: the short document an application takes |
-| `/resume.en.pdf`, `/resume.ar.pdf` | the resume as a PDF, rendered at build time and refused past two pages |
+| `/resume.en.pdf`, `/resume.ar.pdf` | the resume as a PDF, rendered at build time, one page, and refused past it or within 10mm of it |
 | `/en/resume.json`, `/ar/resume.json` | the CV as a JSON Resume document |
 | `/sitemap.xml`, `/robots.txt` | the sitemap, linked from every page as well; `robots.txt` exists so the site does not break at a host root, since crawlers read it there rather than under a base path |
 
@@ -26,7 +26,7 @@ pnpm install
 pnpm dev          # local server
 pnpm check        # type and template checks
 pnpm build        # writes dist/
-pnpm render:pdf   # writes the four document PDFs to dist/ and four filled ones to .artifacts/; fails if a resume runs past two pages (needs Playwright's Chromium)
+pnpm render:pdf   # writes the four document PDFs to dist/ and four filled ones to .artifacts/; fails if a resume runs past one page or fits it by less than 10mm (needs Playwright's Chromium)
 pnpm check:dist   # the checks CI runs over dist/
 pnpm test         # the Playwright tests, against a static server of dist/
 pnpm test:content # adds a temporary project and a temporary certificate, rebuilds, and checks each shows everywhere it should
@@ -56,6 +56,23 @@ the address below and types them into the form the control there offers. The
 values go into the contact line of the page already on screen, the page prints
 itself, and the reader saves the result as a PDF. Nothing is stored and nothing
 is sent.
+
+**A generated resume carries nothing the document did not put there, and a
+generated CV still carries the browser's header and footer.** That difference is
+the mechanism rather than an oversight. Chrome draws the print header and footer
+inside the paper margin, so a page box with no margin leaves it nowhere to draw:
+the resume's box is `margin: 0` and its article carries the same 10mm as padding
+instead. The CV cannot do that, because CSS padding applies at the ends of a box
+and not at every fragment of it, and the CV runs to five pages, each of which
+needs its margin. `scripts/render-pdf.mjs` takes one further render of every
+document with the header and footer switched on and refuses a resume that shows
+any of it, using the CV, which must still show all of it, as the control.
+
+**A generated document lands under the name the published one has** —
+`resume.en.pdf`, `cv.ar.pdf`, and so on. Chrome names a printed PDF after the
+page's title, so the page wears that name for the length of the print and takes
+its own title back afterwards. The name is read off the download control's own
+`href` rather than written down a second time.
 
 **That form opens at one address: the document page's own with `#me` on the
 end**, as in `/en/cv/#me`, `/ar/cv/#me`, `/en/resume/#me` and `/ar/resume/#me`.
@@ -92,6 +109,20 @@ arrangement exists to keep out. The filled copies exist so the extraction check
 and the page budget run over the document a reader actually gets; the
 placeholder values they carry are in `scripts/placeholder.mjs`, obviously not
 real, and written once because both the render step and the check read them.
+
+**On paper, the QR code in the header is the only route to the GitHub
+address.** Both documents used to print the address as text in the contact
+line, which is a thing nobody types off a page; it is now a code built at build
+time from `src/content/profile.yaml`, with the GitHub mark knocked into the
+middle of it, and the text is gone. That is the one place either document
+trades a fact a resume parser can read for one a phone can, and the cost is
+real: an ATS reading the PDF finds no GitHub address. What still carries it is
+either `resume.json`, at `basics.profiles[].url`. Because the code is the only
+route, `qr code` in `scripts/check-dist.mjs` rasterises page one of all four
+documents and decodes it back out of the pixels, failing if it does not read or
+does not match the content source. `document hazards` refuses every other
+graphic inside a document, which is why the code is the exception rather than
+the first of many.
 
 The certificate previews are committed with their PDFs, so `pnpm
 certificates:previews` runs on a developer's machine after a PDF is added or

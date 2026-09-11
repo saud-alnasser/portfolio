@@ -54,7 +54,7 @@ The filled copies measure identically to the published ones at every step, which
 **The fourth row is the guard working before it was asked to.** With the budget still at two pages, the near-miss floor refused the build on its own:
 
 ```
-render-pdf: resume-too-tight: en published at Letter fits on one page with 5.3mm to spare, and the floor is 10mm;
+render-pdf: resume-has-no-headroom: en published at Letter fits on one page with 5.3mm to spare, and the floor is 10mm;
 it renders here and the runner resolves the system font stack to different faces, which is how a one-page resume
 became two on 2026-09-10. Shorten the content, never the type size
 ```

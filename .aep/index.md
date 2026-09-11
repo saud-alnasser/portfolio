@@ -127,7 +127,7 @@ Every task of every effort. The tracker carries the effort, never its tasks.
 | [[efforts/13-one-page-resume-and-clean-generation/tickets/04-the-address-as-a-code]] feat(cv): the GitHub address as a QR code with the mark at its centre | 13-one-page-resume-and-clean-generation | open | 03 |
 | [[efforts/13-one-page-resume-and-clean-generation/tickets/05-back-to-one-page]] fix(cv): the resume back to one page, with headroom the runner will not eat | 13-one-page-resume-and-clean-generation | open | 03, 04 |
 | [[efforts/13-one-page-resume-and-clean-generation/tickets/06-which-document-this-is]] feat(cv): one line on each document page saying what that document is for | 13-one-page-resume-and-clean-generation | open | — |
-| [[efforts/13-one-page-resume-and-clean-generation/tickets/07-the-prose-that-still-says-two]] docs(cv): nothing still says the resume may run to two pages | 13-one-page-resume-and-clean-generation | open | 05 |
+| [[efforts/13-one-page-resume-and-clean-generation/tickets/07-the-prose-that-still-says-two]] docs(cv): nothing still says the resume may run to two pages | 13-one-page-resume-and-clean-generation | resolved | 05 |
 | [[efforts/3-site-redesign/tickets/01-foundation-and-header]] feat(site): card, icon, and fold components, the wider column, and the header controls with icons | 3-site-redesign | resolved | — |
 | [[efforts/3-site-redesign/tickets/02-home-page]] feat(site): lay the home page out as a hero, contact actions, skill cards, and section cards | 3-site-redesign | resolved | 01 |
 | [[efforts/3-site-redesign/tickets/03-work-page]] feat(site): render projects and experience as card grids with folded highlights | 3-site-redesign | resolved | 01 |

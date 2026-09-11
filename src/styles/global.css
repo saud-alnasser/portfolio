@@ -309,8 +309,8 @@ details[open] > summary .fold-chevron {
    * `cv-compact` and the document prints a size smaller, in a narrower page
    * box, with tighter headings and tighter gaps between its entries. 10pt is
    * what the template's own sample reads at and the floor the spec sets, so
-   * a resume that still runs to two pages is fixed in the content and never
-   * here. The root is what carries the size and the page name, because every
+   * a resume that runs past its one page, or fits it by less than 10mm, is
+   * fixed in the content and never here. The root is what carries the size and the page name, because every
    * rem on the page scales from the one and the page box is the other's, and
    * `:has()` is what reaches it from the class the variant puts on the
    * article. None of this touches the CV, which is the whole record and
