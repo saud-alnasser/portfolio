@@ -43,6 +43,7 @@ import { mkdir, readFile, stat } from 'node:fs/promises';
 import { createRequire } from 'node:module';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { createCanvas } from '@napi-rs/canvas';
 import { getDocument } from 'pdfjs-dist/legacy/build/pdf.mjs';
 import { chromium } from 'playwright';
 import { marker } from './form-marker.mjs';
@@ -105,7 +106,7 @@ async function pageCount(data) {
 }
 
 // The white space the resume's page box gives up and its article carries
-// instead (`.cv-compact { padding: 10mm }` in src/styles/global.css). The
+// instead: `.cv-compact { padding: 10mm }` in src/styles/global.css. The
 // headroom below is measured against the content box rather than the paper,
 // so this has to come out of the distance a text run sits at. Written here
 // with where it comes from, because the two have to move together: a document
@@ -123,19 +124,51 @@ const PAGE_PADDING_MM = 10;
 // a print face. A page count says "one page" on both sides of that and says
 // nothing at all about which side of it the document is standing on.
 //
-// PDF coordinates run upward from the bottom of the page, so the lowest text
-// run on the last page is the one with the smallest y, and what is under it is
-// the padding plus whatever is genuinely spare.
+// It measures ink, by drawing the page and finding the lowest row that is not
+// paper. The obvious cheaper measurement is the lowest text run's y from
+// `getTextContent`, and it is wrong: that y is the run's **baseline**, and a
+// descender, the rest of the line box, and any margin under it all sit below
+// the baseline. The bias is font-dependent and it is not even signed the same
+// way in both languages, so it cannot be corrected with a constant. Measured
+// on 2026-09-11: the English resume at Letter reported 10.6mm of free height
+// from baselines and had 9.8mm of it, which is **under this floor**. The one
+// number that exists to stop 2026-09-10 from happening again was passing the
+// document it was written for by about a descender.
+//
+// Drawn at three times the PDF's own scale, which puts a millimetre at about
+// 17 rows, and anything that is not within a few levels of white counts as
+// ink. Backgrounds are printed, so the page itself is white and there is no
+// transparent-versus-white ambiguity to resolve.
+const INK = 250;
+const INK_SCALE = 3;
+
 async function freeHeight(data) {
   const task = getDocument({ data: new Uint8Array(data), standardFontDataUrl });
   try {
     const document = await task.promise;
     const page = await document.getPage(document.numPages);
-    const content = await page.getTextContent();
-    const bottoms = content.items.filter((item) => item.str.trim()).map((item) => item.transform[5]);
-    if (bottoms.length === 0) return null;
-    // 72 points to the inch, 25.4 millimetres to the inch.
-    const mm = (Math.min(...bottoms) * 25.4) / 72;
+    const viewport = page.getViewport({ scale: INK_SCALE });
+    const canvas = createCanvas(Math.round(viewport.width), Math.round(viewport.height));
+    await page.render({ canvas, viewport }).promise;
+    const { data: pixels, width, height } = canvas.getContext('2d').getImageData(0, 0, canvas.width, canvas.height);
+
+    // Up from the bottom edge, because that is the end being measured and the
+    // answer is usually within the last fifth of the page.
+    let bottom = null;
+    for (let y = height - 1; y >= 0 && bottom === null; y -= 1) {
+      for (let x = 0; x < width; x += 1) {
+        const at = (y * width + x) * 4;
+        if (pixels[at] < INK || pixels[at + 1] < INK || pixels[at + 2] < INK) {
+          bottom = y;
+          break;
+        }
+      }
+    }
+    if (bottom === null) return null;
+
+    // Rows below the lowest ink, as millimetres of paper, less the padding the
+    // document carries there anyway.
+    const mm = ((height - 1 - bottom) / INK_SCALE / 72) * 25.4;
     return mm - PAGE_PADDING_MM;
   } finally {
     await task.destroy();
@@ -264,8 +297,8 @@ async function render(browser, at, locale, output) {
       throw new RenderFailure('font-not-loaded', `${route}: ${names} failed to load`);
     }
     // Backgrounds are printed. Nothing inside either document declares one
-    // any more — the tinted heading band this used to carry became a rule, and
-    // a border is not a background — so today it only paints the page itself
+    // any more, since the tinted heading band this used to carry became a
+    // rule and a border is not a background, so today it only paints the page
     // white rather than leaving it transparent. It stays because a renderer
     // told not to print backgrounds is one whose output depends on that
     // staying true, and that is not a thing a document should have to know.
