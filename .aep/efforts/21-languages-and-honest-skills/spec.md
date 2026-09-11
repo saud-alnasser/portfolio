@@ -1,5 +1,5 @@
 ---
-status: draft
+status: accepted
 ---
 
 # Problem
@@ -16,8 +16,8 @@ Both documents carry a languages section a Saudi screener and Jadarat's parser r
 
 # Scope
 
-- `src/content.config.ts`, the profile schema, which gains a list of languages.
-- `src/content/profile.yaml`: the languages authored in English and Arabic, and the comment saying where the vocabulary comes from.
+- `src/content.config.ts`, which gains a `languages` collection.
+- `src/content/languages/`, one file per language, authored in English and Arabic, with a comment saying where the vocabulary comes from and where the score does.
 - `src/content/skills/*.yaml`: the keywords that leave.
 - `src/content/README.md`, where the profile and skills field tables are, and where the rule a keyword has to meet is written down.
 - `src/components/CvDocument.astro`, which prints the section on both variants.
@@ -28,10 +28,10 @@ Both documents carry a languages section a Saudi screener and Jadarat's parser r
 
 # Requirements
 
-1. **The profile carries the languages as facts.** A list on the profile entry, each item a language name and a proficiency level, both localized, in the order they print. The list is required and non-empty: a document with no languages section is the defect this effort fixes, and the schema refuses it.
+1. **The languages are content entries.** A `languages` collection, one file per language, each a name and a proficiency level, both localized, with an order. Saud chose a collection over a list on the profile on 2026-09-11, so that a language is stored the way every other entry is. The section prints only where the collection holds something, like every other section, and the content mechanism test proves an added language reaches both documents and both JSON files.
 2. **Both documents print a languages section, in the same place.** Headed with the standard word, "Languages" in English and "اللغات" in Arabic, one line per language reading "language: level", directly after the key skills on the CV and on the resume alike. A parser reading either PDF gets each language and its level whole, in reading order, the way it gets every other fact on the page.
-3. **The level is one short phrase, and it is true of him.** Arabic is "Native" / "اللغة الأم". English is "Working proficiency" / "إجادة مهنية", chosen on 2026-09-11 at Saud's request from what the record showed before late 2022 and from his STEP result: the 2021 courses were English-taught, every repository, comment, and README since is written in English, and a STEP score of about 80 sits at roughly IELTS 5.5 on the one Saudi equivalence table that publishes the row (research F16), below the 85 stc screens at. "Fluent" would claim more than a 5.5 supports; "Intermediate" less than a record written entirely in English does. The vocabulary stays a single level per language, as the Saudi template has it (F7); CEFR bands and the LinkedIn ladder appear on no Saudi form (F8, F13) and are not used.
-4. **A test score prints only once it is confirmed.** Saud holds a STEP result from university entry, which he remembers as 80 and is not sure of. Until the number is read off the ETEC certificate, the English line carries the level alone. When it is confirmed, the line carries it after the level as "STEP <score>", the way the market states the requirement (F12, F16), and the schema gets an optional score on a language for that purpose. A number nobody has checked does not go on a hiring document.
+3. **The level is one short phrase, and it is true of him.** Arabic is "Native" / "اللغة الأم". English is "Working proficiency" / "إجادة مهنية", chosen on 2026-09-11 at Saud's request from what the record showed before late 2022 and from his STEP result: the 2021 courses were English-taught, every repository, comment, and README since is written in English, and STEP 85 is exactly the floor stc screens fresh graduates at, around IELTS 6 on the Saudi equivalence tables (research F16). "Fluent" would claim more than the score supports; "Intermediate" less than a record written entirely in English does. The vocabulary stays a single level per language, as the Saudi template has it (F7); CEFR bands and the LinkedIn ladder appear on no Saudi form (F8, F13) and are not used.
+4. **The English line carries the test score, with its year.** Saud read his STEP result on 2026-09-11: 85, dated 1444/01/23 AH, 2022-08-21. The line prints it after the level as "STEP 85 (2022)", the way the market states the requirement (F12, F16), and the year prints with it because Saudi institutions count a STEP result for two to three years (F16) and a score with no date reads as current. The entry holds the test's name, the score, and the date as authored facts; the language's other fields never carry a score.
 5. **Both JSON Resume documents carry the languages.** `languages` is an array of `{ language, fluency }` in each locale's own words, in the same order as the documents, and both files still validate against the schema.
 6. **The site's pages do not change for the languages.** The home page, the skills section, and the README carry no languages line. Like the nationality, this is a fact for the two hiring documents and for the JSON file that follows them.
 7. **The listed keywords leave the skill groups.** From `tools-and-practices`: Renovate, pnpm, Scrum, AI-assisted development. From `databases`: Supabase. From `language-implementation`: JIT compilation, Type systems, Garbage collection. From `web-and-desktop-applications`: React, ASP.NET MVC, Entity Framework. Nothing else in any group changes: no group is removed, no group is renamed, and the order of what remains is the order it had.
@@ -43,15 +43,15 @@ Both documents carry a languages section a Saudi screener and Jadarat's parser r
 
 # Acceptance Criteria
 
-1. The profile schema requires a non-empty list of languages, each with a localized name and a localized level; a `profile.yaml` without it fails `pnpm build`.
+1. `src/content.config.ts` declares a `languages` collection with a localized name, a localized level, an optional test, and an order; a file missing the name or the level fails `pnpm build`, and `pnpm test:content` proves a fixture language reaches both documents and both JSON files and nowhere else, and disappears when removed.
 2. On `/en/cv/`, `/en/resume/`, `/ar/cv/`, and `/ar/resume/`, a `[data-cv-section="languages"]` section headed "Languages" / "اللغات" prints one line per authored language as "name: level", and the section-order test in `tests/resume.spec.ts` places it directly after `skills` on both variants. The reading-order check in `scripts/check-dist.mjs` finds each language's name and level on one extracted line, in order, in the English PDFs.
-3. The Arabic language's line reads "Arabic: Native" and "العربية: اللغة الأم"; the English language's reads "English: Working proficiency" and "الإنجليزية: إجادة مهنية", both authored in `profile.yaml`.
-4. No score appears on any output until the STEP number is confirmed; once it is, the English line carries "STEP <score>" after the level in both PDFs and both JSON documents, and `profile.yaml` carries the number in one place. Which state landed is recorded in the commit.
+3. The Arabic language's line reads "Arabic: Native" and "العربية: اللغة الأم"; the English language's opens "English: Working proficiency" and "الإنجليزية: إجادة مهنية", all four authored under `src/content/languages/`.
+4. The English line ends ", STEP 85 (2022)" on both document pages, in both PDFs, and in `fluency` of both JSON documents, and the English entry's file carries the test name, the score, and the full date `2022-08-21` in one place. No other language's line carries a score.
 5. `en/resume.json` and `ar/resume.json` carry `languages` with one `{ language, fluency }` per authored language in that locale's words, in the documents' order, and `pnpm check:dist` still reports both valid.
 6. The home page, the skills section, and `README.md` contain no language name or level from the new field, checked in both locales.
 7. `git diff` on `src/content/skills/` shows exactly the eleven keywords of requirement 7 removed and nothing else changed; `grep` for each of the eleven across `dist/` finds none, except "Scrum" inside Mudaraj's summary.
 8. `src/content/README.md` states the keyword rule beside the `keywords` field.
-9. `pnpm test:content` passes, and the skills section of `/en/` and `/ar/`, both documents, and both JSON files show the pruned keywords with no file outside `src/content/` needed for that change.
+9. `pnpm test:content` passes with the skills cuts in place, and the skills section of `/en/` and `/ar/`, both documents, and both JSON files show the pruned keywords with no file outside `src/content/` needed for that change.
 10. `src/content/README.md` documents the languages field, its vocabulary, and which outputs read it.
 11. `pnpm build` prints `[localized] 0 gaps`, and `pnpm check`, `pnpm check:dist`, `pnpm test`, and `pnpm test:content` all pass.
 12. `pnpm render:pdf` writes `resume.en.pdf` and `resume.ar.pdf`, and the filled copy of each, at one page on A4 and one page at Letter, each reporting at least 10mm free at Letter. The number goes in the commit.
@@ -69,6 +69,7 @@ Both documents carry a languages section a Saudi screener and Jadarat's parser r
 - **Speaking, reading, and writing rated apart.** Only SAP SuccessFactors models that (research F10), no Saudi resume does, and three words per language is a table on a page that has no room for one.
 - **A CEFR band or the LinkedIn ladder.** Neither appears on a Saudi employer's or government form (F8, F13, F14). A reader who wants a band converts the word; a reader who wants a score gets one only under requirement 4.
 - **A third language.** No source found lists one for this market (research, conclusion 3), and Saud named two.
+- **Retaking STEP, or an IELTS.** The score prints as it stands, dated.
 - **Languages on the site's pages.** The home page and the skills section stay as they are; the section is for the documents, like the nationality.
 - **Re-judging the keywords Saud kept.** Drizzle ORM, PostgreSQL, C#, Java, Docker, Tailwind CSS, the course-backed fundamentals, and the game development group were each put to him and stay. SolidJS is an open question below, not a cut.
 - **Mudaraj's summary.** "developed with Scrum" stays; it describes the project.
@@ -81,11 +82,10 @@ Both documents carry a languages section a Saudi screener and Jadarat's parser r
 
 # Open Questions
 
-- **The STEP score.** Saud remembers 80 and is not sure. Requirement 4 prints nothing until he reads the number off the ETEC certificate; the result also dates from university entry in 2023, and Saudi institutions accept a STEP result for two to three years (F16), so whether a reader still counts it is his call when the number is confirmed.
 - **SolidJS.** Backed only by ETG, which is in progress and unshown. Saud did not answer on it and it stays until he does.
 
 # Risks
 
-- **The level is a self-assessment with no witness on the page.** Every other fact on the documents resolves to an entry a reader can check; a level does not, until the score sits beside it. The mitigation is a modest phrase chosen against the record and the score, and requirement 4 once the score is confirmed.
+- **The score is four years old.** A reader who counts a STEP result for three years discounts it; the year printed beside it is what keeps that honest rather than a surprise at interview. Retaking the test is Saud's call and out of this effort.
 - **Jadarat's proficiency list is unknown.** Its values sit behind a Nafath login (F2). If its parser maps words to that list, "Native" and the word chosen for English may or may not land on a value; nothing in this effort can verify it, and the fallback is that the applicant corrects the field in the profile once.
 - **The pruned skills lists are shorter on the site too.** That is intended, and it is worth saying: the home page's skills count and the skills section shrink by eleven keywords.
