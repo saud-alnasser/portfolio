@@ -4,7 +4,7 @@ use-when: "building a ticket in this effort and the approach is not obvious from
 
 # Architecture
 
-Four defects, three of them mechanism and one of them fit. The mechanism is small and lands first; the fit is where the effort can fail, and the numbers it has to hit are measured below rather than guessed.
+Four defects and two additions. The mechanism behind three of the defects is small and lands first; the fit is where the effort can fail, and the numbers it has to hit are measured below rather than guessed. The QR code sits between the two, because it lands in the header the redesign rebuilds and it changes what the fit is measuring.
 
 ## How the generated document loses the browser's furniture
 
@@ -42,6 +42,23 @@ Chrome names a printed PDF after `document.title` and appends `.pdf`, which is w
 **It also removes the document's one dependency on the reader's print settings.** The band is the only thing on either document that needs `print-color-adjust: exact`, because a browser drops background colours when printing unless the page insists (`tests/theme.spec.ts` asserts exactly this). A border is not a background: it prints whatever the reader's background-graphics setting says. So the printed document stops depending on that setting at all, and the theme test changes from asserting that the band survives to asserting that nothing on the document needs to.
 
 The `--band` token is retired with it, from both `:root` and `@theme inline`, since nothing else reads it.
+
+## How the GitHub address becomes a QR code
+
+| | Advantages | Disadvantages | Risks | Maintenance |
+| --- | --- | --- | --- | --- |
+| **A. Encoded at build time and emitted as one inline `<svg>`** (chosen): an Astro component takes the address from `profile.yaml`, encodes it at error correction level H, and writes the dark modules as a single path with the GitHub mark composed into the middle of the same SVG | the code is a pure function of the content source, so changing the address changes the code with no second edit; no request, no image file, and nothing to regenerate by hand; the whole thing is markup the print renderer already knows how to draw | one dependency, and it is the first one the site's own pages pull in | a library that stops being maintained; it is a pure encoder with a stable standard behind it, so the exposure is small | one dependency Renovate already watches |
+| B. A committed SVG, rendered by a script the way the certificate previews are | no dependency in the site's build; the same shape the repository already uses for generated artifacts | it drifts from `profile.yaml` the moment the address changes, and nothing would say so; the previews get away with it because a certificate PDF is itself a committed file, and an address is not | a code pointing at an address Saud no longer uses | one more script to remember to run |
+| C. An image from a QR service | nothing to build | an external request from a document page, which the first effort forbids outright, and a document whose header breaks when somebody else's service does | the printed document silently loses its only link | none |
+| D. Drawn in the browser from script | no build step | both document pages work with no script, which is a guarantee of effort 11, and the PDF render would be racing a script to draw it | a blank square in the published PDF | none |
+
+**The mark goes inside the SVG, not on top of it.** `tests/resume.spec.ts` refuses a positioned element inside the document, so the GitHub mark cannot be a second element laid over the code with CSS. It is a `<g transform>` in the same SVG, over a knockout rectangle about a fifth of the code's width, which is what level H's redundancy is for. That forces one small refactor: the mark's path currently lives inside `src/components/Icon.astro`, and the QR component needs the same path, so the icon bodies move to a module both read rather than being typed twice.
+
+**It is always dark on a light plate, in both themes.** A scanner reads an inverted code unreliably, and the plate is part of the code rather than part of the page, so it is a `<rect>` inside the SVG. That also keeps it independent of the reader's background-graphics setting, for the same reason the band's removal does: an SVG fill is content, not a CSS background.
+
+**What proves it works is a decode, not a diff.** `scripts/certificate-previews.mjs` already renders a PDF page to pixels with pdf.js and `@napi-rs/canvas`, both already installed, and `scripts/check-dist.mjs` already opens every PDF with pdf.js and already parses `profile.yaml`. So the check renders page one of each document, decodes the code out of the pixels, and compares the payload to the address in the content source. It runs over the artifact rather than the markup, because the markup is the half that was never in doubt. That needs a decoder, which is the second dependency, and it is a devDependency since nothing ships it.
+
+**Two numbers the ticket measures rather than the plan asserts.** The address is 32 characters, which at level H is a 33 by 33 code, so a 20mm box gives modules of about 0.6mm. That is inside what a phone camera reads at arm's length and it is not comfortable, and the mark's knockout takes redundancy out of the same budget. The ticket renders it, scans it off a printed page, and reports both numbers; if 20mm will not scan, the lever is the header's height, and `spec.md` already says the two pull against each other.
 
 ## Where the one-page rule is enforced, and how a near miss is caught
 
@@ -93,13 +110,16 @@ The first two carry English past 117px with nothing to spare, which is the state
 | Part | Becomes responsible for |
 | --- | --- |
 | `src/styles/global.css` | the resume's page box at `margin: 0` and its white space as padding on `.cv-compact`; the heading as accent type over a rule in place of `.cv-band`; the header's rule; the retirement of `--band` |
-| `src/components/CvDocument.astro` | the same markup with the redesigned class strings, and the comment block that describes the template, which currently describes the band |
+| `src/components/CvDocument.astro` | the same markup with the redesigned class strings, and the comment block that describes the template, which currently describes the band; the header as the name block beside the QR, and a contact line that no longer carries a profile address in text |
+| `src/components/ProfileQr.astro` | one address to one inline SVG: the modules at level H, the plate, the knockout, and the mark, with the accessible name the vanished text used to carry |
+| `src/lib/icons.ts` | the icon bodies, read by `src/components/Icon.astro` and by the QR component, so the GitHub mark is written once |
 | `src/layouts/Base.astro` | inside `documents()`, the title taken from the download control's `href` for the duration of the print, and put back on all three paths |
 | `src/components/DocumentDownload.astro` | unchanged; the actions row still holds exactly one control (effort 7, criterion 1) |
 | `src/pages/[locale]/cv.astro`, `src/pages/[locale]/resume.astro` | one line above the actions row saying what that document is for, carrying `[data-document-purpose]`, hidden in print |
 | `src/lib/i18n.ts` | two strings per language for those lines |
 | `scripts/render-pdf.mjs` | the resume budget at one page; the free height on the last page reported and floored at 10mm at Letter; the furniture render and its named failure |
-| `scripts/check-dist.mjs` | `resumePages` at one page, with the message and the comment that carry the reason |
+| `scripts/check-dist.mjs` | `resumePages` at one page, with the message and the comment that carry the reason; a `qrCode` check that renders page one of each document, decodes the code, and compares the payload to `profile.yaml` |
+| `package.json` | one dependency, the QR encoder the site's own pages import, and one devDependency, the decoder only the check reads |
 | `docs/development.md` | the budget as one page, and the furniture the generated resume no longer carries |
 | `tests/theme.spec.ts` | the document needs no background to print correctly, in place of the band's `print-color-adjust` |
 | `tests/document-form.spec.ts` | the title is the published file's name while printing and the page's own title afterwards, including after a dismissal |
@@ -120,9 +140,10 @@ The order is fixed by two facts: the look is what spends and returns height, and
 
 1. **The page box and the file name.** The two defects Saud reported that are pure mechanism. Neither touches content or look, both are provable on their own, and the furniture check lands with them, with the CV as its control.
 2. **The redesign of both documents.** Lands next because it returns about 40px of the fit, and because a fit done before it would be undone by it.
-3. **The fit.** Measure, pull the levers in the order above, stop at the 10mm floor, and only then tighten the budget to one page in the render step and the dist check. **The budget tightens last**: doing it first makes every build between here and there red, and a red build is not a signal when it is expected.
-4. **The purpose line**, which is independent of all of the above and is the smallest piece.
-5. **The prose.** `docs/development.md`, the comments in the stylesheet, the document component and both scripts, and effort 5's spec, whose requirement 10 this reverses. It goes last because until the budget is one page, the prose saying two is still true.
+3. **The QR code.** After the redesign, because it lands in the header the redesign has just rebuilt, and before the fit, because it settles that header's height and takes the address text out of the contact line. It carries its own decode check, and the mark's move out of `Icon.astro` is part of it rather than a refactor of its own.
+4. **The fit.** Measure, pull the levers in the order above, stop at the 10mm floor, and only then tighten the budget to one page in the render step and the dist check. **The budget tightens last**: doing it first makes every build between here and there red, and a red build is not a signal when it is expected.
+5. **The purpose line**, which is independent of all of the above and is the smallest piece.
+6. **The prose.** `docs/development.md`, the comments in the stylesheet, the document component and both scripts, and effort 5's spec, whose requirement 10 this reverses. It goes last because until the budget is one page, the prose saying two is still true.
 
 # Integration
 
@@ -130,6 +151,8 @@ What this touches that it does not own:
 
 - **The extraction check.** It reads groups from the content and asserts reading order over both documents and their filled copies. The markup does not move, so the groups do not, but the gap under a heading is load-bearing: `.cv-compact .cv-band + *` carries 20px because `pdftotext -layout` groups two rows into one extracted line below about 16px, which would put the first entry's dates on the heading's line. **That rule survives the rename and keeps its 20px**, and the comment explaining it moves with it.
 - **The theme test**, which asserts the band's print background and its `print-color-adjust`. It changes rather than disappears.
+- **`documentHazards`**, which refuses a `<table>` and an `<img>` and says so in its name. The document is about to carry a graphic for the first time, so the check is widened deliberately rather than left to pass on a technicality: exactly one `<svg>` inside the article, and any second one refused. A check whose name stops matching what it guarantees is worse than no check.
+- **`src/components/Icon.astro`**, which every page on the site reads. The mark moves out of it into a module; the component's behaviour does not change, and the layout, home, work, and education tests are what say so.
 - **The deploy.** `.github/workflows/deploy.yml` runs the same render step, so a resume that misses the floor stops the site updating rather than merely failing a check.
 - **The worktrees.** Each ticket's surface needs its own `pnpm install`; the store makes it fast, but it is not free and it is not obvious.
 
@@ -143,11 +166,14 @@ What this touches that it does not own:
 | 4, parser-safe and designed | `documentHazards`, the extraction check over four PDFs, `tests/resume.spec.ts`'s positioned-element case, the contrast tests, which measure computed colours on the live page and so cover every colour the redesign introduces without being told about it, and Lighthouse over six pages |
 | 5, the file name | a case in `tests/document-form.spec.ts` reading `document.title` at the moment `window.print()` is called, which the suite already stubs and counts, and again after `afterprint`, and a second case that dismisses the dialog and asserts the title never moved |
 | 6, the purpose line | a case per document page asserting the line and its absence from every rendered PDF, which the extraction check's text already gives us |
-| 7, the prose | a search across `scripts/`, `src/`, `docs/`, and `.aep/`, run in the ticket and quoted in its outcome |
+| 7, the QR code | a `qrCode` check in `check-dist.mjs` that renders page one of each of the four PDFs, decodes the code out of the pixels, and compares the payload to `profile.yaml`, failing on a different address and on no code at all; a case per document page for the link, the accessible name, the absence of the address from the contact line's text, and the single `<svg>` inside the article; `documentHazards` extended to refuse a second graphic; and, once, a scan off a printed page, reported in the ticket because no check can make a phone camera |
+| 8, the prose | a search across `scripts/`, `src/`, `docs/`, and `.aep/`, run in the ticket and quoted in its outcome |
 
 # Technical Risks
 
 - **The fit is measured here and decided on the runner.** Everything above is arithmetic on this machine's fonts. The 10mm floor is the answer to it, and the first pushed branch is what confirms the answer. If the runner still says two pages with 10mm free here, the floor was too low and the next lever is pulled rather than the budget widened.
 - **The redesign can spend what it returns.** Air between entries is what makes a document look considered, and this document has none to give. The free height reported on every render is the feedback loop, and step 3 exists because of it.
+- **The QR's size is decided by two things that disagree.** The scan wants modules as large as they can be; the fit wants the header no taller than the name block already makes it. The plan's arithmetic says 20mm gives 0.6mm modules for a 33 by 33 code, which is readable and not comfortable. If the printed scan fails, the honest lever is the header's height, and that is 5mm out of the 31mm English has to lose.
+- **The address leaves the text of both documents, and only a check stands between that and losing it.** The decode runs over the rendered PDF in `check-dist.mjs`, which is the same place and the same machine the page budget is decided on. A code that encodes the wrong string, or that the knockout has damaged past recovery, fails there rather than in somebody's inbox.
 - **The title lever leaks into the tab.** A print that never fires `afterprint`, a dismissed dialog, a browser that keeps the tab open: each leaves the page calling itself `resume.en` until something puts it back. Three restores, and a test for the dismissal path specifically, because a test that only ever generates will not see it.
 - **The band's removal is the one change that touches the CV's look without touching its content.** The CV is a five-page document whose headings currently carry a tint that makes it scannable; a hairline rule is quieter. It is the pair reading as one pair, which is what Saud chose on 2026-09-11, and it is reversible in one class string.
