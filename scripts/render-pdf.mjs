@@ -180,9 +180,12 @@ async function render(browser, at, locale, output) {
       const names = failed.map((face) => `${face.family} ${face.weight}`).join(', ');
       throw new RenderFailure('font-not-loaded', `${route}: ${names} failed to load`);
     }
-    // Backgrounds are printed, because the section headings sit in a tinted
-    // band and the band is the template's one tint; the page asks for it with
-    // `print-color-adjust: exact` and this is the other half.
+    // Backgrounds are printed. Nothing inside either document declares one
+    // any more — the tinted heading band this used to carry became a rule, and
+    // a border is not a background — so today it only paints the page itself
+    // white rather than leaving it transparent. It stays because a renderer
+    // told not to print backgrounds is one whose output depends on that
+    // staying true, and that is not a thing a document should have to know.
     await page.pdf({ path: file, format: 'A4', printBackground: true });
     if (output.pages !== null) {
       counts.push({ paper: 'A4', count: await pageCount(await readFile(file)) });

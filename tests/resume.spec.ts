@@ -63,7 +63,7 @@ const held = {
 // with the projects. A section renders only where it holds something, so the
 // expectation drops an empty one, which is what lets reclassifying the one
 // certification as a course (criterion 6) or marking a course for the resume
-// move the bands here as well as the cards.
+// move the headings here as well as the cards.
 const tailOrder = {
   cv: ['certifications', 'courses', 'projects'],
   resume: ['projects', 'certifications', 'courses'],
