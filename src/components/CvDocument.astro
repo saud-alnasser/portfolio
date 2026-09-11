@@ -95,10 +95,10 @@ const projects = resume ? shownProjects.filter((entry) => onResume(entry.data)) 
 
 // The sections after the skills and the languages, in the order this variant
 // prints them, which is the order scripts/check-dist.mjs and
-// tests/resume.spec.ts read. The CV
-// is the record, so its credentials come before its projects and its course
-// completions have a section of their own; the resume leads with the work and
-// carries a credential only where an entry is marked for it.
+// tests/resume.spec.ts read. The CV is the record, so its credentials come
+// before its projects and its course completions have a section of their
+// own; the resume leads with the work and carries a credential only where an
+// entry is marked for it.
 type ProjectSection = { id: 'projects'; entries: typeof shownProjects };
 type CertificateSection = { id: 'certifications' | 'courses'; heading: string; entries: typeof certificates };
 
