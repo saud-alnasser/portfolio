@@ -13,14 +13,19 @@ location:
 period:
   start: "2026"
   end: "2026"
+# Shortened on 2026-09-11 so the resume reaches one page. The clause that went
+# was "with hardware, software, and ticketed service requests", which is a list
+# of exactly what the four highlights below enumerate one at a time. No fact
+# left the entry: the bullets state every one of them, and they state which
+# hardware, which software, and which ticketing system. The ticket's next lever
+# was to delete a bullet, and this costs no evidence where that would have.
 summary:
   en: >-
     Practical training placement in the IT Department at the company's
-    headquarters, supporting employees and branches with hardware, software,
-    and ticketed service requests.
+    headquarters, supporting employees and branches.
   ar: >-
     تدريب عملي في إدارة تقنية المعلومات بالمقر الرئيسي للشركة، لدعم
-    الموظفين والفروع في العتاد والبرمجيات وطلبات الخدمة المسجلة تذاكر.
+    الموظفين والفروع.
 highlights:
   - en: Replaced and deployed hardware at headquarters, and prepared it for joiners and leavers.
     ar: استبدال العتاد ونشره في المقر الرئيسي، وتجهيزه للموظفين الملتحقين والمغادرين.

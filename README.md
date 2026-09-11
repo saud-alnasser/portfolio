@@ -1,11 +1,10 @@
 # Hi, I'm Saud 👋
 
 <!-- profile -->
-Software developer in Riyadh, working mostly in Rust and TypeScript. Built
-an offline-first desktop rent tracker on Tauri and SvelteKit, and published
-an npm package that keeps a cache on the file system between runs of a
-program. With a team of six, built a bilingual e-ticketing and fan loyalty
-platform for Saudi football as a Saudi Electronic University senior project.
+Software developer in Riyadh, working mostly in Rust and TypeScript. Builds
+offline-first desktop software and has published an npm package. With a team
+of six, built a bilingual e-ticketing and fan loyalty platform for Saudi
+football as a Saudi Electronic University senior project.
 
 - 🌐 **Portfolio** — [English](https://saud-alnasser.github.io/saud-alnasser/en/) · [العربية](https://saud-alnasser.github.io/saud-alnasser/ar/)
 - 📄 **CV** — [English](https://saud-alnasser.github.io/saud-alnasser/en/cv/) · [العربية](https://saud-alnasser.github.io/saud-alnasser/ar/cv/)

@@ -6,21 +6,23 @@ profile:
   label:
     en: Software developer
     ar: مطور برمجيات
+  # Shortened on 2026-09-11 so the resume reaches one page, and no further than
+  # that needed. It said the same three things the project entries beside it
+  # say, in the same words: the rent tracker's stack, what the npm package
+  # caches and when. Those entries are still there, so what is left is the part
+  # only a summary says. Nothing here was true before and is not true now.
   summary:
     en: >-
-      Software developer in Riyadh, working mostly in Rust and TypeScript. Built
-      an offline-first desktop rent tracker on Tauri and SvelteKit, and
-      published an npm package that keeps a cache on the file system between
-      runs of a program. With a team of six, built a bilingual e-ticketing and
-      fan loyalty platform for Saudi football as a Saudi Electronic University
-      senior project.
+      Software developer in Riyadh, working mostly in Rust and TypeScript.
+      Builds offline-first desktop software and has published an npm package.
+      With a team of six, built a bilingual e-ticketing and fan loyalty
+      platform for Saudi football as a Saudi Electronic University senior
+      project.
     ar: >-
-      مطور برمجيات في الرياض، يعمل في الغالب بلغتي Rust وTypeScript. بنى متتبعًا
-      لمدفوعات الإيجار على سطح المكتب يعمل دون اتصال أولاً باستخدام Tauri
-      وSvelteKit، ونشر حزمة npm تحتفظ بذاكرة تخزين مؤقت في نظام الملفات بين
-      تشغيلات البرنامج. وبنى مع فريق من ستة أعضاء منصة تذاكر إلكترونية وولاء
-      للمشجعين لكرة القدم السعودية بلغتين، مشروع تخرج في الجامعة السعودية
-      الإلكترونية.
+      مطور برمجيات في الرياض، يعمل في الغالب بلغتي Rust وTypeScript. يبني
+      برمجيات سطح مكتب تعمل دون اتصال أولاً، وقد نشر حزمة npm. وبنى مع فريق من
+      ستة أعضاء منصة تذاكر إلكترونية وولاء للمشجعين لكرة القدم السعودية بلغتين،
+      مشروع تخرج في الجامعة السعودية الإلكترونية.
   email: saud4services@gmail.com
   nationality:
     en: Saudi

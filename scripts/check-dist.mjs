@@ -476,7 +476,7 @@ async function qrCode() {
   return lines;
 }
 
-// The resume is the short document, and two pages is its budget. The render step counts
+// The resume is the short document, and one page is its budget. The render step counts
 // both papers as it writes, and this counts the A4 file that actually
 // shipped, so the rule holds over a dist/ assembled anywhere. The remedy for
 // a failure is content, as the effort's spec constrains, never a smaller type
@@ -505,18 +505,22 @@ async function resumePages() {
     } finally {
       await task.destroy();
     }
-    // Two is the budget, not the target: the same document is one page under
-    // the fonts Windows resolves for the system stack and two under the Linux
-    // runner's, and the runner renders what ships. A third page is a resume
-    // that has stopped being the short document (the effort's spec,
-    // requirement 10).
-    if (pages > 2) {
+    // One. This read two for a day, between 2026-09-10 and 2026-09-11: the
+    // same document was one page under the fonts Windows resolves for the
+    // system stack and two under the Linux runner's, so the budget was widened
+    // to match the renderer. What that produced was a two-page short resume,
+    // which is the one thing a short resume may not be, so the content was cut
+    // instead and the budget came back. `scripts/render-pdf.mjs` carries the
+    // other half, a floor under the free height on the last page, because a
+    // page count cannot see a document that fits by a hair here and does not
+    // fit on the runner.
+    if (pages > 1) {
       throw new CheckFailure(
         name,
-        `${path.relative(root, file)} has ${pages} pages, expected at most 2; shorten the content, never the type size`,
+        `${path.relative(root, file)} has ${pages} pages, expected 1; shorten the content, never the type size`,
       );
     }
-    lines.push(`resume pages: ${path.basename(file)} is ${pages} ${pages === 1 ? 'page' : 'pages'}, at most 2`);
+    lines.push(`resume pages: ${path.basename(file)} is ${pages} ${pages === 1 ? 'page' : 'pages'}`);
   }
   return lines;
 }

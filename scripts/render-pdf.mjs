@@ -69,13 +69,17 @@ const documents = [
   // needs that margin on every one of them, and the CV runs to five. It is
   // therefore the control the resume's half of the check is read against.
   { route: 'cv', file: 'cv', pages: null, furniture: true },
-  // Two, not one. The document is one page under the fonts Windows resolves
-  // for the system stack and two under the Linux runner's, and it is the
-  // runner that renders what ships, so a one-page rule here was a rule about
-  // the renderer rather than about the document. Two is a budget and not a
-  // target: the resume is still the short document, and a third page is
-  // still refused (the effort's spec, requirement 10).
-  { route: 'resume', file: 'resume', pages: 2, furniture: false },
+  // One. It was two between 2026-09-10 and 2026-09-11, because the document
+  // was one page under the fonts Windows resolves for the system stack and two
+  // under the Linux runner's, and the runner renders what ships. Widening the
+  // budget made the rule true and made the document a two-page short resume,
+  // which is the one thing a short resume may not be, so this effort cut the
+  // content instead and put the budget back.
+  //
+  // What makes one page hold this time is the floor beside it rather than the
+  // count: a page count says "one page" on both sides of a near miss, and a
+  // near miss is exactly what went wrong before.
+  { route: 'resume', file: 'resume', pages: 1, furniture: false },
 ];
 
 class RenderFailure extends Error {
@@ -94,6 +98,81 @@ async function pageCount(data) {
   } finally {
     await task.destroy();
   }
+}
+
+// The white space the resume's page box gives up and its article carries
+// instead (`.cv-compact { padding: 10mm }` in src/styles/global.css). The
+// headroom below is measured against the content box rather than the paper,
+// so this has to come out of the distance a text run sits at. Written here
+// with where it comes from, because the two have to move together: a document
+// whose padding changed and whose constant did not would report headroom it
+// does not have.
+const PAGE_PADDING_MM = 10;
+
+// The one number a page count cannot see: how much of the last page is still
+// empty, in millimetres of the content box.
+//
+// This is the failure that widened the budget to two pages on 2026-09-10. The
+// English resume cleared Letter by about 16 pixels on a developer's machine
+// and took a second page on the Linux runner, because the system font stack
+// resolves to different faces on the two and Saud has twice declined to bundle
+// a print face. A page count says "one page" on both sides of that and says
+// nothing at all about which side of it the document is standing on.
+//
+// PDF coordinates run upward from the bottom of the page, so the lowest text
+// run on the last page is the one with the smallest y, and what is under it is
+// the padding plus whatever is genuinely spare.
+async function freeHeight(data) {
+  const task = getDocument({ data: new Uint8Array(data), standardFontDataUrl });
+  try {
+    const document = await task.promise;
+    const page = await document.getPage(document.numPages);
+    const content = await page.getTextContent();
+    const bottoms = content.items.filter((item) => item.str.trim()).map((item) => item.transform[5]);
+    if (bottoms.length === 0) return null;
+    // 72 points to the inch, 25.4 millimetres to the inch.
+    const mm = (Math.min(...bottoms) * 25.4) / 72;
+    return mm - PAGE_PADDING_MM;
+  } finally {
+    await task.destroy();
+  }
+}
+
+// The floor, in millimetres of the last page's content box at Letter.
+//
+// Not picked: derived from the one measurement this repository has. On
+// 2026-09-10 the English resume cleared Letter here by about 16 pixels and
+// took a second page on the runner. 10mm is about 38 pixels at the resume's
+// print size, more than twice the gap that failed, and about two and a half
+// lines of body text. Anyone moving it should know that is what it was
+// measured against.
+//
+// Letter only. It is the shorter paper, so it is the one that binds; a
+// document with headroom at Letter has more at A4.
+const HEADROOM_MM = 10;
+
+// A resume that fits by a hair fits nowhere else. `counts` carries a page
+// count and a free height per paper; this refuses on either.
+function refuseNearMiss(which, counts) {
+  for (const { paper, count, free } of counts) {
+    if (paper !== 'Letter' || count !== 1 || free === null) continue;
+    if (free < HEADROOM_MM) {
+      throw new RenderFailure(
+        'resume-too-tight',
+        `${which} at ${paper} fits on one page with ${free.toFixed(1)}mm to spare, and the floor is ${HEADROOM_MM}mm; ` +
+          'it renders here and the runner resolves the system font stack to different faces, which is how a one-page ' +
+          'resume became two on 2026-09-10. Shorten the content, never the type size',
+      );
+    }
+  }
+}
+
+// One paper's result, for the line the step prints. The free height is on
+// every render rather than only on a failure: a number nobody can see is a
+// number nobody notices moving.
+function describe({ paper, count, free }) {
+  const pages = `${count} ${count === 1 ? 'page' : 'pages'} at ${paper}`;
+  return free === null || count !== 1 ? pages : `${pages} with ${free.toFixed(1)}mm free`;
 }
 
 // Every run of text in a rendered PDF, with the page it is on and where on
@@ -188,14 +267,13 @@ async function render(browser, at, locale, output) {
     // staying true, and that is not a thing a document should have to know.
     await page.pdf({ path: file, format: 'A4', printBackground: true });
     if (output.pages !== null) {
-      counts.push({ paper: 'A4', count: await pageCount(await readFile(file)) });
+      const a4 = await readFile(file);
+      counts.push({ paper: 'A4', count: await pageCount(a4), free: await freeHeight(a4) });
       // The paper the file is not written on. A document that fits A4 and not
       // Letter fits nothing a reader in either market prints it on, and the
       // buffer costs one more render.
-      counts.push({
-        paper: 'Letter',
-        count: await pageCount(await page.pdf({ format: 'Letter', printBackground: true })),
-      });
+      const letter = await page.pdf({ format: 'Letter', printBackground: true });
+      counts.push({ paper: 'Letter', count: await pageCount(letter), free: await freeHeight(letter) });
     }
   } finally {
     await page.close();
@@ -218,8 +296,9 @@ async function render(browser, at, locale, output) {
       );
     }
   }
+  refuseNearMiss(`${locale} published`, counts);
   const loaded = fonts.filter((face) => face.status === 'loaded').map((face) => `${face.family} ${face.weight}`);
-  const pages = counts.map(({ paper, count }) => `${count} ${count === 1 ? 'page' : 'pages'} at ${paper}`).join(', ');
+  const pages = counts.map(describe).join(', ');
   return `${path.relative(root, file)}: ${size} bytes${pages ? `, ${pages}` : ''}${loaded.length > 0 ? `, fonts ${loaded.join(', ')}` : ''}`;
 }
 
@@ -453,12 +532,12 @@ async function renderFilled(browser, at, locale, output) {
     const a4 = await readFile(file);
     await carriesContact(a4, path.basename(file));
     if (output.pages !== null) {
-      counts.push({ paper: 'A4', count: await pageCount(a4) });
+      counts.push({ paper: 'A4', count: await pageCount(a4), free: await freeHeight(a4) });
       await ready();
       await filled();
       const letter = await page.pdf({ format: 'Letter', printBackground: true });
       await carriesContact(letter, 'the Letter render');
-      counts.push({ paper: 'Letter', count: await pageCount(letter) });
+      counts.push({ paper: 'Letter', count: await pageCount(letter), free: await freeHeight(letter) });
     }
   } finally {
     await page.close();
@@ -481,7 +560,8 @@ async function renderFilled(browser, at, locale, output) {
       );
     }
   }
-  const pages = counts.map(({ paper, count }) => `${count} ${count === 1 ? 'page' : 'pages'} at ${paper}`).join(', ');
+  refuseNearMiss(`${locale} filled`, counts);
+  const pages = counts.map(describe).join(', ');
   return `${path.relative(root, file)}: ${size} bytes${pages ? `, ${pages}` : ''}, filled through the form`;
 }
 
