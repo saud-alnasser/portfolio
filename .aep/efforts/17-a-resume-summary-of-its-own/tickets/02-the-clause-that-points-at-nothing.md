@@ -1,5 +1,5 @@
 ---
-status: open
+status: resolved
 blocked-by: [01]
 ---
 
@@ -11,10 +11,10 @@ blocked-by: [01]
 
 ## Acceptance Criteria
 
-- [ ] Neither language's `summary` mentions a statically typed language, a bytecode virtual machine, or a language in draft (criterion 4).
-- [ ] Both still name the npm package, the PL/0 compiler, and the Monkey interpreter, which are `public` and `completed` and print as entries on the CV, on the work page, and in both JSON documents (criterion 4).
-- [ ] The home page hero and `basics.summary` in both `resume.json` documents carry the edited text, and `pnpm check:dist` reports `readme profile: README.md carries the profile as src/content/ states it` (criterion 5).
-- [ ] `pnpm build` prints `[localized] 0 gaps`, and `pnpm check`, `pnpm check:dist`, `pnpm test`, and `pnpm test:content` pass (criterion 6).
+- [x] Neither language's `summary` mentions a statically typed language, a bytecode virtual machine, or a language in draft (criterion 4). Grepping the field for `statically typed|bytecode|in draft|أنواع ساكنة|البايت كود|المسودة` returns nothing, and `grep -rlE "\bNova\b" dist/` returns no file. A case-insensitive `nova` hits eight built files, every one of them the substring in `Renovate`.
+- [x] Both still name the npm package, the PL/0 compiler, and the Monkey interpreter, which are `public` and `completed` and print as entries on the CV, on the work page, and in both JSON documents (criterion 4). All three appear in both languages of the field, and each is counted non-zero in `en/cv`, `ar/cv`, `en/work`, `ar/work`, and both `resume.json` documents.
+- [x] The home page hero and `basics.summary` in both `resume.json` documents carry the edited text, and `pnpm check:dist` reports `readme profile: README.md carries the profile as src/content/ states it` (criterion 5). All four read back out of `dist/` verbatim, ending `a PL/0 compiler and an interpreter for the Monkey language.` and `مترجم للغة PL/0 ومفسر للغة Monkey.`, and the check reports that line.
+- [x] `pnpm build` prints `[localized] 0 gaps`, and `pnpm check`, `pnpm check:dist`, `pnpm test`, and `pnpm test:content` pass (criterion 6). `check`: 0 errors, 0 warnings over 59 files. `test`: 596 passed. `test:content`: passed. Re-run on the effort branch after integration, not only in the ticket's own surface.
 
 ## Relevant areas
 
@@ -32,3 +32,5 @@ blocked-by: [01]
 Blocked by 01 only because both tickets edit `src/content/profile.yaml` and the comment block above its summary fields. The fields themselves are independent: this one touches `summary`, ticket 01 touches `resumeSummary`.
 
 After this lands, Nova is named nowhere in anything the site publishes. The entry stays in the content source, and the moment its status changes it appears on the work page and the CV on its own, the way every other project gets there.
+
+**One judgement made inside the cut.** The Arabic lost the comma before its conjunction as well as the third item, `PL/0، ومفسر` becoming `PL/0 ومفسر`, which is the same punctuation consequence as the English losing its serial comma when three items became two. The convention was checked against the content source first: two-item lists there use a bare `و` with no comma, as in `الموظفين والفروع` and `الملتحقين والمغادرين`. Keeping the comma would have been an artifact of the deletion rather than preserved text.

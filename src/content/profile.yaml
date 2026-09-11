@@ -20,6 +20,17 @@ profile:
   # paragraph that named the resume's missing work was the paragraph the CV
   # had to open with too.
   #
+  # That rule is why `summary` lost a clause the same day: a statically typed
+  # language on a bytecode virtual machine, in draft. That is Nova, and
+  # nothing publishes it. src/content/projects/nova-lang.yaml is
+  # `status: in-progress`, and isShown() in src/lib/shown.ts shows a project
+  # only where its status is `completed`, so Nova reaches no page, no
+  # document, and no JSON file. The clause was the only place it was named
+  # anywhere, and a reader following it arrived at nothing. Do not restore it
+  # on the grounds that the entry is in the source: when its status changes,
+  # Nova reaches the work page and the CV on its own, the way every other
+  # project gets there.
+  #
   # Keeping them apart is the cost of the split, and it is the reason they sit
   # a few lines apart under one comment rather than in two files.
   #
@@ -33,15 +44,13 @@ profile:
       Built an offline-first desktop rent tracker on Tauri, SvelteKit, and
       Turso, and published an npm package that keeps a cache on the file
       system between runs. Most of the rest is language work in Rust: a PL/0
-      compiler, an interpreter for the Monkey language, and a statically typed
-      language on a bytecode virtual machine, in draft.
+      compiler and an interpreter for the Monkey language.
     ar: >-
       مطور برمجيات في الرياض، يعمل في الغالب بلغتي Rust وTypeScript. بنى
       متتبعًا لمدفوعات الإيجار على سطح المكتب يعمل دون اتصال أولاً باستخدام
       Tauri وSvelteKit وTurso، ونشر حزمة npm تحتفظ بذاكرة تخزين مؤقت في نظام
       الملفات بين تشغيلات البرنامج. وأغلب ما تبقى عمل في اللغات بلغة Rust:
-      مترجم للغة PL/0، ومفسر للغة Monkey، ولغة ذات أنواع ساكنة تعمل على آلة
-      افتراضية للبايت كود، في طور المسودة.
+      مترجم للغة PL/0 ومفسر للغة Monkey.
   resumeSummary:
     en: >-
       Software developer in Riyadh, working mostly in Rust and TypeScript.
