@@ -9,7 +9,9 @@ import {
   byStartAscending,
   byStartDescending,
 } from '../lib/order';
+import { profileIcon } from '../lib/networks';
 import { isCertification, isCourse, isShown, onResume } from '../lib/shown';
+import QrCode from './QrCode.astro';
 
 // The document both of the site's document pages are: the CV, which holds
 // everything the site shows, and the short resume, which holds what an
@@ -125,6 +127,15 @@ const tail: (ProjectSection | CertificateSection)[] = resume
 // columns and prints one line per group instead.
 const keywords = [...new Set(skills.flatMap((entry) => entry.data.keywords))];
 
+// The GitHub address is the header's QR code rather than a line of text in
+// the contact line, which is where it used to print. Any other profile keeps
+// its address written out: one code is what the header has room for, and a
+// network dropped from the document because it has no code would be a fact
+// lost silently. `profileIcon` is what decides which is GitHub, so a second
+// GitHub-shaped network never produces two codes.
+const coded = profile.data.profiles.find((entry) => profileIcon(entry.network) === 'github');
+const written = profile.data.profiles.filter((entry) => entry !== coded);
+
 const link = 'text-primary underline underline-offset-4 hover:decoration-2';
 // A section heading: the accent over a hairline rule that runs the width of
 // the column. It replaced a full-width tinted band, which was the template's
@@ -152,8 +163,20 @@ const muted = 'text-sm text-muted-foreground';
   {/* The name block, which is the one place in the document with a hierarchy:
       the name, then the label under it, then the contact line smaller again,
       over a rule heavier than a section heading's and in the same accent. It
-      is the document's strongest line and it now reads like it. */}
-  <header class="cv-entry border-b-2 border-primary pb-5 text-center">
+      is the document's strongest line and it now reads like it.
+
+      The QR code sits at the trailing edge and the spacer before the text
+      balances it, so the name stays centred on the paper rather than centred
+      in what is left over. The spacer is empty and hidden from assistive
+      technology; it is a box, not a fact. Logical properties throughout, so
+      Arabic mirrors the whole row with no second rule.
+
+      The row is flex rather than positioned: a fixed or absolute element
+      carrying content inside the document is refused outright, both by
+      spec.md and by tests/resume.spec.ts. */}
+  <header class="cv-entry flex items-center gap-x-6 border-b-2 border-primary pb-5">
+    <div aria-hidden="true" class="w-20 shrink-0"></div>
+    <div class="min-w-0 flex-1 text-center">
     <h1 class="text-3xl font-semibold uppercase tracking-[0.025em]">{name}</h1>
     <p class="mt-1 text-muted-foreground">{label}</p>
     {/* One line, in the flow of the document. The bars separate the items for
@@ -189,7 +212,7 @@ const muted = 'text-sm text-muted-foreground';
         <span aria-hidden="true" class="text-muted-foreground">|</span>
       </li>
       {
-        profile.data.profiles.map((p) => (
+        written.map((p) => (
           <li class="flex items-center gap-x-2">
             <a href={p.url} class={link}>
               {p.url}
@@ -201,6 +224,8 @@ const muted = 'text-sm text-muted-foreground';
         ))
       }
     </ul>
+    </div>
+    {coded && <QrCode url={coded.url} label={`${coded.network}: ${coded.url}`} />}
   </header>
 
   <section aria-labelledby="cv-summary" data-cv-section="summary">

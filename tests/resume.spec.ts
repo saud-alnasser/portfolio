@@ -179,6 +179,47 @@ for (const locale of locales) {
         await page.emulateMedia({ media: 'screen' });
       });
 
+      // The GitHub address is the header's QR code, and the contact line no
+      // longer writes it out. That is the one place either document trades a
+      // fact a parser can read for one a phone can: the code is the only
+      // route to the address on paper, so what it decodes to is checked
+      // against src/content/profile.yaml over the rendered PDF by
+      // scripts/check-dist.mjs. What is left for a browser to say is the half
+      // a PDF cannot show: that on screen it is the link, that it carries the
+      // address as its accessible name, because the words that used to say it
+      // are gone, and that no contact item writes the address out any more.
+      test('carries the GitHub address as one code in the header, and nowhere in the text', async ({ page }) => {
+        await page.goto(route);
+        const code = page.locator('article.cv [data-qr-code]');
+        await expect(code).toHaveCount(1);
+        // The one graphic either document is allowed. Asserted here as well
+        // as over the built HTML, because a second one added through a
+        // component rather than through markup would reach the page the
+        // same way.
+        await expect(page.locator('article.cv svg')).toHaveCount(1);
+
+        const address = profile.profiles[0].url;
+        await expect(code, 'the code names the address it carries').toHaveAccessibleName(
+          new RegExp(address.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')),
+        );
+        const linked = page.locator('article.cv header a', { has: page.locator('[data-qr-code]') });
+        await expect(linked, 'on screen the code is the link to that address').toHaveAttribute('href', address);
+
+        // The header block the code sits beside, which is what pays for it:
+        // the code is drawn no taller than the name and the label, so the
+        // document is the same height with it as without.
+        const [text, drawn] = await Promise.all([
+          page.locator('article.cv > header > div').nth(1).boundingBox(),
+          code.boundingBox(),
+        ]);
+        expect(drawn!.height, `the code on ${route} is no taller than the name block`).toBeLessThanOrEqual(
+          text!.height,
+        );
+
+        const contact = await page.locator('[data-cv-contact]').innerText();
+        expect(contact, `the contact line on ${route} writes no GitHub address out`).not.toContain('github.com');
+      });
+
       // The keyboard path, end to end, which is what the effort's criterion 8
       // asks for: tab to the control from the top of the page, see the ring
       // the stylesheet draws on :focus-visible, and press Enter to act on it.

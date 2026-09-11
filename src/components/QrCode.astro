@@ -1,0 +1,114 @@
+---
+import QRCode from 'qrcode';
+import { icons } from '../lib/icons';
+
+// The GitHub address as a QR code, with the GitHub mark at its centre.
+//
+// It is the one graphic either document carries, and it is here because the
+// address stopped being text: the contact line used to print the URL, which
+// nobody types off paper, and a code a phone reads in a second is what that
+// line was for. The cost was stated when it was chosen on 2026-09-11 and is
+// worth repeating here, because it is invisible from the markup: a resume
+// parser reading the PDF now finds no GitHub address at all. What still
+// carries it is the JSON Resume document, at `basics.profiles[].url`.
+//
+// Encoded here, at build time, from whatever the content source says. Not a
+// committed SVG, which would drift from `profile.yaml` silently; not a QR
+// service, which would be an external request from a document page; and not
+// drawn by script, because both document pages work with no script and the
+// PDF render would be racing that script to draw it.
+//
+// Error correction level H recovers about 30 percent of a damaged code, and
+// the knockout at the centre is what spends some of that: the mark covers
+// about 6 percent of the modules, well inside the budget, and the level is
+// chosen for the mark rather than for the printing.
+
+interface Props {
+  // The address the code carries. It comes from src/content/profile.yaml and
+  // is never written down here, so a code cannot point where the content
+  // source does not.
+  url: string;
+  // What assistive technology calls it. The words that used to say this
+  // address are gone from the contact line, so this is the only place a
+  // screen reader hears it.
+  label: string;
+  class?: string;
+}
+
+const { url, label, class: className } = Astro.props;
+
+const qr = QRCode.create(url, { errorCorrectionLevel: 'H' });
+const modules = qr.modules.size;
+// Four modules of quiet zone on every side, which the standard requires and
+// scanners rely on. It is part of the code, so it is inside the drawing
+// rather than being padding on whatever the code happens to sit next to.
+const quiet = 4;
+const side = modules + quiet * 2;
+
+// The dark modules as one path: a square per module, which the renderer
+// collapses into a single fill. One path rather than one rect each keeps the
+// markup, and the PDF, a fraction of the size.
+const dark = [];
+for (let y = 0; y < modules; y += 1) {
+  for (let x = 0; x < modules; x += 1) {
+    if (qr.modules.data[y * modules + x]) dark.push(`M${x + quiet} ${y + quiet}h1v1h-1z`);
+  }
+}
+
+// The knockout the mark sits in, in module units and snapped to whole
+// modules, so its edges fall on module boundaries and a scanner reads a clean
+// block of damage rather than a ragged one.
+const knockout = Math.round(modules * 0.24);
+const knockoutAt = Math.round((side - knockout) / 2);
+// The mark inside it, at four fifths of the knockout, so the plate keeps a
+// margin around the mark and the mark never touches a live module.
+const mark = knockout * 0.8;
+const markAt = (side - mark) / 2;
+// The mark's own body is drawn on a 24 by 24 grid (src/lib/icons.ts).
+const markScale = mark / 24;
+
+// Always dark on a light plate, in both palettes. A scanner reads an inverted
+// code unreliably, so this does not follow the theme: the plate is a shape
+// inside the drawing rather than a CSS background, which also means it prints
+// whatever the reader's background-graphics setting says, the way the rest of
+// the document now does.
+const plate = '#ffffff';
+const ink = '#1c2128';
+
+// The box, in CSS pixels, which are 1/96 inch when this prints: 80 is 21.2mm,
+// and the name block it sits beside measures 21.2mm on the resume and 23.3mm
+// on the CV. Sized to the block rather than to a round number of millimetres,
+// because a code taller than that block is height taken out of a document
+// that has 98px still to find, and spec.md records that the scan and the fit
+// pull against each other. Measured, not assumed: the article is the same
+// height with this code in it as without.
+//
+// What that buys the scanner is 0.52mm a module, over 41 modules: 33 of data
+// at error correction level H, and the 4 of quiet zone each side that the
+// standard asks for. The ticket's own estimate was 0.6mm, which counted the
+// data and forgot the quiet zone. 0.52mm is small, and no measurement here
+// settles whether a phone reads it off paper — only a phone does, which is
+// why that is an acceptance criterion rather than a note.
+const box = 80;
+
+const escaped = (text: string) =>
+  text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+---
+
+<a href={url} class:list={['shrink-0', className]}>
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    viewBox={`0 0 ${side} ${side}`}
+    width={box}
+    height={box}
+    role="img"
+    data-qr-code
+    shape-rendering="crispEdges"
+  >
+    <title set:html={escaped(label)} />
+    <rect width={side} height={side} fill={plate}></rect>
+    <path d={dark.join('')} fill={ink}></path>
+    <rect x={knockoutAt} y={knockoutAt} width={knockout} height={knockout} fill={plate}></rect>
+    <g transform={`translate(${markAt} ${markAt}) scale(${markScale})`} fill={ink} set:html={icons.github.body} />
+  </svg>
+</a>

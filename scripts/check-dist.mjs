@@ -14,6 +14,8 @@ import { createRequire } from 'node:module';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { promisify } from 'node:util';
+import { createCanvas } from '@napi-rs/canvas';
+import jsQR from 'jsqr';
 import { getDocument } from 'pdfjs-dist/legacy/build/pdf.mjs';
 import { parse as parseYaml } from 'yaml';
 import { identifiersIn } from './identifiers.mjs';
@@ -401,6 +403,77 @@ async function documentPurpose() {
   return [
     `document purpose: both document pages say what they are for in ${context.locales.length} languages, and none of ${subjects.length} rendered documents does${note}`,
   ];
+}
+
+// The QR code in every rendered document decodes to the address the content
+// source holds. This is the check the "no image" reversal is paid for with.
+//
+// It reads the artifact, not the markup. The markup was never the half in
+// doubt: a code can be encoded perfectly and still come out of the renderer
+// too small, too soft, or with too much of it knocked out by the mark at its
+// centre, and none of that is visible in an <svg> anybody can read. So the
+// page is rasterised the way scripts/certificate-previews.mjs rasterises a
+// certificate, and the pixels are handed to a decoder that knows nothing
+// about how they were drawn.
+//
+// The address comes from src/content/profile.yaml, never from a literal here,
+// for the same reason `noContactDetails` reads it from there: a check holding
+// its own copy of the thing it verifies passes on the day the two disagree.
+//
+// Rendered at 4 times the PDF's own scale. At the size the code prints, a
+// module is about 2 pixels at scale 1, which is under what any decoder reads;
+// 4 puts it near 8 and costs a second per document.
+async function qrCode() {
+  const name = 'qr code';
+  const profile = parseYaml(await readFile(path.join(context.content, 'profile.yaml'), 'utf8')).profile;
+  const coded = (profile.profiles ?? []).find((entry) => String(entry.network).trim().toLowerCase() === 'github');
+  if (!coded?.url) {
+    throw new CheckFailure(
+      name,
+      'src/content/profile.yaml holds no GitHub profile, so this check has nothing to compare against; it must fail rather than pass over a code it cannot verify',
+    );
+  }
+
+  const lines = [];
+  for (const document of documents) {
+    for (const locale of context.locales) {
+      const file = path.join(context.dist, `${document}.${locale}.pdf`);
+      let data;
+      try {
+        data = await readFile(file);
+      } catch {
+        throw new CheckFailure(name, `${path.relative(root, file)} does not exist; run \`pnpm render:pdf\` after the build`);
+      }
+      const task = getDocument({ data: new Uint8Array(data), standardFontDataUrl });
+      let decoded;
+      try {
+        const pdf = await task.promise;
+        const page = await pdf.getPage(1);
+        const viewport = page.getViewport({ scale: 4 });
+        const canvas = createCanvas(Math.round(viewport.width), Math.round(viewport.height));
+        await page.render({ canvas, viewport }).promise;
+        const pixels = canvas.getContext('2d').getImageData(0, 0, canvas.width, canvas.height);
+        decoded = jsQR(pixels.data, pixels.width, pixels.height);
+      } finally {
+        await task.destroy();
+      }
+
+      if (!decoded) {
+        throw new CheckFailure(
+          name,
+          `no QR code could be read on page 1 of ${path.basename(file)}; the code is the document's only route to the GitHub address on paper, so a code that will not decode has lost it`,
+        );
+      }
+      if (decoded.data !== coded.url) {
+        throw new CheckFailure(
+          name,
+          `the QR code on page 1 of ${path.basename(file)} decodes to "${decoded.data}", and src/content/profile.yaml says "${coded.url}"`,
+        );
+      }
+      lines.push(`qr code: ${path.basename(file)} page 1 decodes to ${decoded.data}`);
+    }
+  }
+  return lines;
 }
 
 // The resume is the short document, and two pages is its budget. The render step counts
@@ -824,8 +897,18 @@ async function noOverclaim() {
 }
 
 // Neither document page carries the layout hazards resume parsers document:
-// no table, no image, and the contact block in the flow of the document
-// rather than in a positioned header or footer.
+// no table, no image, no graphic but the one the header is allowed, and the
+// contact block in the flow of the document rather than in a positioned
+// header or footer.
+//
+// The graphic clause is narrower than it reads and deliberately so. Four
+// efforts held "no image" outright, because a parser cannot read one; the QR
+// code carrying the GitHub address is the single exception Saud chose on
+// 2026-09-11 with that cost stated. So this refuses every <svg> inside the
+// document's article except the one marked `data-qr-code`, rather than
+// refusing none of them: an inline <svg> is not an <img>, so a check that
+// only looked for <img> would go on reporting "no image" while the document
+// carried a second graphic nobody agreed to.
 //
 // The fourth hazard, an element of the document itself being positioned, is
 // asserted in tests/resume.spec.ts instead. A computed `position` needs
@@ -858,7 +941,25 @@ async function documentHazards() {
       if (!/data-cv-contact/.test(main)) {
         throw new CheckFailure(name, `dist/${route} has no [data-cv-contact] inside <main>; the contact block must be in the flow of the document`);
       }
-      lines.push(`document hazards: ${locale}/${document}/ has no table or image, and its contact block is in the flow`);
+      // Every <svg> inside the document's article, and how many of them are
+      // the code. The article rather than <main>, because the page's own
+      // chrome above the document carries icons that are none of this
+      // check's business.
+      const article = main.match(/<article[\s>][\s\S]*?<\/article>/i)?.[0] ?? '';
+      const graphics = article.match(/<svg[\s>][^>]*>/gi) ?? [];
+      const codes = graphics.filter((graphic) => /\bdata-qr-code\b/.test(graphic));
+      if (graphics.length > codes.length) {
+        throw new CheckFailure(
+          name,
+          `dist/${route} carries ${graphics.length - codes.length} graphic(s) in the document besides the QR code; a resume parser reads none of them, and the code is the one exception this repository agreed to`,
+        );
+      }
+      if (codes.length > 1) {
+        throw new CheckFailure(name, `dist/${route} carries ${codes.length} QR codes; the header has room for one`);
+      }
+      lines.push(
+        `document hazards: ${locale}/${document}/ has no table or image, one QR code and no other graphic, and its contact block is in the flow`,
+      );
     }
   }
   return lines;
@@ -1017,7 +1118,7 @@ async function readmeProfile() {
   return ['readme profile: README.md carries the profile as src/content/ states it'];
 }
 
-const checks = [jsonResume, documentPdfs, documentPurpose, resumePages, localeTwins, hrefs, basePaths, metadata, sitemap, robots, identifiers, noContactDetails, nationalityWhereItBelongs, gaps, noOverclaim, documentHazards, readmeProfile];
+const checks = [jsonResume, documentPdfs, documentPurpose, qrCode, resumePages, localeTwins, hrefs, basePaths, metadata, sitemap, robots, identifiers, noContactDetails, nationalityWhereItBelongs, gaps, noOverclaim, documentHazards, readmeProfile];
 
 for (const check of checks) {
   try {
