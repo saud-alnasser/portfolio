@@ -5,6 +5,8 @@ import { expect, test, type Page } from '@playwright/test';
 import { parse as parseYaml } from 'yaml';
 import { marker } from '../scripts/form-marker.mjs';
 import { fill, formatPeriod, strings } from '../src/lib/i18n';
+import { levelLine } from '../src/lib/languages';
+import { byOrderThenName } from '../src/lib/order';
 import { isCertification, isCourse, isShown, onResume } from '../src/lib/shown';
 import { at, locales, type Locale } from './pages';
 
@@ -32,6 +34,9 @@ function entries(collection: string): any[] {
 const profile = parseYaml(readFileSync(path.join(content, 'profile.yaml'), 'utf8')).profile;
 const projects = entries('projects').filter((data) => isShown(data));
 const certificates = entries('certificates');
+// In the order the documents print them (src/lib/order.ts), which is by
+// `order` and not by file name.
+const languages = entries('languages').sort(byOrderThenName);
 
 // The repository link a document prints for a project, or nothing. Only a
 // `public` project shows its links, exactly as src/components/CvDocument.astro
@@ -69,11 +74,14 @@ const tailOrder = {
   resume: ['projects', 'certifications', 'courses'],
 } as const;
 
+// The languages sit directly after the key skills on both documents, and like
+// every section print only where the collection holds something.
 const sectionsExpected = (variant: 'cv' | 'resume') => [
   'summary',
   'experience',
   'education',
   'skills',
+  ...(languages.length > 0 ? ['languages'] : []),
   ...tailOrder[variant].filter((id) => held[variant][id] > 0),
 ];
 
@@ -130,6 +138,25 @@ for (const locale of locales) {
         await page.goto(route);
         const section = page.locator('[data-cv-section="summary"]');
         await expect(section.locator('p'), `the summary on ${route}`).toHaveText(summaryText(variant, locale));
+      });
+
+      // One line per language, "name: level", the level followed by the test
+      // score and its year where the entry carries one. The line is the
+      // authored text through the same fallback as `summaryText`, and the
+      // tail through the same function the page and the JSON document use,
+      // so the exact wording, the score, and the year are the expectation
+      // rather than a copy of them.
+      test('lists each language with its level on one line', async ({ page }) => {
+        await page.goto(route);
+        const t = strings[locale];
+        const section = page.locator('[data-cv-section="languages"]');
+        await expect(section.locator('h2')).toHaveText(t.cv.languages);
+        await expect(section.locator('> ul > li')).toHaveText(
+          languages.map(
+            (data) =>
+              `${data.name[locale] ?? data.name.en}: ${levelLine(data.level[locale] ?? data.level.en, data.test, t.listSeparator)}`,
+          ),
+        );
       });
 
       test('carries exactly the entries the content marks for it', async ({ page }) => {

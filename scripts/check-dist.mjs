@@ -24,8 +24,9 @@ import { readmeWithProfile } from './readme-profile.mjs';
 // The site's own date wording and orders, so the expectation reads exactly
 // what the CV page printed. Node strips the types on import.
 import { formatPeriod, localeInfo, strings } from '../src/lib/i18n.ts';
+import { levelLine } from '../src/lib/languages.ts';
 import { gapReport, pick } from '../src/lib/localized.ts';
-import { byStartAscending, byStartDescending } from '../src/lib/order.ts';
+import { byOrderThenName, byStartAscending, byStartDescending } from '../src/lib/order.ts';
 import { joinBase } from '../src/lib/paths.ts';
 import { isShown } from '../src/lib/shown.ts';
 import { base, site } from '../astro.config.mjs';
@@ -103,12 +104,16 @@ async function jsonResume() {
     education: 'education',
     certificates: 'certificates',
     skills: 'skills',
+    languages: 'languages',
     projects: 'projects',
   };
   const expected = {};
   for (const [section, collection] of Object.entries(sections)) {
     expected[section] = await visibleEntries(collection);
   }
+  // The languages are compared entry by entry below, so they are put in the
+  // order the documents print them (src/lib/order.ts) rather than file order.
+  const languages = expected.languages.map((entry) => entry.data).sort(byOrderThenName);
   const profile = parseYaml(await readFile(path.join(context.content, 'profile.yaml'), 'utf8')).profile;
   // A project's `name:` is authored once, so it is the same in every
   // language's document.
@@ -147,6 +152,23 @@ async function jsonResume() {
         throw new CheckFailure(name, `${locale}: described project "${project.name}" carries a url key`);
       }
     }
+
+    // Each language as the document page prints it: the name in this
+    // language, and `fluency` as the level with the test score and its year,
+    // built by the function the page and the mapper share, so the two files
+    // agree with the pages by construction. The same fallback as the summary
+    // below, for the same reason.
+    languages.forEach((data, index) => {
+      const entry = resume.languages[index];
+      const language = data.name[locale] ?? data.name.en;
+      const fluency = levelLine(data.level[locale] ?? data.level.en, data.test, strings[locale].listSeparator);
+      if (entry.language !== language || entry.fluency !== fluency) {
+        throw new CheckFailure(
+          name,
+          `${locale}: languages[${index}] is ${JSON.stringify(entry)}, expected ${JSON.stringify({ language, fluency })} from src/content/languages/`,
+        );
+      }
+    });
 
     // The nationality is a fact for the two documents and for nothing else,
     // so it may not appear as a field here. Asserted as the absence of a key
@@ -235,7 +257,8 @@ async function documentPdfs() {
   // in the order it prints it (src/components/CvDocument.astro): the name,
   // then each experience entry's position with its period and its
   // organisation beneath, then each education entry's degree with its period
-  // and its institution beneath.
+  // and its institution beneath, then each language with its level, which
+  // the page prints as one line after the key skills.
   //
   // The expectation is groups rather than lines, because the template puts an
   // entry's title and its dates on one line: the items of a group may share
@@ -246,6 +269,7 @@ async function documentPdfs() {
   const profile = parseYaml(await readFile(path.join(context.content, 'profile.yaml'), 'utf8')).profile;
   const experience = (await visibleEntries('experience')).map((entry) => entry.data).sort(byStartDescending);
   const education = (await visibleEntries('education')).map((entry) => entry.data).sort(byStartAscending);
+  const languages = (await visibleEntries('languages')).map((entry) => entry.data).sort(byOrderThenName);
   const expected = [
     // The page sets the name in capitals, so that is what comes out of the
     // PDF whatever the content file says; it is the one item compared
@@ -265,6 +289,12 @@ async function documentPdfs() {
       items: [`${entry.studyType[locale]}${t.listSeparator}${entry.area[locale]}`, formatPeriod(locale, entry.period)],
     });
     expected.push({ items: [entry.institution[locale]] });
+  }
+  // The key skills print between the education and the languages and are not
+  // asserted here: the CV lays them in columns, whose extraction order is not
+  // the page's. A language and its level are one line, so they are one group.
+  for (const entry of languages) {
+    expected.push({ items: [entry.name[locale], levelLine(entry.level[locale], entry.test, t.listSeparator)] });
   }
 
   // Each document twice: the published file, which carries no contact line at
@@ -1093,6 +1123,58 @@ async function nationalityWhereItBelongs() {
   return lines;
 }
 
+// The languages are a fact for the two documents and the JSON Resume
+// documents, and for nothing else, as the nationality is. Checked the same
+// way: the level as the page prints it, score and year included, stands
+// alone between its tags on both documents, and neither that nor the bare
+// level does on the home page or in the README. By element rather than by
+// string for the same reason as above: "Native" could one day appear inside
+// a sentence somewhere true, and only the standalone item is the fact.
+// A printed level can carry a score's parentheses, so it is escaped before it
+// goes into the README pattern below.
+function escapeRegExp(text) {
+  return text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+async function languagesWhereTheyBelong() {
+  const name = 'languages';
+  const languages = (await visibleEntries('languages')).map((entry) => entry.data).sort(byOrderThenName);
+  const lines = [];
+
+  const readme = await readFile(path.join(root, 'README.md'), 'utf8');
+  for (const locale of context.locales) {
+    const levels = languages.map((data) => data.level?.[locale] ?? data.level?.en);
+    const printed = languages.map((data, index) => levelLine(levels[index], data.test, strings[locale].listSeparator));
+    if (levels.some((level) => !level)) {
+      throw new CheckFailure(name, `src/content/languages/ holds an entry with no level for ${locale}`);
+    }
+
+    for (const document of documents) {
+      const route = `${locale}/${document}/index.html`;
+      const html = await readFile(path.join(context.dist, locale, document, 'index.html'), 'utf8');
+      const missing = printed.find((line) => !html.includes(`>${line}<`));
+      if (missing) {
+        throw new CheckFailure(name, `dist/${route} does not show "${missing}" as authored`);
+      }
+    }
+
+    const home = await readFile(path.join(context.dist, locale, 'index.html'), 'utf8');
+    const leaked = [...levels, ...printed].find((line) => home.includes(`>${line}<`));
+    if (leaked) {
+      throw new CheckFailure(name, `dist/${locale}/index.html shows "${leaked}", which belongs to the two documents alone`);
+    }
+    const inReadme = [...levels, ...printed].find((line) =>
+      new RegExp(`(^|[\\n:*\\-] *)${escapeRegExp(line)}( *$|[\\n])`, 'm').test(readme),
+    );
+    if (inReadme) {
+      throw new CheckFailure(name, `README.md carries "${inReadme}", which belongs to the two documents alone`);
+    }
+    lines.push(`languages: ${locale} shows ${printed.map((line) => `"${line}"`).join(' and ')} on both documents and not on the home page`);
+  }
+  lines.push('languages: README.md carries none');
+  return lines;
+}
+
 // The README's profile block is written from the content source and the
 // config (scripts/readme-profile.mjs), so who Saud is stays authored once; a
 // README behind them fails here rather than drifting on the profile page.
@@ -1105,7 +1187,7 @@ async function readmeProfile() {
   return ['readme profile: README.md carries the profile as src/content/ states it'];
 }
 
-const checks = [jsonResume, documentPdfs, qrCode, resumePages, localeTwins, hrefs, basePaths, metadata, sitemap, robots, identifiers, noContactDetails, nationalityWhereItBelongs, gaps, noOverclaim, documentHazards, readmeProfile];
+const checks = [jsonResume, documentPdfs, qrCode, resumePages, localeTwins, hrefs, basePaths, metadata, sitemap, robots, identifiers, noContactDetails, nationalityWhereItBelongs, languagesWhereTheyBelong, gaps, noOverclaim, documentHazards, readmeProfile];
 
 for (const check of checks) {
   try {

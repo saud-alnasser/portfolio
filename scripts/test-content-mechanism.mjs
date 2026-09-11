@@ -3,11 +3,13 @@
 // page, and resume.json in both languages, with no change to any file outside
 // the content source, and disappears again when removed. A certificate added
 // to src/content/certificates/ does the same on the education page, the CV
-// page, and resume.json.
+// page, and resume.json. A language added to src/content/languages/ reaches
+// the CV page, the resume page, and resume.json, and no page of the site.
 //
 //   pnpm test:content
 //
-// The script writes a fixture project and a fixture certificate, builds,
+// The script writes a fixture project, a fixture certificate, and a fixture
+// language, builds,
 // asserts each fixture's name is in exactly its own outputs and nowhere else
 // in dist/, removes the fixtures, builds again, and asserts the names are
 // gone. At every step `git status` is compared with what it showed at the
@@ -25,6 +27,10 @@
 // the resume page as well as the CV; the fixture certificate is a course and
 // carries no marker, so it reaches the CV and stops there. Each takes the
 // path a real entry takes through src/lib/shown.ts.
+//
+// The fixture language carries no test, so what it proves is the mechanism
+// and not a score's format; the score's line is asserted by the browser tests
+// and the dist check over the real entries.
 //
 // The fixture names start with `fixture-`, as src/content/README.md reserves for
 // placeholders, and carry a suffix no real entry would. `render:pdf` is not
@@ -44,8 +50,8 @@ const dist = path.join(root, 'dist');
 const contentDir = 'src/content/';
 
 // Each fixture: its name, the file it is written to, what is written, and
-// where the name must appear. The two names share no prefix beyond
-// `fixture-`, so a search for one never finds the other.
+// where the name must appear. The three names share no prefix beyond
+// `fixture-`, so a search for one never finds another.
 const project = {
   name: 'fixture-mechanism-probe-4f9c2e',
   file: path.join(root, contentDir, 'projects', 'fixture-mechanism-probe-4f9c2e.yaml'),
@@ -95,7 +101,23 @@ issuer: "Fixture issuer"
 kind: course
 `;
 
-const fixtures = [project, certificate];
+const language = {
+  name: 'fixture-language-probe-9e3d5c',
+  file: path.join(root, contentDir, 'languages', 'fixture-language-probe-9e3d5c.yaml'),
+  outputs: ['en/cv/index.html', 'ar/cv/index.html', 'en/resume/index.html', 'ar/resume/index.html', 'en/resume.json', 'ar/resume.json'],
+};
+language.text = `# Written by scripts/test-content-mechanism.mjs and removed by it. If this
+# file is in the tree, that script was interrupted; delete it.
+name:
+  en: "${language.name}"
+  ar: "${language.name}"
+level:
+  en: "Fixture level"
+  ar: "مستوى تجريبي"
+order: 99
+`;
+
+const fixtures = [project, certificate, language];
 
 class Failure extends Error {
   constructor(reason, message) {
