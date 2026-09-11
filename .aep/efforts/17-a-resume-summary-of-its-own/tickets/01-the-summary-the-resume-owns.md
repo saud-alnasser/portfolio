@@ -1,5 +1,5 @@
 ---
-status: open
+status: resolved
 ---
 
 # feat(cv): a second summary on the profile, and the resume printing it
@@ -10,13 +10,13 @@ The profile carries a required `resumeSummary` beside `summary`, authored in bot
 
 ## Acceptance Criteria
 
-- [ ] `src/content.config.ts` declares `resumeSummary` as a required `localized` field on the profile, and a `profile.yaml` without it fails the build (criterion 1).
-- [ ] `src/components/CvDocument.astro` chooses between the two summaries in exactly one place, on the `resume` boolean it already derives from `variant`. No page decides it, and no second read of either field appears in `src/` (criterion 1).
-- [ ] The English `resumeSummary` names `rentable` and Mudaraj and no other project; `cachescribe`, PL/0, Monkey, and the language in draft appear in neither language of it (criterion 2).
-- [ ] It calls Mudaraj a prototype built for a bachelor's senior project, claiming no more than the role line in `src/content/projects/mudaraj.yaml` already states, and `git diff --stat` shows that file absent from this change (criterion 3).
-- [ ] The Arabic is the same sentences making the same claims as the English, and `pnpm build` prints `[localized] 0 gaps` (criterion 6).
-- [ ] `pnpm check`, `pnpm check:dist`, `pnpm test`, and `pnpm test:content` pass (criterion 6).
-- [ ] `pnpm render:pdf` writes `resume.en.pdf` and `resume.ar.pdf`, and the filled copy of each, at one page on A4 and one page at Letter, each reporting at least 10mm free at Letter. The number goes in the commit message (criterion 8).
+- [x] `src/content.config.ts` declares `resumeSummary` as a required `localized` field on the profile, and a `profile.yaml` without it fails the build (criterion 1). Removing the field and building printed `[InvalidContentEntryDataError] profile → profile data does not match collection schema. resumeSummary: Required`, and the field was restored.
+- [x] `src/components/CvDocument.astro` chooses between the two summaries in exactly one place, on the `resume` boolean it already derives from `variant`. No page decides it, and no second read of either field appears in `src/` (criterion 1). `grep -rn "resumeSummary" src/` returns the comment at line 39 and the read at line 73, and nothing else outside `content.config.ts` and the content source.
+- [x] The English `resumeSummary` names `rentable` and Mudaraj and no other project; `cachescribe`, PL/0, Monkey, and the language in draft appear in neither language of it (criterion 2). Screened both languages against `cachescribe`, `PL/0`, `Monkey`, `bytecode`, `virtual machine`, `in draft`, `npm`, and the Arabic of each: no hits, and both name `rentable` and `Mudaraj`.
+- [x] It calls Mudaraj a prototype built for a bachelor's senior project, claiming no more than the role line in `src/content/projects/mudaraj.yaml` already states, and `git diff --stat` shows that file absent from this change (criterion 3). The English reads "built as a prototype for a bachelor's senior project"; the diff touches three files and that is not one of them.
+- [x] The Arabic is the same sentences making the same claims as the English, and `pnpm build` prints `[localized] 0 gaps` (criterion 6). Three sentences in each, in the same order, making the same three claims. Each document was read back out of `dist/` and compared against the field it is supposed to print: `en/cv` and `ar/cv` match `summary`, `en/resume` and `ar/resume` match `resumeSummary`.
+- [x] `pnpm check`, `pnpm check:dist`, `pnpm test`, and `pnpm test:content` pass (criterion 6). `check`: 0 errors, 0 warnings over 59 files. `check:dist`: every check, `readme profile` among them. `test`: 596 passed. `test:content`: passed.
+- [x] `pnpm render:pdf` writes `resume.en.pdf` and `resume.ar.pdf`, and the filled copy of each, at one page on A4 and one page at Letter, each reporting at least 10mm free at Letter. The number goes in the commit message (criterion 8). All four at one page on both papers, **15.4mm free at Letter** against the 10mm floor, and 28.1mm (en) and 33.4mm (ar) at A4.
 
 ## Relevant areas
 
@@ -37,3 +37,5 @@ The `localized` helper is used unchanged, so the new field arrives covered by bo
 `scripts/test-content-mechanism.mjs` writes a fixture project and a fixture certificate and never touches `profile.yaml`, so a newly required profile field does not reach its fixture.
 
 The resume should gain headroom rather than lose it: the paragraph drops four projects and adds one, against the 15.4mm at Letter effort 15 left. A number that comes back lower means something other than the summary changed, which is why it is recorded rather than merely cleared.
+
+**It gained none.** Letter came back at 15.4mm, the same figure to the tenth of a millimetre. The new paragraph is three sentences where the old one was three, and it happens to set to the same number of printed lines, so naming fewer projects bought no height. The spec's assumption that the fit would get easier was wrong in its reasoning and right in its conclusion, which is the case measuring exists to tell apart. A4 and Letter both still clear the floor, so nothing is owed here; the note is for whoever lengthens this next and reads the assumption rather than the number.

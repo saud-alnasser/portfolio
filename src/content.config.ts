@@ -67,6 +67,13 @@ const profile = defineCollection({
       name: localized,
       label: localized,
       summary: localized,
+      // The resume's opening paragraph, and the only field it reads instead of
+      // `summary`. One field served both documents until 2026-09-11, and what
+      // it could say was decided by the resume's budget: the CV carries the
+      // whole record while the resume carries two projects, so a paragraph
+      // true of one names work the other has no entry for. Required, so the
+      // resume cannot ship with a hole where its opening paragraph goes.
+      resumeSummary: localized,
       email: z.string().email(),
       // Required, and authored as a fact rather than inferred from `location`:
       // a document that states a nationality is claiming one, and the two are

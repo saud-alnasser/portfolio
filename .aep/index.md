@@ -131,7 +131,7 @@ Every task of every effort. The tracker carries the effort, never its tasks.
 | [[efforts/13-one-page-resume-and-clean-generation/tickets/06-which-document-this-is]] feat(cv): one line on each document page saying what that document is for | 13-one-page-resume-and-clean-generation | open | — |
 | [[efforts/13-one-page-resume-and-clean-generation/tickets/07-the-prose-that-still-says-two]] docs(cv): nothing still says the resume may run to two pages | 13-one-page-resume-and-clean-generation | resolved | 05 |
 | [[efforts/13-one-page-resume-and-clean-generation/tickets/08-one-document-on-every-machine]] feat(cv): a bundled Latin face, so one document measures the same everywhere | 13-one-page-resume-and-clean-generation | open | 05 |
-| [[efforts/17-a-resume-summary-of-its-own/tickets/01-the-summary-the-resume-owns]] feat(cv): a second summary on the profile, and the resume printing it | 17-a-resume-summary-of-its-own | open | — |
+| [[efforts/17-a-resume-summary-of-its-own/tickets/01-the-summary-the-resume-owns]] feat(cv): a second summary on the profile, and the resume printing it | 17-a-resume-summary-of-its-own | resolved | — |
 | [[efforts/17-a-resume-summary-of-its-own/tickets/02-the-clause-that-points-at-nothing]] fix(cv): the CV summary stops naming work no output shows | 17-a-resume-summary-of-its-own | open | 01 |
 | [[efforts/17-a-resume-summary-of-its-own/tickets/03-each-document-against-its-own-summary]] test(cv): each document asserted against the summary it prints | 17-a-resume-summary-of-its-own | open | 01 |
 | [[efforts/17-a-resume-summary-of-its-own/tickets/04-which-summary-reaches-which-document]] docs(content): the field table says which summary reaches which document | 17-a-resume-summary-of-its-own | open | 01, 02 |
