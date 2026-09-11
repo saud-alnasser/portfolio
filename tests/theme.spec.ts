@@ -71,18 +71,23 @@ for (const route of ['/en/cv/', '/en/resume/'] as const) {
     await expect(page.locator('body > header')).toBeHidden();
     await expect(page.locator('.cv-actions')).toBeHidden();
 
-    // The heading bands are the one tint the template has, and a browser drops
-    // background colours when printing unless the page insists. The band asks
-    // for `print-color-adjust: exact`, and the render step prints backgrounds,
-    // so the PDF shows what the screen shows: the light side of --band, since
-    // print forces the light palette above.
-    const band = await page.locator('.cv-band').first().evaluate((element) => {
-      const style = getComputedStyle(element);
-      return { background: style.backgroundColor, adjust: style.printColorAdjust };
+    // Nothing inside the document declares a background colour. It used to:
+    // the section headings sat in a tinted band, which is a background, and a
+    // browser drops background colours when printing unless the page insists
+    // with `print-color-adjust: exact`. The redesign replaced the band with a
+    // rule, and a border is not a background, so the document stopped needing
+    // that declaration and stopped depending on the reader's
+    // background-graphics setting along with it. This asserts the absence,
+    // because the absence is the guarantee: a future background would print
+    // or not print according to a setting nobody here controls.
+    const painted = await page.locator('article.cv').evaluate((article) => {
+      const transparent = (value: string) => value === 'transparent' || value === 'rgba(0, 0, 0, 0)';
+      return [article, ...article.querySelectorAll('*')]
+        .filter((element) => !transparent(getComputedStyle(element).backgroundColor))
+        .map((element) => `${element.tagName.toLowerCase()}.${element.className}`);
     });
-    expect(band.adjust, 'the band keeps its background on paper').toBe('exact');
-    expect(band.background, 'in print the band takes the light --band from src/styles/global.css').toBe(
-      'rgb(221, 232, 240)',
+    expect(painted, 'nothing in the document paints a background, so nothing needs print-color-adjust').toEqual(
+      [],
     );
   });
 }

@@ -5,9 +5,14 @@ period:
 role:
   en: "Developer, in a team of six; a Saudi Electronic University bachelor's senior project, built as a prototype"
   ar: "مطور ضمن فريق من ستة أعضاء؛ مشروع تخرج بكالوريوس في الجامعة السعودية الإلكترونية، بُني نموذجًا أوليًا"
+# The summary was shortened on 2026-09-11 so the resume reaches one page. "A
+# bilingual English and Arabic interface" became "in English and Arabic",
+# which is the same claim in a third of the words. That is the whole of the
+# edit, and it is the same edit in both languages: the three items before it
+# are untouched, so the two still read as the same sentence.
 summary:
-  en: "A centralised e-ticketing and fan loyalty platform for Saudi football: match browsing and seat selection, QR-code tickets validated at the stadium, a points-based loyalty programme, and a bilingual English and Arabic interface, developed with Scrum."
-  ar: "منصة مركزية للتذاكر الإلكترونية وولاء المشجعين لكرة القدم السعودية: تصفح المباريات واختيار المقاعد، وتذاكر برموز QR يُتحقق منها عند الملعب، وبرنامج ولاء قائم على النقاط، وواجهة ثنائية اللغة بالعربية والإنجليزية، طُورت وفق منهجية Scrum."
+  en: "A centralised e-ticketing and fan loyalty platform for Saudi football: match browsing and seat selection, QR-code tickets validated at the stadium, and a points-based loyalty programme, in English and Arabic, developed with Scrum."
+  ar: "منصة مركزية للتذاكر الإلكترونية وولاء المشجعين لكرة القدم السعودية: تصفح المباريات واختيار المقاعد، وتذاكر برموز QR يُتحقق منها عند الملعب، وبرنامج ولاء قائم على النقاط، بالعربية والإنجليزية، طُورت وفق منهجية Scrum."
 technologies:
   - "Svelte"
   - "SvelteKit"

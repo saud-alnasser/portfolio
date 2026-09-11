@@ -39,6 +39,15 @@ const pdf = withBase(`/cv.${locale}.pdf`);
   path="/cv/"
   column="document"
 >
+  {/*
+    Which document this is, for a reader who arrived here rather than at the
+    resume. A sibling of the actions row and not a part of it: that row holds
+    exactly one control and is asserted to (tests/resume.spec.ts), so the line
+    sits above it. It is chrome, so the print rules hide it with the row and
+    it reaches neither the published PDF nor a generated document.
+  */}
+  <p data-document-purpose class="cv-purpose mb-4 text-sm text-muted-foreground">{t.cv.purpose}</p>
+
   <DocumentDownload locale={locale} pdf={pdf} document={t.cv.title} />
 
   <CvDocument locale={locale} variant="cv" />

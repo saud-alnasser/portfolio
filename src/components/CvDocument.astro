@@ -9,7 +9,9 @@ import {
   byStartAscending,
   byStartDescending,
 } from '../lib/order';
+import { profileIcon } from '../lib/networks';
 import { isCertification, isCourse, isShown, onResume } from '../lib/shown';
+import QrCode from './QrCode.astro';
 
 // The document both of the site's document pages are: the CV, which holds
 // everything the site shows, and the short resume, which holds what an
@@ -17,16 +19,17 @@ import { isCertification, isCourse, isShown, onResume } from '../lib/shown';
 // header, the summary, the experience, the education, and the skills are
 // written once and the two cannot drift in layout.
 //
-// The layout is the white and blue minimalist corporate template Saud chose:
-// the name centred in capitals over a rule, the contact details on one
-// centred line, every section heading in a full-width tinted band, and each
-// entry's title with its dates on one line. It is followed only as far as a
-// resume parser allows, which is what it is for: one column in reading order,
-// real text everywhere, standard section headings, the contact details in the
-// flow of the document, and no table, image, text box, or positioned header
-// or footer. The document order below is the order scripts/check-dist.mjs
-// extracts from both PDFs. The band, the print rules, and the compact rules
-// the resume prints at live in src/styles/global.css.
+// The layout is the white and blue minimalist corporate template Saud chose,
+// redesigned as one pair: the name centred in capitals over a rule in the
+// accent, the contact details on one centred line, every section heading set
+// in the accent over a hairline rule, and each entry's title with its dates
+// on one line. It is followed only as far as a resume parser allows, which is
+// what it is for: one column in reading order, real text everywhere, standard
+// section headings, the contact details in the flow of the document, and no
+// table, image, text box, or positioned header or footer. The document order
+// below is the order scripts/check-dist.mjs extracts from both PDFs. The
+// print rules, and the compact rules the resume prints at, live in
+// src/styles/global.css.
 //
 // What each variant holds, in the order it prints it:
 //
@@ -124,77 +127,114 @@ const tail: (ProjectSection | CertificateSection)[] = resume
 // columns and prints one line per group instead.
 const keywords = [...new Set(skills.flatMap((entry) => entry.data.keywords))];
 
+// The GitHub address is the header's QR code rather than a line of text in
+// the contact line, which is where it used to print. Any other profile keeps
+// its address written out: one code is what the header has room for, and a
+// network dropped from the document because it has no code would be a fact
+// lost silently. `profileIcon` is what decides which is GitHub, so a second
+// GitHub-shaped network never produces two codes.
+const coded = profile.data.profiles.find((entry) => profileIcon(entry.network) === 'github');
+const written = profile.data.profiles.filter((entry) => entry !== coded);
+
 const link = 'text-primary underline underline-offset-4 hover:decoration-2';
-// A section heading: the full-width band that is the one tint on the page.
-// The tint itself and the rule that prints it are `.cv-band` in global.css.
+// A section heading: the accent over a hairline rule that runs the width of
+// the column. It replaced a full-width tinted band, which was the template's
+// one background colour and the only thing on either document that needed
+// `print-color-adjust: exact`. A rule is a border rather than a background,
+// so it prints whatever the reader's dialog is set to and the document stops
+// depending on that setting at all (tests/theme.spec.ts says so).
+//
 // Tracking stays at 0.025em here and on the name, because `pdftotext -layout`
-// turns wider tracking into spaces between the letters.
-const band = 'cv-band mt-8 px-2 py-1 font-semibold uppercase tracking-[0.025em]';
+// turns wider tracking into spaces between the letters. `.cv-heading` carries
+// no style of its own; it is what the compact print rules in global.css key
+// the gaps above and below a heading on.
+const heading =
+  'cv-heading mt-8 border-b border-primary/40 pb-1 font-semibold uppercase tracking-[0.025em] text-primary';
 // An entry's first line: the title at the start, the dates at the far edge.
 // Logical properties throughout, so Arabic mirrors it with no second rule.
 const row = 'flex flex-wrap items-baseline justify-between gap-x-4';
-const period = 'font-semibold tabular-nums';
+// A period is the quietest thing on an entry's line, so it reads as the
+// title's date rather than competing with it for the same weight.
+const period = 'tabular-nums text-muted-foreground';
 const muted = 'text-sm text-muted-foreground';
 ---
 
 <article class:list={['cv', resume && 'cv-compact']}>
-  <header class="cv-entry border-b border-border pb-5 text-center">
-    <h1 class="text-3xl font-semibold uppercase tracking-[0.025em]">{name}</h1>
-    <p class="mt-1 text-muted-foreground">{label}</p>
-    {/* One line, in the flow of the document. The bars separate the items for
-        a reader and are hidden from a screen reader, which has the list.
-        Every item carries its bar at the trailing edge and the last one's is
-        hidden in global.css, because the first two items are empty until a
-        reader fills them and a leading bar would be stranded the rest of the
-        time. An optional item added at the end would break that; the front is
-        where they belong.
+  {/* The name block, which is the one place in the document with a hierarchy:
+      the name, then the label under it, then the contact line smaller again,
+      over a rule heavier than a section heading's and in the same accent. It
+      is the document's strongest line and it now reads like it.
 
-        The two slots are what the download form writes into. The published
-        document renders them hidden and empty, which is the whole of how this
-        site publishes no contact detail; docs/development.md says why. */}
-    <ul
-      aria-label={t.home.contact}
-      data-cv-contact
-      class="cv-contact mt-3 flex flex-wrap items-center justify-center gap-x-2 gap-y-1 text-sm"
-    >
-      <li data-contact-slot="email" hidden class="flex items-center gap-x-2">
-        <span></span>
-        <span aria-hidden="true" class="text-muted-foreground">|</span>
-      </li>
-      <li data-contact-slot="phone" hidden class="flex items-center gap-x-2">
-        <span></span>
-        <span aria-hidden="true" class="text-muted-foreground">|</span>
-      </li>
-      <li class="flex items-center gap-x-2">
-        <span>{nationality}</span>
-        <span aria-hidden="true" class="text-muted-foreground">|</span>
-      </li>
-      <li class="flex items-center gap-x-2">
-        <span>{location}</span>
-        <span aria-hidden="true" class="text-muted-foreground">|</span>
-      </li>
-      {
-        profile.data.profiles.map((p) => (
-          <li class="flex items-center gap-x-2">
-            <a href={p.url} class={link}>
-              {p.url}
-            </a>
-            <span aria-hidden="true" class="text-muted-foreground">
-              |
-            </span>
-          </li>
-        ))
-      }
-    </ul>
+      The QR code sits at the trailing edge and the spacer before the text
+      balances it, so the name stays centred on the paper rather than centred
+      in what is left over. The spacer is empty and hidden from assistive
+      technology; it is a box, not a fact. Logical properties throughout, so
+      Arabic mirrors the whole row with no second rule.
+
+      The row is flex rather than positioned: a fixed or absolute element
+      carrying content inside the document is what a resume parser most often
+      scrambles, so tests/resume.spec.ts refuses one outright. */}
+  <header class="cv-entry flex items-center gap-x-6 border-b-2 border-primary pb-5">
+    <div aria-hidden="true" class="w-[80px] shrink-0"></div>
+    <div class="min-w-0 flex-1 text-center">
+      <h1 class="text-3xl font-semibold uppercase tracking-[0.025em]">{name}</h1>
+      <p class="mt-1 text-muted-foreground">{label}</p>
+      {/* One line, in the flow of the document. The bars separate the items for
+          a reader and are hidden from a screen reader, which has the list.
+          Every item carries its bar at the trailing edge and the last one's is
+          hidden in global.css, because the first two items are empty until a
+          reader fills them and a leading bar would be stranded the rest of the
+          time. An optional item added at the end would break that; the front is
+          where they belong.
+
+          The two slots are what the download form writes into. The published
+          document renders them hidden and empty, which is the whole of how this
+          site publishes no contact detail; docs/development.md says why. */}
+      <ul
+        aria-label={t.home.contact}
+        data-cv-contact
+        class="cv-contact mt-3 flex flex-wrap items-center justify-center gap-x-2 gap-y-1 text-sm"
+      >
+        <li data-contact-slot="email" hidden class="flex items-center gap-x-2">
+          <span></span>
+          <span aria-hidden="true" class="text-muted-foreground">|</span>
+        </li>
+        <li data-contact-slot="phone" hidden class="flex items-center gap-x-2">
+          <span></span>
+          <span aria-hidden="true" class="text-muted-foreground">|</span>
+        </li>
+        <li class="flex items-center gap-x-2">
+          <span>{nationality}</span>
+          <span aria-hidden="true" class="text-muted-foreground">|</span>
+        </li>
+        <li class="flex items-center gap-x-2">
+          <span>{location}</span>
+          <span aria-hidden="true" class="text-muted-foreground">|</span>
+        </li>
+        {
+          written.map((p) => (
+            <li class="flex items-center gap-x-2">
+              <a href={p.url} class={link}>
+                {p.url}
+              </a>
+              <span aria-hidden="true" class="text-muted-foreground">
+                |
+              </span>
+            </li>
+          ))
+        }
+      </ul>
+    </div>
+    {coded && <QrCode url={coded.url} label={`${coded.network}: ${coded.url}`} />}
   </header>
 
   <section aria-labelledby="cv-summary" data-cv-section="summary">
-    <h2 id="cv-summary" class={band}>{t.cv.summary}</h2>
+    <h2 id="cv-summary" class={heading}>{t.cv.summary}</h2>
     <p class="mt-3 leading-6">{summary}</p>
   </section>
 
   <section aria-labelledby="cv-experience" data-cv-section="experience">
-    <h2 id="cv-experience" class={band}>{t.cv.experience}</h2>
+    <h2 id="cv-experience" class={heading}>{t.cv.experience}</h2>
     <ol class="mt-3 space-y-5">
       {
         experience.map((entry) => {
@@ -216,7 +256,7 @@ const muted = 'text-sm text-muted-foreground';
               </p>
               <p class="mt-2 leading-6">{text('summary', data.summary)}</p>
               {data.highlights.length > 0 && (
-                <ul aria-label={t.experience.highlights} class="mt-2 list-disc space-y-1 ps-5 leading-6">
+                <ul aria-label={t.experience.highlights} class="mt-2 list-disc space-y-1 ps-5 leading-6 marker:text-primary">
                   {data.highlights.map((highlight, index) => (
                     <li>{text(`highlights[${index}]`, highlight)}</li>
                   ))}
@@ -230,7 +270,7 @@ const muted = 'text-sm text-muted-foreground';
   </section>
 
   <section aria-labelledby="cv-education" data-cv-section="education">
-    <h2 id="cv-education" class={band}>{t.nav.education}</h2>
+    <h2 id="cv-education" class={heading}>{t.nav.education}</h2>
     <ol class="mt-3 space-y-5">
       {
         education.map((entry) => {
@@ -270,7 +310,7 @@ const muted = 'text-sm text-muted-foreground';
   {
     skills.length > 0 && (
       <section aria-labelledby="cv-skills" data-cv-section="skills">
-        <h2 id="cv-skills" class={band}>
+        <h2 id="cv-skills" class={heading}>
           {t.cv.skills}
         </h2>
         {resume ? (
@@ -292,7 +332,7 @@ const muted = 'text-sm text-muted-foreground';
         ) : (
           // Columns, not a grid of cells: each keyword stays whole, so
           // extraction keeps it whatever order the columns come out in.
-          <ul class="cv-skills mt-3 columns-2 list-inside list-disc gap-x-8 text-sm leading-6 sm:columns-3">
+          <ul class="cv-skills mt-3 columns-2 list-inside list-disc gap-x-8 text-sm leading-6 marker:text-primary sm:columns-3">
             {keywords.map((keyword) => (
               <li class="break-inside-avoid">{keyword}</li>
             ))}
@@ -308,7 +348,7 @@ const muted = 'text-sm text-muted-foreground';
         section.entries.length > 0 &&
         (section.id === 'projects' ? (
           <section aria-labelledby="cv-projects" data-cv-section="projects">
-            <h2 id="cv-projects" class={band}>
+            <h2 id="cv-projects" class={heading}>
               {t.sections.projects}
             </h2>
             <ol class="mt-3 space-y-5">
@@ -365,7 +405,7 @@ const muted = 'text-sm text-muted-foreground';
           // marker. One line each, which is what a reader scans and what a
           // parser reads.
           <section aria-labelledby={`cv-${section.id}`} data-cv-section={section.id}>
-            <h2 id={`cv-${section.id}`} class={band}>
+            <h2 id={`cv-${section.id}`} class={heading}>
               {section.heading}
             </h2>
             <ul class="mt-3 space-y-1 text-sm leading-6">

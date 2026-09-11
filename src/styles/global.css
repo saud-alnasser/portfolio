@@ -1,19 +1,55 @@
 @import "tailwindcss";
 
 /*
- * The one web font: Noto Naskh Arabic, bundled under public/fonts/ with its
- * licence beside it, so the Arabic CV shapes the same in the PDF that CI
- * renders as on a visitor's screen. The unicode-range keeps it to the
- * Arabic blocks: Latin
- * letters and digits stay in the system stack, and a page with no Arabic
- * text never requests the files.
+ * The two bundled faces, under public/fonts/ with their licences beside them,
+ * so a document shapes the same wherever it is rendered.
+ *
+ * Source Sans 3 carries the Latin text and Noto Naskh Arabic the Arabic. The
+ * Arabic face came first, for shaping; the Latin one is here for metrics, and
+ * it is what makes the resume's one page a property of the document rather
+ * than of the machine.
+ *
+ * That distinction is the whole reason it exists. The stack used to begin at
+ * `system-ui`, which Windows resolves to Segoe UI and a Linux CI runner to
+ * something considerably wider, and the same resume came out one page on one
+ * and two on the other. The page budget was widened to two on 2026-09-10 to
+ * make the rule true of the renderer; on 2026-09-11 the content was cut
+ * instead, and the runner still measured the English resume 40mm longer than
+ * this machine did, which is more than every content lever left was worth.
+ * Saud had declined a bundled face twice, on divergences of "less than one
+ * line" and then 16 pixels, and chose it on 2026-09-11 once the real figure
+ * was measured.
+ *
+ * All four files are woff2 and subset to the script they carry: 31KB for the
+ * Latin pair and 105KB for the Arabic. The Arabic pair was two unsubset TTFs
+ * of 155KB each until 2026-09-11, when adding the Latin face put the three
+ * Arabic pages under Lighthouse's performance floor and subsetting them took
+ * far more weight off those pages than the Latin face had added.
+ * `unicode-range` keeps each face to its own blocks, so a page with no Arabic
+ * text never requests the Arabic files.
  */
+@font-face {
+  font-family: "Source Sans 3";
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("/fonts/SourceSans3-Regular.woff2") format("woff2");
+}
+
+@font-face {
+  font-family: "Source Sans 3";
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url("/fonts/SourceSans3-Bold.woff2") format("woff2");
+}
+
 @font-face {
   font-family: "Noto Naskh Arabic";
   font-style: normal;
   font-weight: 400;
   font-display: swap;
-  src: url("/fonts/NotoNaskhArabic-Regular.ttf") format("truetype");
+  src: url("/fonts/NotoNaskhArabic-Regular.woff2") format("woff2");
   unicode-range: U+0600-06FF, U+0750-077F, U+08A0-08FF, U+FB50-FDFF, U+FE70-FEFF;
 }
 
@@ -22,7 +58,7 @@
   font-style: normal;
   font-weight: 700;
   font-display: swap;
-  src: url("/fonts/NotoNaskhArabic-Bold.ttf") format("truetype");
+  src: url("/fonts/NotoNaskhArabic-Bold.woff2") format("woff2");
   unicode-range: U+0600-06FF, U+0750-077F, U+08A0-08FF, U+FB50-FDFF, U+FE70-FEFF;
 }
 
@@ -47,9 +83,6 @@
      border. Every text token above keeps AA on it: the muted text reaches
      5.89:1 and 6.63:1, the accent 6.95:1 and 9.78:1. */
   --card: light-dark(#f8fafc, #181e27);
-  /* The CV's heading band, the one tint the template has. The foreground
-     reaches 13.0:1 and 11.6:1 on it, the muted text 4.95:1 and 5.69:1. */
-  --band: light-dark(#dde8f0, #1f2b38);
   --primary: light-dark(#155e75, #7dd3e0);
   --primary-foreground: light-dark(#ffffff, #12161c);
   --ring: var(--primary);
@@ -80,7 +113,6 @@
   --color-muted-foreground: var(--muted-foreground);
   --color-border: var(--border);
   --color-card: var(--card);
-  --color-band: var(--band);
   --color-primary: var(--primary);
   --color-primary-foreground: var(--primary-foreground);
   --color-ring: var(--ring);
@@ -89,10 +121,13 @@
   --radius-md: var(--radius);
   --radius-lg: calc(var(--radius) + 2px);
 
-  /* One family: the system stack, which needs no request and shapes Arabic
-     with whatever the platform ships. */
+  /* The bundled face first, so every machine lays the text out identically
+     and the resume's page count is a fact about the document rather than about
+     the renderer. The system stack stays behind it for the one case a bundle
+     cannot cover: a face that fails to load leaves a readable page rather than
+     a blank one, and the render step refuses a PDF taken in that state. */
   --font-sans:
-    system-ui, -apple-system, "Segoe UI", Roboto, "Noto Sans", "Noto Sans Arabic", sans-serif;
+    "Source Sans 3", system-ui, -apple-system, "Segoe UI", Roboto, "Noto Sans", "Noto Sans Arabic", sans-serif;
 
   /* The one reveal on the site: the page's content settling into place on load.
      Used only under motion-safe:, so reduced motion never sees it. */
@@ -186,10 +221,15 @@ details[open] > summary .fold-chevron {
 }
 
 /*
- * The CV page, after the white and blue minimalist corporate template: black
- * text on white, one column of real text, and the heading bands as the only
- * tint. Everything else the page needs is a utility on the page itself; what
- * is here is what a utility cannot say.
+ * The CV page, after the white and blue minimalist corporate template, redesigned
+ * as one pair with the resume: black text on white, one column of real text, and
+ * the accent carrying the hierarchy: the name's rule, a section heading and the
+ * rule under it, a link, a bullet's marker. Nothing inside the document declares
+ * a background colour any more, which is why none of it needs
+ * `print-color-adjust` and why the printed document no longer depends on the
+ * reader's background-graphics setting (tests/theme.spec.ts asserts exactly
+ * that). Everything else the page needs is a utility on the page itself; what is
+ * here is what a utility cannot say.
  */
 
 /* A long address in the contact line or a project's links wraps rather than
@@ -212,22 +252,6 @@ details[open] > summary .fold-chevron {
   display: none;
 }
 
-/* A section heading's band. `print-color-adjust: exact` is what carries it
-   onto paper: a browser drops background colours when printing unless the page
-   insists, and the PDF the render step writes is a print.
-
-   Measured in Chromium on 2026-09-10, because a reader's own print dialog has
-   a background-graphics setting and it was not obvious which wins: the band's
-   tint is painted with that setting on and with it off, so the declaration
-   overrides the reader rather than deferring to them. Firefox and Safari were
-   not measured. Either answer was acceptable, since the band is the template's
-   one tint and the document reads and parses without it. */
-.cv-band {
-  background-color: var(--band);
-  -webkit-print-color-adjust: exact;
-  print-color-adjust: exact;
-}
-
 /*
  * The print stylesheet: the CV page on paper, and the PDF the render step
  * writes from it. The palette side is above with the theme rules, where print
@@ -240,20 +264,30 @@ details[open] > summary .fold-chevron {
 
 /*
  * The resume's own page box. `@page` is a document-level at-rule and no
- * selector can scope it to one article, so the narrower margins are declared
- * on a named page and the resume document's root box is put on that page
- * below. The CV's root carries no page name and keeps the box above. Both a
- * browser print and the `page.pdf` the render step calls read this one rule,
- * because the render step passes no margin option of its own.
+ * selector can scope it to one article, so the box is declared on a named
+ * page and the resume document's root box is put on that page below. The CV's
+ * root carries no page name and keeps the box above. Both a browser print and
+ * the `page.pdf` the render step calls read this one rule, because the render
+ * step passes no margin option of its own.
  *
- * 10mm all round is where most of the shortening comes from, and less than
- * half of it is the extra height: the column is 60 CSS pixels wider, which
- * takes wrapped lines out of every paragraph in the document. It stays well
- * inside the unprintable border a desktop printer keeps, which is around
- * 6mm at its worst edge.
+ * No margin at all, and the resume's white space is its own padding instead.
+ * Chrome draws its print header and footer inside the paper margin, laid out
+ * from the paper edge rather than from the edge of the text, so a small margin
+ * buys a small header only in theory: the furniture is present or it is
+ * absent, and this box is the switch. A resume a reader generates through the
+ * download form therefore comes out carrying nothing the document did not
+ * write, which is what it had been carrying until now: a title, an address, a
+ * page number, and a timestamp, none of them the document's. Measured at three
+ * page boxes with the furniture switched off and on, and
+ * scripts/render-pdf.mjs takes one render with it switched on so a margin
+ * creeping back fails the step.
+ *
+ * Only a document that fits one page can do this. Padding applies at the ends
+ * of a box rather than at every fragment of it, so the CV, which runs to five
+ * pages, keeps the box above and keeps the furniture that comes with it.
  */
 @page resume {
-  margin: 10mm;
+  margin: 0;
 }
 
 @media print {
@@ -263,9 +297,12 @@ details[open] > summary .fold-chevron {
   }
 
   /* The chrome around the document, which on paper would be noise: the
-     navigation, the theme control, the language switch, and the download
-     control the document page opens with. */
+     navigation, the theme control, the language switch, the line saying which
+     of the two documents the page holds, and the download control the page
+     opens with. The purpose line joins this rule rather than bringing a
+     second way to hide, so what prints and what does not is one decision. */
   body > header,
+  .cv-purpose,
   .cv-actions {
     display: none;
   }
@@ -309,10 +346,10 @@ details[open] > summary .fold-chevron {
   /*
    * The resume, which is the same template made short: the article carries
    * `cv-compact` and the document prints a size smaller, in a narrower page
-   * box, with tighter bands and tighter gaps between its entries. 10pt is
+   * box, with tighter headings and tighter gaps between its entries. 10pt is
    * what the template's own sample reads at and the floor the spec sets, so
-   * a resume that still runs to two pages is fixed in the content and never
-   * here. The root is what carries the size and the page name, because every
+   * a resume that runs past its one page, or fits it by less than 10mm, is
+   * fixed in the content and never here. The root is what carries the size and the page name, because every
    * rem on the page scales from the one and the page box is the other's, and
    * `:has()` is what reaches it from the class the variant puts on the
    * article. None of this touches the CV, which is the whole record and
@@ -323,23 +360,49 @@ details[open] > summary .fold-chevron {
     page: resume;
   }
 
-  /* Above a band, which is the gap between one section and the next
-     heading. Nothing extracts across it, so it closes to where the band's
-     own tint still separates the two sections by eye; the gap below it, the
-     one extraction depends on, does not move. */
-  .cv-compact .cv-band {
-    margin-top: calc(var(--spacing) * 3);
+  /* The white space the page box above gave up, carried by the document
+     itself. It goes on the article rather than on `main` because the article
+     is the box that has to fit on one page, and padding that is part of that
+     box is padding the fit has to account for.
+
+     10mm all round is where most of the resume's shortening comes from, and
+     less than half of it is the extra height: the column is 60 CSS pixels
+     wider than the CV's, which takes wrapped lines out of every paragraph in
+     the document. It stays well inside the unprintable border a desktop
+     printer keeps, which is around 6mm at its worst edge. Unchanged from the
+     margin it replaces, so the text falls exactly where it fell before and
+     the one-page fit is measured against the same usable height. */
+  .cv-compact {
+    padding: 10mm;
   }
 
-  /* The block under a band keeps more air than the `mt-3` on it gives.
+  /* Above a section heading, which is the gap between one section and the
+     next. Nothing extracts across it, so it closes to where the heading's own
+     rule still separates the two sections by eye; the gap below it, the one
+     extraction depends on, does not move. */
+  .cv-compact .cv-heading {
+    margin-top: calc(var(--spacing) * 3);
+    /* And the air between the heading's text and its own rule, which the CV
+       keeps at 4px. At 10pt the rule reads as the heading's underline at
+       half that, and this is the resume's half of the redesign: the band it
+       replaced spent 8px on padding the document could not see. */
+    padding-bottom: calc(var(--spacing) * 0.5);
+  }
+
+  /* The block under a heading keeps more air than the `mt-3` on it gives.
      `pdftotext -layout` groups two rows into one extracted line when the gap
      between them is small enough, and at 10pt the utility's gap is: the first
      entry's dates then extract on the heading's line rather than beside the
      title, which is the reading order scripts/check-dist.mjs asserts. 16px is
      where the grouping stops, measured on the rendered PDF; this is the first
      step above it, and it is the one gap on the resume that does not tighten
-     any further. */
-  .cv-compact .cv-band + * {
+     any further.
+
+     Measured against the band this heading replaced, not against the rule
+     alone: the band's own `py-1` sat inside the gap, so the distance from the
+     heading's text to the block below is what the grouping reads and what
+     this keeps. */
+  .cv-compact .cv-heading + * {
     margin-top: calc(var(--spacing) * 5);
   }
 

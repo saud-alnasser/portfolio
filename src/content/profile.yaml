@@ -6,21 +6,27 @@ profile:
   label:
     en: Software developer
     ar: مطور برمجيات
+  # Rewritten on 2026-09-11 so the resume reaches one page, and no further than
+  # that needed. It used to restate three project entries in their own words:
+  # the rent tracker and its stack, what the npm package caches and when, and
+  # the platform with its team of six and its senior-project standing, which is
+  # what mudaraj's role line says on the document itself. A summary that
+  # enumerates the entries under it is paid for twice on a page with one to
+  # give, so this summarises instead and names no entry.
+  #
+  # The npm package stays in, and deliberately: the resume no longer carries
+  # cachescribe, so this clause is the only place that work appears at all on
+  # the document an application takes. The CV, the work page, and both JSON
+  # documents still carry the entry whole.
   summary:
     en: >-
-      Software developer in Riyadh, working mostly in Rust and TypeScript. Built
-      an offline-first desktop rent tracker on Tauri and SvelteKit, and
-      published an npm package that keeps a cache on the file system between
-      runs of a program. With a team of six, built a bilingual e-ticketing and
-      fan loyalty platform for Saudi football as a Saudi Electronic University
-      senior project.
+      Software developer in Riyadh, working mostly in Rust and TypeScript,
+      across offline-first desktop software, a published npm package, and a
+      bilingual web platform built with a team of six.
     ar: >-
-      مطور برمجيات في الرياض، يعمل في الغالب بلغتي Rust وTypeScript. بنى متتبعًا
-      لمدفوعات الإيجار على سطح المكتب يعمل دون اتصال أولاً باستخدام Tauri
-      وSvelteKit، ونشر حزمة npm تحتفظ بذاكرة تخزين مؤقت في نظام الملفات بين
-      تشغيلات البرنامج. وبنى مع فريق من ستة أعضاء منصة تذاكر إلكترونية وولاء
-      للمشجعين لكرة القدم السعودية بلغتين، مشروع تخرج في الجامعة السعودية
-      الإلكترونية.
+      مطور برمجيات في الرياض، يعمل في الغالب بلغتي Rust وTypeScript، في برمجيات
+      سطح مكتب تعمل دون اتصال أولاً، وحزمة npm منشورة، ومنصة ويب ثنائية اللغة
+      بُنيت مع فريق من ستة أعضاء.
   email: saud4services@gmail.com
   nationality:
     en: Saudi

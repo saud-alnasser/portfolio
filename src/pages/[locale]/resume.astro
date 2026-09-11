@@ -13,11 +13,16 @@ import { withBase } from '../../lib/paths';
 // with fewer sections and fewer entries, from the same component
 // (src/components/CvDocument.astro), so this page is the download control,
 // the document, and the form the marked address opens, and nothing else. It
-// runs to at most two pages at either paper in either language, which
+// runs to one page at either paper in either language, which
 // scripts/render-pdf.mjs counts and refuses to publish past.
-// How many it actually takes depends on the machine: the same document is one
-// page under the fonts Windows resolves for the system stack and two under
-// the Linux runner's, which is why the budget is two rather than one.
+//
+// The budget read two between 2026-09-10 and 2026-09-11, because the same
+// document is one page under the fonts Windows resolves for the system stack
+// and was two under the Linux runner's, and the runner renders what ships.
+// The content was cut instead and the budget came back, with a second rule
+// beside the count: the render step also refuses a resume whose last page has
+// less than 10mm of unused height at Letter, which is the near miss a page
+// count cannot see and the one that widened the budget in the first place.
 //
 // The machine-readable document stays the CV's, at /<locale>/resume.json,
 // which Astro writes beside this route's resume/index.html. No page links to
@@ -44,6 +49,9 @@ const pdf = withBase(`/resume.${locale}.pdf`);
   path="/resume/"
   column="document"
 >
+  {/* Which document this is; see src/pages/[locale]/cv.astro for the shape. */}
+  <p data-document-purpose class="cv-purpose mb-4 text-sm text-muted-foreground">{t.resume.purpose}</p>
+
   <DocumentDownload locale={locale} pdf={pdf} document={t.resume.title} />
 
   <CvDocument locale={locale} variant="resume" />

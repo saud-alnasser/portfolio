@@ -14,6 +14,8 @@ import { createRequire } from 'node:module';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { promisify } from 'node:util';
+import { createCanvas } from '@napi-rs/canvas';
+import jsQR from 'jsqr';
 import { getDocument } from 'pdfjs-dist/legacy/build/pdf.mjs';
 import { parse as parseYaml } from 'yaml';
 import { identifiersIn } from './identifiers.mjs';
@@ -319,7 +321,215 @@ async function documentPdfs() {
   return lines;
 }
 
-// The resume is the short document, and two pages is its budget. The render step counts
+// The line each document page opens with, saying which of the two documents a
+// reader has landed on (`cv.purpose` and `resume.purpose` in src/lib/i18n.ts).
+// It belongs to the page and to no document, so this check has two halves:
+// both pages carry it in both languages, and none of the eight files the
+// render step writes does. Print hiding it is one rule in
+// src/styles/global.css, and this is what says the rule is still doing its
+// work in the files that shipped.
+//
+// Arabic comes out of `pdftotext` with the bidi controls in and spaces inside
+// words, which is why `documentPdfs` above reads the English documents only.
+// Dropping both from the extracted text and from the expectation is enough to
+// compare Arabic by, and the control below is what proves it: a heading every
+// document prints, in the language of the file, has to be found before an
+// absence is worth anything.
+async function documentPurpose() {
+  const name = 'document purpose';
+  // Whitespace and the format characters, the bidi controls among them, out
+  // of both sides of every comparison, so an Arabic word that extraction
+  // broke with a space still reads as the word the page set. Case goes with
+  // them: the documents set their headings in capitals, and a line that
+  // reached paper in any case at all is a line that reached paper.
+  const bare = (text) => text.replace(/[\p{Cf}\s]/gu, '').toLowerCase();
+
+  for (const locale of context.locales) {
+    for (const document of documents) {
+      const relative = `${locale}/${document}/index.html`;
+      const html = await readFile(path.join(context.dist, locale, document, 'index.html'), 'utf8');
+      const found = [...html.matchAll(/<p\b[^>]*data-document-purpose[^>]*>([^<]*)<\/p>/g)].map((match) => match[1].trim());
+      if (found.length !== 1) {
+        throw new CheckFailure(name, `dist/${relative} carries ${found.length} elements with [data-document-purpose], expected exactly one`);
+      }
+      const expected = strings[locale][document].purpose;
+      if (found[0] !== expected) {
+        throw new CheckFailure(name, `dist/${relative} says "${found[0]}", expected "${expected}" from src/lib/i18n.ts`);
+      }
+    }
+  }
+
+  // Every document the render step writes: the four published files and the
+  // four copies it fills through the download form, which are the closest
+  // thing there is to what a reader generates.
+  const subjects = documents.flatMap((document) =>
+    context.locales.flatMap((locale) => [
+      { relative: `${document}.${locale}.pdf`, directory: context.dist, locale },
+      { relative: `${document}.${locale}.filled.pdf`, directory: context.artifacts, locale },
+    ]),
+  );
+
+  let read = 0;
+  for (const { relative, directory, locale } of subjects) {
+    const file = path.join(directory, relative);
+    try {
+      await stat(file);
+    } catch {
+      throw new CheckFailure(name, `${relative} does not exist; run \`pnpm render:pdf\` after the build`);
+    }
+    const text = await extractText(file);
+    if (text === null) continue;
+    read += 1;
+    const extracted = bare(text);
+    const control = strings[locale].cv.experience;
+    if (!extracted.includes(bare(control))) {
+      throw new CheckFailure(
+        name,
+        `${relative}: the experience heading "${control}" is nowhere in the extracted text, so this check cannot tell a line that did not print from a document it cannot read`,
+      );
+    }
+    for (const document of documents) {
+      const purpose = strings[locale][document].purpose;
+      if (extracted.includes(bare(purpose))) {
+        throw new CheckFailure(
+          name,
+          `${relative} carries the ${document} page's line "${purpose}"; it is the page's chrome and print hides it (src/styles/global.css)`,
+        );
+      }
+    }
+  }
+
+  const note = read === subjects.length ? '' : ` (pdftotext is not on the PATH, so ${subjects.length - read} were not read)`;
+  return [
+    `document purpose: both document pages say what they are for in ${context.locales.length} languages, and none of ${subjects.length} rendered documents does${note}`,
+  ];
+}
+
+// The QR code in every rendered document decodes to the address the content
+// source holds. This is the check the "no image" reversal is paid for with.
+//
+// It reads the artifact, not the markup. The markup was never the half in
+// doubt: a code can be encoded perfectly and still come out of the renderer
+// too small, too soft, or with too much of it knocked out by the mark at its
+// centre, and none of that is visible in an <svg> anybody can read. So the
+// page is rasterised the way scripts/certificate-previews.mjs rasterises a
+// certificate, and the pixels are handed to a decoder that knows nothing
+// about how they were drawn.
+//
+// The address comes from src/content/profile.yaml, never from a literal here,
+// for the same reason `noContactDetails` reads it from there: a check holding
+// its own copy of the thing it verifies passes on the day the two disagree.
+//
+// Rendered at 4 times the PDF's own scale. At the size the code prints, a
+// module is about 2 pixels at scale 1, which is under what any decoder reads;
+// 4 puts it near 8 and costs a second per document.
+const QR_SCALE = 4;
+
+// How many modules a symbol of a given version is square, which is the
+// standard's own formula. Read from the decoded symbol rather than written
+// down, because the address is the content source's to change: a longer one
+// needs a higher version and more modules in the same box, so a constant here
+// would measure a module wider than the code actually has.
+//
+// Measured on 2026-09-11, with 33 hardcoded: an address of 66 characters
+// takes a 49-module symbol, whose true printed module is 0.371mm, and the
+// check reported 0.55mm and passed. That is precisely the edit criterion 7
+// promises can be made "with no other edit", so a floor that only holds for
+// today's address is a floor that fails on the one change it has to survive.
+const modulesOf = (version) => version * 4 + 17;
+
+// The smallest module this will let ship, in millimetres on paper.
+//
+// The code is drawn at 0.52mm a module, which is already small, and no check
+// can say whether a phone reads that off a home printer: only a phone can, and
+// that is an acceptance criterion of its own. What this floor does is narrower
+// and worth having anyway. Below about 0.4mm no consumer camera reads a code
+// at arm's length whatever the printer does, so a code that small has lost the
+// GitHub address outright rather than merely made it awkward. It is set under
+// the drawn size rather than at it, so a deliberate change to the box is a
+// decision somebody makes rather than a build somebody has to fight.
+const QR_MODULE_MM = 0.4;
+async function qrCode() {
+  const name = 'qr code';
+  const profile = parseYaml(await readFile(path.join(context.content, 'profile.yaml'), 'utf8')).profile;
+  const coded = (profile.profiles ?? []).find((entry) => String(entry.network).trim().toLowerCase() === 'github');
+  if (!coded?.url) {
+    throw new CheckFailure(
+      name,
+      'src/content/profile.yaml holds no GitHub profile, so this check has nothing to compare against; it must fail rather than pass over a code it cannot verify',
+    );
+  }
+
+  const lines = [];
+  for (const document of documents) {
+    for (const locale of context.locales) {
+      const file = path.join(context.dist, `${document}.${locale}.pdf`);
+      let data;
+      try {
+        data = await readFile(file);
+      } catch {
+        throw new CheckFailure(name, `${path.relative(root, file)} does not exist; run \`pnpm render:pdf\` after the build`);
+      }
+      const task = getDocument({ data: new Uint8Array(data), standardFontDataUrl });
+      let decoded;
+      try {
+        const pdf = await task.promise;
+        const page = await pdf.getPage(1);
+        const viewport = page.getViewport({ scale: QR_SCALE });
+        const canvas = createCanvas(Math.round(viewport.width), Math.round(viewport.height));
+        await page.render({ canvas, viewport }).promise;
+        const pixels = canvas.getContext('2d').getImageData(0, 0, canvas.width, canvas.height);
+        decoded = jsQR(pixels.data, pixels.width, pixels.height);
+      } finally {
+        await task.destroy();
+      }
+
+      if (!decoded) {
+        throw new CheckFailure(
+          name,
+          `no QR code could be read on page 1 of ${path.basename(file)}; the code is the document's only route to the GitHub address on paper, so a code that will not decode has lost it`,
+        );
+      }
+      if (decoded.data !== coded.url) {
+        throw new CheckFailure(
+          name,
+          `the QR code on page 1 of ${path.basename(file)} decodes to "${decoded.data}", and src/content/profile.yaml says "${coded.url}"`,
+        );
+      }
+
+      // How big it actually is on paper, which the decode above says nothing
+      // about. The page is rasterised well above print resolution, so a code
+      // far too small for any camera decodes here perfectly: measured on
+      // 2026-09-11, a 6.35mm box with 0.155mm modules passed the decode, the
+      // hazard check, and the browser case, all three. A check that cannot
+      // fail on the one risk the spec names for this feature is not checking
+      // it.
+      //
+      // `location` bounds the symbol by its finder patterns, so it spans the
+      // modules of data and not the quiet zone around them.
+      const corners = decoded.location;
+      const side = Math.hypot(
+        corners.topRightCorner.x - corners.topLeftCorner.x,
+        corners.topRightCorner.y - corners.topLeftCorner.y,
+      );
+      const across = modulesOf(decoded.version);
+      const module = ((side / QR_SCALE / 72) * 25.4) / across;
+      if (module < QR_MODULE_MM) {
+        throw new CheckFailure(
+          name,
+          `the QR code on page 1 of ${path.basename(file)} has modules of ${module.toFixed(2)}mm, and the floor is ${QR_MODULE_MM}mm; ` +
+            'it is the only route to the GitHub address on paper, and a code no camera can read has lost it whatever it decodes to here',
+        );
+      }
+      lines.push(
+        `qr code: ${path.basename(file)} page 1 decodes to ${decoded.data}, ${across} modules at ${module.toFixed(2)}mm`,
+      );
+    }
+  }
+  return lines;
+}
+
+// The resume is the short document, and one page is its budget. The render step counts
 // both papers as it writes, and this counts the A4 file that actually
 // shipped, so the rule holds over a dist/ assembled anywhere. The remedy for
 // a failure is content, as the effort's spec constrains, never a smaller type
@@ -348,18 +558,22 @@ async function resumePages() {
     } finally {
       await task.destroy();
     }
-    // Two is the budget, not the target: the same document is one page under
-    // the fonts Windows resolves for the system stack and two under the Linux
-    // runner's, and the runner renders what ships. A third page is a resume
-    // that has stopped being the short document (the effort's spec,
-    // requirement 10).
-    if (pages > 2) {
+    // One. This read two for a day, between 2026-09-10 and 2026-09-11: the
+    // same document was one page under the fonts Windows resolves for the
+    // system stack and two under the Linux runner's, so the budget was widened
+    // to match the renderer. What that produced was a two-page short resume,
+    // which is the one thing a short resume may not be, so the content was cut
+    // instead and the budget came back. `scripts/render-pdf.mjs` carries the
+    // other half, a floor under the free height on the last page, because a
+    // page count cannot see a document that fits by a hair here and does not
+    // fit on the runner.
+    if (pages > 1) {
       throw new CheckFailure(
         name,
-        `${path.relative(root, file)} has ${pages} pages, expected at most 2; shorten the content, never the type size`,
+        `${path.relative(root, file)} has ${pages} pages, expected 1; shorten the content, never the type size`,
       );
     }
-    lines.push(`resume pages: ${path.basename(file)} is ${pages} ${pages === 1 ? 'page' : 'pages'}, at most 2`);
+    lines.push(`resume pages: ${path.basename(file)} is ${pages} ${pages === 1 ? 'page' : 'pages'}`);
   }
   return lines;
 }
@@ -740,8 +954,18 @@ async function noOverclaim() {
 }
 
 // Neither document page carries the layout hazards resume parsers document:
-// no table, no image, and the contact block in the flow of the document
-// rather than in a positioned header or footer.
+// no table, no image, no graphic but the one the header is allowed, and the
+// contact block in the flow of the document rather than in a positioned
+// header or footer.
+//
+// The graphic clause is narrower than it reads and deliberately so. Four
+// efforts held "no image" outright, because a parser cannot read one; the QR
+// code carrying the GitHub address is the single exception Saud chose on
+// 2026-09-11 with that cost stated. So this refuses every <svg> inside the
+// document's article except the one marked `data-qr-code`, rather than
+// refusing none of them: an inline <svg> is not an <img>, so a check that
+// only looked for <img> would go on reporting "no image" while the document
+// carried a second graphic nobody agreed to.
 //
 // The fourth hazard, an element of the document itself being positioned, is
 // asserted in tests/resume.spec.ts instead. A computed `position` needs
@@ -774,7 +998,25 @@ async function documentHazards() {
       if (!/data-cv-contact/.test(main)) {
         throw new CheckFailure(name, `dist/${route} has no [data-cv-contact] inside <main>; the contact block must be in the flow of the document`);
       }
-      lines.push(`document hazards: ${locale}/${document}/ has no table or image, and its contact block is in the flow`);
+      // Every <svg> inside the document's article, and how many of them are
+      // the code. The article rather than <main>, because the page's own
+      // chrome above the document carries icons that are none of this
+      // check's business.
+      const article = main.match(/<article[\s>][\s\S]*?<\/article>/i)?.[0] ?? '';
+      const graphics = article.match(/<svg[\s>][^>]*>/gi) ?? [];
+      const codes = graphics.filter((graphic) => /\bdata-qr-code\b/.test(graphic));
+      if (graphics.length > codes.length) {
+        throw new CheckFailure(
+          name,
+          `dist/${route} carries ${graphics.length - codes.length} graphic(s) in the document besides the QR code; a resume parser reads none of them, and the code is the one exception this repository agreed to`,
+        );
+      }
+      if (codes.length > 1) {
+        throw new CheckFailure(name, `dist/${route} carries ${codes.length} QR codes; the header has room for one`);
+      }
+      lines.push(
+        `document hazards: ${locale}/${document}/ has no table or image, one QR code and no other graphic, and its contact block is in the flow`,
+      );
     }
   }
   return lines;
@@ -822,7 +1064,9 @@ async function noContactDetails() {
   // accident; the phone rule matches by shape, and a shape run over compressed
   // binary matches noise. Measured rather than assumed on 2026-09-10: over the
   // 29 non-text files this tree publishes, the shape rules hit once, inside
-  // NotoNaskhArabic-Bold.ttf, which is a font and not a student number.
+  // the bold Arabic font file, which is a font and not a student number. It
+  // was NotoNaskhArabic-Bold.ttf when that was measured on 2026-09-10 and is
+  // the woff2 of the same face now.
   //
   // So the shape half of this check does not reach binary files, and nothing
   // else covers them either: `identifiers` above reads the same text kinds and
@@ -933,7 +1177,7 @@ async function readmeProfile() {
   return ['readme profile: README.md carries the profile as src/content/ states it'];
 }
 
-const checks = [jsonResume, documentPdfs, resumePages, localeTwins, hrefs, basePaths, metadata, sitemap, robots, identifiers, noContactDetails, nationalityWhereItBelongs, gaps, noOverclaim, documentHazards, readmeProfile];
+const checks = [jsonResume, documentPdfs, documentPurpose, qrCode, resumePages, localeTwins, hrefs, basePaths, metadata, sitemap, robots, identifiers, noContactDetails, nationalityWhereItBelongs, gaps, noOverclaim, documentHazards, readmeProfile];
 
 for (const check of checks) {
   try {
