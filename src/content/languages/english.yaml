@@ -1,0 +1,24 @@
+# The level phrase is Saud's, chosen on 2026-09-11 against two things: the
+# record before late 2022 (the 2021 courses were English-taught, and every
+# repository, comment, and README since is written in English) and the STEP
+# result below. Research on Saudi hiring platforms and employer forms, read
+# the same day, found that a Saudi resume gives one word of level per
+# language and that employers who state an English requirement state it as a
+# test score, with STEP 85 the floor stc screens fresh graduates at, around
+# IELTS 6 on the Saudi equivalence tables. "Fluent" would claim more than the
+# score supports; "Intermediate" less than a record written in English does.
+#
+# The score is read off the ETEC result dated 1444/01/23 AH, 2022-08-21. The
+# documents print its year beside it, because Saudi institutions count a STEP
+# result for two to three years and a score with no date reads as current.
+name:
+  en: English
+  ar: الإنجليزية
+level:
+  en: Working proficiency
+  ar: إجادة مهنية
+test:
+  name: STEP
+  score: "85"
+  date: "2022-08-21"
+order: 2

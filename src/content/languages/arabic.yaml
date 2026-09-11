@@ -1,0 +1,9 @@
+# The mother tongue. "Native" is the one word the Saudi template prints for
+# it, and the line carries no test because none was taken.
+name:
+  en: Arabic
+  ar: العربية
+level:
+  en: Native
+  ar: اللغة الأم
+order: 1
