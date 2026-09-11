@@ -882,7 +882,7 @@ async function gaps() {
   };
   const profile = parseYaml(await readFile(path.join(context.content, 'profile.yaml'), 'utf8'));
   walkValue(profile.profile, 'profile', 'profile', '');
-  for (const collection of ['projects', 'experience', 'education', 'certificates', 'skills']) {
+  for (const collection of ['projects', 'experience', 'education', 'certificates', 'skills', 'languages']) {
     const dir = path.join(context.content, collection);
     for (const file of (await readdir(dir)).filter((entry) => entry.endsWith('.yaml')).sort()) {
       const entry = parseYaml(await readFile(path.join(dir, file), 'utf8'));
