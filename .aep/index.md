@@ -91,7 +91,7 @@ Start at [[protocol]].
 | --- | --- | --- | --- | --- | --- |
 | 1-portfolio-site | implemented | [[efforts/1-portfolio-site/spec]] | 6 | 0 | 15 |
 | 11-private-download-form | accepted | [[efforts/11-private-download-form/spec]] | 0 | 0 | 4 |
-| 13-one-page-resume-and-clean-generation | accepted | [[efforts/13-one-page-resume-and-clean-generation/spec]] | 0 | 1 | 7 |
+| 13-one-page-resume-and-clean-generation | accepted | [[efforts/13-one-page-resume-and-clean-generation/spec]] | 0 | 1 | 8 |
 | 3-site-redesign | implemented | [[efforts/3-site-redesign/spec]] | 0 | 1 | 8 |
 | 5-sections-and-resume | implemented | [[efforts/5-sections-and-resume/spec]] | 0 | 0 | 6 |
 | 7-document-downloads-and-contact-details | implemented | [[efforts/7-document-downloads-and-contact-details/spec]] | 1 | 0 | 6 |
@@ -128,6 +128,7 @@ Every task of every effort. The tracker carries the effort, never its tasks.
 | [[efforts/13-one-page-resume-and-clean-generation/tickets/05-back-to-one-page]] fix(cv): the resume back to one page, with headroom the runner will not eat | 13-one-page-resume-and-clean-generation | open | 03, 04 |
 | [[efforts/13-one-page-resume-and-clean-generation/tickets/06-which-document-this-is]] feat(cv): one line on each document page saying what that document is for | 13-one-page-resume-and-clean-generation | open | — |
 | [[efforts/13-one-page-resume-and-clean-generation/tickets/07-the-prose-that-still-says-two]] docs(cv): nothing still says the resume may run to two pages | 13-one-page-resume-and-clean-generation | resolved | 05 |
+| [[efforts/13-one-page-resume-and-clean-generation/tickets/08-one-document-on-every-machine]] feat(cv): a bundled Latin face, so one document measures the same everywhere | 13-one-page-resume-and-clean-generation | open | 05 |
 | [[efforts/3-site-redesign/tickets/01-foundation-and-header]] feat(site): card, icon, and fold components, the wider column, and the header controls with icons | 3-site-redesign | resolved | — |
 | [[efforts/3-site-redesign/tickets/02-home-page]] feat(site): lay the home page out as a hero, contact actions, skill cards, and section cards | 3-site-redesign | resolved | 01 |
 | [[efforts/3-site-redesign/tickets/03-work-page]] feat(site): render projects and experience as card grids with folded highlights | 3-site-redesign | resolved | 01 |
