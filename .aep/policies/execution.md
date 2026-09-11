@@ -371,6 +371,38 @@ tree. `[[skills/prune]]` or `[[skills/survey]]` reaching another effort's
 artifact **stops and names it**; a tree-wide subject belongs on an unscoped
 checkout, which is where it was always going to be run from.
 
+### The one write that is not a violation
+
+**An effort that reverses an earlier effort's decision may annotate that
+effort's `spec.md` to say so, and nothing else of it.** The annotation is
+additive: it carries the date, it links to the effort doing the reversing, and
+it leaves every word already there standing.
+
+*Why this is carved out rather than left to the general rule: a landed spec is
+the record of what was decided and why, and the whole value of keeping it is
+that a later reader can trust it. An effort that reverses one and writes only
+in its own spec leaves the earlier one asserting something untrue to everybody
+who reads it first, which is a worse outcome than the write. The alternative
+considered was a pointer file beside the spec, and it was rejected for the
+reason every second home is: the reader who lands on the spec does not see it.*
+
+**This does not license editing what the earlier effort decided.** Rewriting its
+requirements, removing its reasoning, or restating its history is the thing the
+general rule exists to prevent, and it stays prevented. The test is whether the
+earlier spec still says everything it said before.
+
+**The claim widens, and that is the visible cost.** `scope.mjs` computes a claim
+from the efforts a branch's commits touch, so a branch that annotates one holds
+two claims: another run wanting the annotated effort finds it held, and a later
+run on this branch reads permission to write its files. Weigh that before
+annotating, and expect the second claim in the run's `Position`.
+
+**Added on 2026-09-11**, by Saud, after
+[[efforts/13-one-page-resume-and-clean-generation/spec]] reversed the resume's
+page budget and its own requirement 8 asked for exactly this write. Two review
+rounds named the conflict between that requirement and the rule above, and it
+was put to him rather than settled by the run.
+
 *Why no exemption list: an exemption is a second mechanism deciding how strong
 the first one is, and it is the copy that goes wrong. A run that has to be
 somewhere else is a sentence to read; a list of who may ignore the rule is a
