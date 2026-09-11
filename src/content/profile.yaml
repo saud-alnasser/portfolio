@@ -6,13 +6,21 @@ profile:
   label:
     en: Software developer
     ar: مطور برمجيات
-  # Rewritten on 2026-09-11 so the resume reaches one page, and no further than
-  # that needed. It used to restate three project entries in their own words:
-  # the rent tracker and its stack, what the npm package caches and when, and
-  # the platform with its team of six and its senior-project standing, which is
-  # what mudaraj's role line says on the document itself. A summary that
-  # enumerates the entries under it is paid for twice on a page with one to
-  # give, so this summarises instead and names no entry.
+  # Rewritten twice on 2026-09-11. It was first cut to one sentence so the
+  # resume reached one page, and the sentence that survived named the work
+  # only as categories: offline-first desktop software, a published npm
+  # package, a bilingual web platform. Saud read it on the generated document
+  # and it told him nothing, which is the whole job of the first paragraph an
+  # employer reads. So the detail is back, paid for out of the headroom the
+  # bundled face and the content cuts bought, and measured rather than
+  # assumed: lengthening this again means running `pnpm render:pdf` and
+  # reading the free height at Letter against the floor in
+  # scripts/render-pdf.mjs.
+  #
+  # Mudaraj is named nowhere in it, by Saud's decision on 2026-09-11. It is a
+  # prototype and a senior project, its own entry on the document says so in
+  # its role line, and a summary that leads with it claims more for it than
+  # the entry does. The entry stays; the summary stops pointing at it.
   #
   # The npm package stays in, and deliberately: the resume no longer carries
   # cachescribe, so this clause is the only place that work appears at all on
@@ -20,13 +28,19 @@ profile:
   # documents still carry the entry whole.
   summary:
     en: >-
-      Software developer in Riyadh, working mostly in Rust and TypeScript,
-      across offline-first desktop software, a published npm package, and a
-      bilingual web platform built with a team of six.
+      Software developer in Riyadh, working mostly in Rust and TypeScript.
+      Built an offline-first desktop rent tracker on Tauri, SvelteKit, and
+      Turso, and published an npm package that keeps a cache on the file
+      system between runs. Most of the rest is language work in Rust: a PL/0
+      compiler, an interpreter for the Monkey language, and a statically typed
+      language on a bytecode virtual machine, in draft.
     ar: >-
-      مطور برمجيات في الرياض، يعمل في الغالب بلغتي Rust وTypeScript، في برمجيات
-      سطح مكتب تعمل دون اتصال أولاً، وحزمة npm منشورة، ومنصة ويب ثنائية اللغة
-      بُنيت مع فريق من ستة أعضاء.
+      مطور برمجيات في الرياض، يعمل في الغالب بلغتي Rust وTypeScript. بنى
+      متتبعًا لمدفوعات الإيجار على سطح المكتب يعمل دون اتصال أولاً باستخدام
+      Tauri وSvelteKit وTurso، ونشر حزمة npm تحتفظ بذاكرة تخزين مؤقت في نظام
+      الملفات بين تشغيلات البرنامج. وأغلب ما تبقى عمل في اللغات بلغة Rust:
+      مترجم للغة PL/0، ومفسر للغة Monkey، ولغة ذات أنواع ساكنة تعمل على آلة
+      افتراضية للبايت كود، في طور المسودة.
   email: saud4services@gmail.com
   nationality:
     en: Saudi
