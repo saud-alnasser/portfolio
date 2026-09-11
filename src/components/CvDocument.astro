@@ -293,10 +293,13 @@ const muted = 'text-sm text-muted-foreground';
                 <p class={period}>{formatPeriod(locale, data.period)}</p>
               </div>
               <p class="text-sm">{text('institution', data.institution)}</p>
-              {/* The status as authored; the wording per value is in i18n.ts. */}
-              <p class={muted} data-status={data.status}>
-                {t.education.status[data.status]}
-              </p>
+              {/* Only the statuses the period does not already say; see
+                  src/components/Education.astro. */}
+              {data.status !== 'completed' && (
+                <p class={muted} data-status={data.status}>
+                  {t.education.status[data.status]}
+                </p>
+              )}
               {/* The course list is the record's, not the application's: it is
                   the longest block on the page and the first thing the resume
                   does without. */}

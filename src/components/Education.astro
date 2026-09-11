@@ -15,9 +15,10 @@ const { data } = entry;
 const t = strings[locale];
 const text = localized(locale, 'education', entry.id);
 
-// The status is shown as it is. The wording per value lives in i18n.ts, so a
-// pending certificate never reads as an awarded one.
-const status = t.education.status[data.status];
+// The status is shown only where it says something the period does not: a
+// pending certificate, or study still under way. A completed degree carries
+// its end date, and the line under it read as nothing more than that.
+const status = data.status === 'completed' ? null : t.education.status[data.status];
 
 // The courses are the one list that would swamp the card: twenty-one of them
 // against four lines of everything else. They fold.
@@ -28,7 +29,7 @@ const courses = data.courses ?? [];
   <p class="text-sm text-muted-foreground tabular-nums">{formatPeriod(locale, data.period)}</p>
   <h3 class="mt-1 text-lg font-semibold tracking-tight">{text('institution', data.institution)}</h3>
   <p class="mt-1">{text('studyType', data.studyType)}{t.listSeparator}{text('area', data.area)}</p>
-  <p class="mt-2 text-sm text-muted-foreground" data-status={data.status}>{status}</p>
+  {status && <p class="mt-2 text-sm text-muted-foreground" data-status={data.status}>{status}</p>}
   {
     courses.length > 0 && (
       <Fold locale={locale} count={courses.length} noun="courses">

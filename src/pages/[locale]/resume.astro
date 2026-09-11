@@ -49,9 +49,6 @@ const pdf = withBase(`/resume.${locale}.pdf`);
   path="/resume/"
   column="document"
 >
-  {/* Which document this is; see src/pages/[locale]/cv.astro for the shape. */}
-  <p data-document-purpose class="cv-purpose mb-4 text-sm text-muted-foreground">{t.resume.purpose}</p>
-
   <DocumentDownload locale={locale} pdf={pdf} document={t.resume.title} />
 
   <CvDocument locale={locale} variant="resume" />

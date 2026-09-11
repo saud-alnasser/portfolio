@@ -132,8 +132,9 @@ const en = {
     highlights: 'Highlights',
   },
   education: {
+    // The statuses worth a line of their own. A completed degree is not among
+    // them: its end date has already said so, and the word only repeated it.
     status: {
-      completed: 'Completed',
       'certificate-pending': 'Course work completed, certificate pending',
       'in-progress': 'In progress',
     },
@@ -166,18 +167,6 @@ const en = {
     title: 'Curriculum vitae',
     description:
       'The curriculum vitae of {name}: the whole record of experience, education, skills, certifications, courses, and projects, with PDF and JSON Resume downloads.',
-    // The line a document page opens with, above the download control: which
-    // of the two documents a reader has landed on, and what the other one is
-    // for. It claims nothing new: the division is `home.cv` and `home.resume`
-    // above, and this says it where a reader meets the document rather than
-    // where the site lists what it holds. It names no section, so a document
-    // that changes what it carries cannot leave this line saying something
-    // else.
-    //
-    // It is chrome rather than part of the document: print hides it with the
-    // download control (src/styles/global.css), so it reaches none of the
-    // published PDFs and no document a reader generates.
-    purpose: 'This is the whole record. The resume is the short one to send with an application.',
     // The accessible name of the row a document page opens with, which holds
     // the one control that downloads that page's own document.
     documents: 'Documents',
@@ -215,9 +204,6 @@ const en = {
     title: 'Resume',
     description:
       'The short resume of {name}: the summary, experience, education, key skills, and selected projects, with a PDF download.',
-    // The CV page's line from the other side; see `cv.purpose` above for what
-    // it is and why it never prints.
-    purpose: 'This is the short one to send with an application. The CV is the whole record.',
   },
   period: {
     present: 'Present',
@@ -318,7 +304,6 @@ const ar: Strings = {
   },
   education: {
     status: {
-      completed: 'مكتمل',
       'certificate-pending': 'اكتملت المقررات الدراسية، ولم تصدر الشهادة بعد',
       'in-progress': 'قيد الدراسة',
     },
@@ -340,7 +325,6 @@ const ar: Strings = {
     title: 'السيرة الذاتية',
     description:
       'سيرة {name} الذاتية: السجل الكامل للخبرة العملية والتعليم والمهارات والشهادات والدورات والمشاريع، مع تنزيلها بصيغة PDF وبصيغة JSON Resume.',
-    purpose: 'هذا هو السجل الكامل، والسيرة المختصرة هي النسخة التي ترافق طلب التوظيف.',
     documents: 'المستندات',
     downloadPdf: 'تنزيل {document} بصيغة PDF',
     form: {
@@ -363,7 +347,6 @@ const ar: Strings = {
     title: 'السيرة المختصرة',
     description:
       'السيرة المختصرة لـ{name}: الملخص والخبرة العملية والتعليم والمهارات الأساسية ومشاريع مختارة، مع تنزيلها بصيغة PDF.',
-    purpose: 'هذه هي النسخة المختصرة التي ترافق طلب التوظيف، والسيرة الذاتية هي السجل الكامل.',
   },
   period: {
     present: 'الآن',
