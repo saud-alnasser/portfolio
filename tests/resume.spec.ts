@@ -152,6 +152,33 @@ for (const locale of locales) {
 
       });
 
+      // Which of the two documents a reader has landed on, said in one line
+      // before anything else on the page. It is chrome rather than part of
+      // the document: it sits above the actions row rather than in it, so
+      // that row still holds the one control the case above counts, and the
+      // print rules hide it with the row, which is what keeps it out of the
+      // published PDFs and out of a document a reader generates.
+      test('opens with one line saying what its document is for, which never prints', async ({ page }) => {
+        await page.goto(route);
+        const purpose = page.locator('[data-document-purpose]');
+        await expect(purpose).toHaveCount(1);
+        await expect(purpose).toHaveText(strings[locale][variant].purpose);
+
+        // Above the row, not inside it: the row's contents are asserted
+        // elsewhere, and this is the half that says where the line went.
+        await expect(page.locator('.cv-actions [data-document-purpose]')).toHaveCount(0);
+        const before = await page.evaluate(() => {
+          const line = document.querySelector('[data-document-purpose]')!;
+          const row = document.querySelector('.cv-actions')!;
+          return Boolean(line.compareDocumentPosition(row) & Node.DOCUMENT_POSITION_FOLLOWING);
+        });
+        expect(before, `the purpose line comes before the actions row on ${route}`).toBe(true);
+
+        await page.emulateMedia({ media: 'print' });
+        await expect(purpose, `the purpose line on paper on ${route}`).toBeHidden();
+        await page.emulateMedia({ media: 'screen' });
+      });
+
       // The keyboard path, end to end, which is what the effort's criterion 8
       // asks for: tab to the control from the top of the page, see the ring
       // the stylesheet draws on :focus-visible, and press Enter to act on it.

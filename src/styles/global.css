@@ -273,9 +273,12 @@ details[open] > summary .fold-chevron {
   }
 
   /* The chrome around the document, which on paper would be noise: the
-     navigation, the theme control, the language switch, and the download
-     control the document page opens with. */
+     navigation, the theme control, the language switch, the line saying which
+     of the two documents the page holds, and the download control the page
+     opens with. The purpose line joins this rule rather than bringing a
+     second way to hide, so what prints and what does not is one decision. */
   body > header,
+  .cv-purpose,
   .cv-actions {
     display: none;
   }

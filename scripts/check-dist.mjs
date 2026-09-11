@@ -319,6 +319,90 @@ async function documentPdfs() {
   return lines;
 }
 
+// The line each document page opens with, saying which of the two documents a
+// reader has landed on (`cv.purpose` and `resume.purpose` in src/lib/i18n.ts).
+// It belongs to the page and to no document, so this check has two halves:
+// both pages carry it in both languages, and none of the eight files the
+// render step writes does. Print hiding it is one rule in
+// src/styles/global.css, and this is what says the rule is still doing its
+// work in the files that shipped.
+//
+// Arabic comes out of `pdftotext` with the bidi controls in and spaces inside
+// words, which is why `documentPdfs` above reads the English documents only.
+// Dropping both from the extracted text and from the expectation is enough to
+// compare Arabic by, and the control below is what proves it: a heading every
+// document prints, in the language of the file, has to be found before an
+// absence is worth anything.
+async function documentPurpose() {
+  const name = 'document purpose';
+  // Whitespace and the format characters, the bidi controls among them, out
+  // of both sides of every comparison, so an Arabic word that extraction
+  // broke with a space still reads as the word the page set. Case goes with
+  // them: the documents set their headings in capitals, and a line that
+  // reached paper in any case at all is a line that reached paper.
+  const bare = (text) => text.replace(/[\p{Cf}\s]/gu, '').toLowerCase();
+
+  for (const locale of context.locales) {
+    for (const document of documents) {
+      const relative = `${locale}/${document}/index.html`;
+      const html = await readFile(path.join(context.dist, locale, document, 'index.html'), 'utf8');
+      const found = [...html.matchAll(/<p\b[^>]*data-document-purpose[^>]*>([^<]*)<\/p>/g)].map((match) => match[1].trim());
+      if (found.length !== 1) {
+        throw new CheckFailure(name, `dist/${relative} carries ${found.length} elements with [data-document-purpose], expected exactly one`);
+      }
+      const expected = strings[locale][document].purpose;
+      if (found[0] !== expected) {
+        throw new CheckFailure(name, `dist/${relative} says "${found[0]}", expected "${expected}" from src/lib/i18n.ts`);
+      }
+    }
+  }
+
+  // Every document the render step writes: the four published files and the
+  // four copies it fills through the download form, which are the closest
+  // thing there is to what a reader generates.
+  const subjects = documents.flatMap((document) =>
+    context.locales.flatMap((locale) => [
+      { relative: `${document}.${locale}.pdf`, directory: context.dist, locale },
+      { relative: `${document}.${locale}.filled.pdf`, directory: context.artifacts, locale },
+    ]),
+  );
+
+  let read = 0;
+  for (const { relative, directory, locale } of subjects) {
+    const file = path.join(directory, relative);
+    try {
+      await stat(file);
+    } catch {
+      throw new CheckFailure(name, `${relative} does not exist; run \`pnpm render:pdf\` after the build`);
+    }
+    const text = await extractText(file);
+    if (text === null) continue;
+    read += 1;
+    const extracted = bare(text);
+    const control = strings[locale].cv.experience;
+    if (!extracted.includes(bare(control))) {
+      throw new CheckFailure(
+        name,
+        `${relative}: the experience heading "${control}" is nowhere in the extracted text, so this check cannot tell a line that did not print from a document it cannot read`,
+      );
+    }
+    for (const document of documents) {
+      const purpose = strings[locale][document].purpose;
+      if (extracted.includes(bare(purpose))) {
+        throw new CheckFailure(
+          name,
+          `${relative} carries the ${document} page's line "${purpose}"; it is the page's chrome and print hides it (src/styles/global.css)`,
+        );
+      }
+    }
+  }
+
+  const note = read === subjects.length ? '' : ` (pdftotext is not on the PATH, so ${subjects.length - read} were not read)`;
+  return [
+    `document purpose: both document pages say what they are for in ${context.locales.length} languages, and none of ${subjects.length} rendered documents does${note}`,
+  ];
+}
+
 // The resume is the short document, and two pages is its budget. The render step counts
 // both papers as it writes, and this counts the A4 file that actually
 // shipped, so the rule holds over a dist/ assembled anywhere. The remedy for
@@ -933,7 +1017,7 @@ async function readmeProfile() {
   return ['readme profile: README.md carries the profile as src/content/ states it'];
 }
 
-const checks = [jsonResume, documentPdfs, resumePages, localeTwins, hrefs, basePaths, metadata, sitemap, robots, identifiers, noContactDetails, nationalityWhereItBelongs, gaps, noOverclaim, documentHazards, readmeProfile];
+const checks = [jsonResume, documentPdfs, documentPurpose, resumePages, localeTwins, hrefs, basePaths, metadata, sitemap, robots, identifiers, noContactDetails, nationalityWhereItBelongs, gaps, noOverclaim, documentHazards, readmeProfile];
 
 for (const check of checks) {
   try {
