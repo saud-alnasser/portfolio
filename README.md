@@ -1,9 +1,12 @@
 # Hi, I'm Saud 👋
 
 <!-- profile -->
-Software developer in Riyadh, working mostly in Rust and TypeScript, across
-offline-first desktop software, a published npm package, and a bilingual web
-platform built with a team of six.
+Software developer in Riyadh, working mostly in Rust and TypeScript. Built
+an offline-first desktop rent tracker on Tauri, SvelteKit, and Turso, and
+published an npm package that keeps a cache on the file system between runs.
+Most of the rest is language work in Rust: a PL/0 compiler, an interpreter
+for the Monkey language, and a statically typed language on a bytecode
+virtual machine, in draft.
 
 - 🌐 **Portfolio** — [English](https://saud-alnasser.github.io/saud-alnasser/en/) · [العربية](https://saud-alnasser.github.io/saud-alnasser/ar/)
 - 📄 **CV** — [English](https://saud-alnasser.github.io/saud-alnasser/en/cv/) · [العربية](https://saud-alnasser.github.io/saud-alnasser/ar/cv/)
