@@ -1123,6 +1123,12 @@ async function nationalityWhereItBelongs() {
   return lines;
 }
 
+// A printed level can carry a score's parentheses, so it is escaped before it
+// goes into the README pattern below.
+function escapeRegExp(text) {
+  return text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
 // The languages are a fact for the two documents and the JSON Resume
 // documents, and for nothing else, as the nationality is. Checked the same
 // way: the level as the page prints it, score and year included, stands
@@ -1130,12 +1136,6 @@ async function nationalityWhereItBelongs() {
 // level does on the home page or in the README. By element rather than by
 // string for the same reason as above: "Native" could one day appear inside
 // a sentence somewhere true, and only the standalone item is the fact.
-// A printed level can carry a score's parentheses, so it is escaped before it
-// goes into the README pattern below.
-function escapeRegExp(text) {
-  return text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-}
-
 async function languagesWhereTheyBelong() {
   const name = 'languages';
   const languages = (await visibleEntries('languages')).map((entry) => entry.data).sort(byOrderThenName);

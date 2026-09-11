@@ -355,14 +355,14 @@ const muted = 'text-sm text-muted-foreground';
     )
   }
 
+  {/* One line per language, "name: level", in the resume's skills-line
+      markup on both variants: the section a Saudi screener and the national
+      employment platform look for, placed directly after the key skills on
+      the CV and the resume alike. It sits outside `tail` because its place
+      does not differ by variant. The English line ends with the test score
+      and its year, built by levelLine so the JSON document carries the
+      same string. */}
   {
-    /* One line per language, "name: level", in the resume's skills-line
-       markup on both variants: the section a Saudi screener and the national
-       employment platform look for, placed directly after the key skills on
-       the CV and the resume alike. It sits outside `tail` because its place
-       does not differ by variant. The English line ends with the test score
-       and its year, built by levelLine so the JSON document carries the
-       same string. */
     languages.length > 0 && (
       <section aria-labelledby="cv-languages" data-cv-section="languages">
         <h2 id="cv-languages" class={heading}>

@@ -9,14 +9,14 @@
 //   pnpm test:content
 //
 // The script writes a fixture project, a fixture certificate, and a fixture
-// language, builds,
-// asserts each fixture's name is in exactly its own outputs and nowhere else
-// in dist/, removes the fixtures, builds again, and asserts the names are
-// gone. At every step `git status` is compared with what it showed at the
-// start: nothing outside src/content/ may differ during the run, and nothing
-// at all may differ at the end. In CI the tree starts clean, so that is the
-// literal assertion; on a developer's machine it tolerates their own
-// uncommitted work while still catching a build that writes outside dist/.
+// language, builds, asserts each fixture's name is in exactly its own outputs
+// and nowhere else in dist/, removes the fixtures, builds again, and asserts
+// the names are gone. At every step `git status` is compared with what it
+// showed at the start: nothing outside src/content/ may differ during the
+// run, and nothing at all may differ at the end. In CI the tree starts clean,
+// so that is the literal assertion; on a developer's machine it tolerates
+// their own uncommitted work while still catching a build that writes outside
+// dist/.
 //
 // The fixture certificate names no document, so its card on the education
 // page has nothing to open and must be neither a link nor a button. Every
