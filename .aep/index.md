@@ -92,6 +92,7 @@ Start at [[protocol]].
 | 1-portfolio-site | implemented | [[efforts/1-portfolio-site/spec]] | 6 | 0 | 15 |
 | 11-private-download-form | accepted | [[efforts/11-private-download-form/spec]] | 0 | 0 | 4 |
 | 13-one-page-resume-and-clean-generation | accepted | [[efforts/13-one-page-resume-and-clean-generation/spec]] | 0 | 1 | 8 |
+| 15-a-summary-that-names-the-work | accepted | [[efforts/15-a-summary-that-names-the-work/spec]] | 0 | 0 | 0 |
 | 3-site-redesign | implemented | [[efforts/3-site-redesign/spec]] | 0 | 1 | 8 |
 | 5-sections-and-resume | implemented | [[efforts/5-sections-and-resume/spec]] | 0 | 0 | 6 |
 | 7-document-downloads-and-contact-details | implemented | [[efforts/7-document-downloads-and-contact-details/spec]] | 1 | 0 | 6 |
