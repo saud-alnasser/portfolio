@@ -15,10 +15,16 @@ period:
   end: "2026"
 # Shortened on 2026-09-11 so the resume reaches one page. The clause that went
 # was "with hardware, software, and ticketed service requests", which is a list
-# of exactly what the four highlights below enumerate one at a time. No fact
-# left the entry: the bullets state every one of them, and they state which
-# hardware, which software, and which ticketing system. The ticket's next lever
-# was to delete a bullet, and this costs no evidence where that would have.
+# of exactly what the highlights below enumerated one at a time. At the time no
+# fact left the entry: four bullets stated every one of them, and they stated
+# which hardware, which software, and which ticketing system. The ticket's next
+# lever was to delete a bullet, and this cost no evidence where that would have.
+#
+# Later the same day, by Saud's decision, two facts did leave: the HR
+# application the software bullet gave as its example, and the whole bullet
+# naming the ticketing systems, Dynamics 365, Configuration Manager, and
+# Nexthink. Three highlights remain, and nothing in the entry now names a
+# ticketing system.
 summary:
   en: >-
     Practical training placement in the IT Department at the company's
@@ -31,8 +37,6 @@ highlights:
     ar: استبدال العتاد ونشره في المقر الرئيسي، وتجهيزه للموظفين الملتحقين والمغادرين.
   - en: Maintained printers and other office equipment, and documented damaged equipment in condition reports.
     ar: صيانة الطابعات وغيرها من الأجهزة المكتبية، وتوثيق الأجهزة التالفة في تقارير حالة.
-  - en: Troubleshot software problems, including an HR application whose libraries were blocked by Microsoft Edge SmartScreen.
-    ar: معالجة مشكلات البرمجيات، ومنها تطبيق للموارد البشرية حجب Microsoft Edge SmartScreen مكتباته.
-  - en: Handled incidents and requests in Dynamics 365, Configuration Manager, and Nexthink.
-    ar: التعامل مع الحوادث والطلبات في Dynamics 365 وConfiguration Manager وNexthink.
+  - en: Troubleshot software problems.
+    ar: معالجة مشكلات البرمجيات.
 kind: training
