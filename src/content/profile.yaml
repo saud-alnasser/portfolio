@@ -16,9 +16,11 @@ profile:
   #
   # The rule each one follows is the same: name nothing the document itself
   # does not print as an entry. That is what one field could not do. The CV
-  # carries the whole record, the resume carries two projects, and the
+  # carries the whole record, the resume carries one project, and the
   # paragraph that named the resume's missing work was the paragraph the CV
-  # had to open with too.
+  # had to open with too. The resume carried two until later the same day,
+  # when Mudaraj left it by Saud's decision and `resumeSummary` lost the
+  # sentence that named it.
   #
   # That rule is why `summary` lost a clause the same day: a statically typed
   # language on a bytecode virtual machine, in draft. That is Nova, and
@@ -55,15 +57,11 @@ profile:
     en: >-
       Software developer in Riyadh, working mostly in Rust and TypeScript.
       Sole developer of rentable, an offline-first desktop tracker for rent
-      payments on Tauri, SvelteKit, and Turso. One of a team of six on
-      Mudaraj, an e-ticketing and fan loyalty platform for Saudi football,
-      built as a prototype for a bachelor's senior project.
+      payments on Tauri, SvelteKit, and Turso.
     ar: >-
       مطور برمجيات في الرياض، يعمل في الغالب بلغتي Rust وTypeScript. المطور
       الوحيد لـ rentable، متتبع لمدفوعات الإيجار على سطح المكتب يعمل دون
-      اتصال أولاً، مبني على Tauri وSvelteKit وTurso. وأحد أعضاء فريق من ستة
-      في Mudaraj، منصة للتذاكر الإلكترونية وولاء المشجعين لكرة القدم
-      السعودية، بُنيت نموذجًا أوليًا لمشروع تخرج بكالوريوس.
+      اتصال أولاً، مبني على Tauri وSvelteKit وTurso.
   email: saud4services@gmail.com
   nationality:
     en: Saudi
