@@ -8,7 +8,10 @@
 export interface LanguageTest {
   name: string;
   score: string;
-  date: string;
+  // ISO, as the content contract stringifies it. A bare year read straight
+  // from YAML by a script is a number, which is why it is stringified below,
+  // as src/lib/order.ts does for a period.
+  date: string | number;
 }
 
 // "Working proficiency, STEP 85 (2022)": the level as authored, then the test
@@ -18,5 +21,5 @@ export interface LanguageTest {
 // the year is what tells a reader how old the score is.
 export function levelLine(level: string, test: LanguageTest | undefined, separator: string): string {
   if (!test) return level;
-  return `${level}${separator}${test.name} ${test.score} (${test.date.slice(0, 4)})`;
+  return `${level}${separator}${test.name} ${test.score} (${String(test.date).slice(0, 4)})`;
 }
