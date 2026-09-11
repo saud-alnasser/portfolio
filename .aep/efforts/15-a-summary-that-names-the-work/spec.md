@@ -1,5 +1,5 @@
 ---
-status: accepted
+status: implemented
 ---
 
 # Problem
@@ -12,7 +12,7 @@ status: accepted
 
 # Goal
 
-The resume opens with a paragraph that names the work: what the desktop software tracks and what it runs on, what the npm package caches, and the language work in Rust that nothing else on the resume shows. It names Mudaraj nowhere. The resume is still one page in both languages, on A4 and on Letter, published and generated, and the added length comes out of the headroom effort 13 bought rather than out of the type size.
+The resume opens with a paragraph that names the work: what the desktop software tracks and what it runs on, what the npm package caches, and the language work in Rust that nothing else on the resume shows, as this effort left it and until 2026-09-11. It names Mudaraj nowhere, true of that paragraph until the same day, when the resume took a summary of its own ([[efforts/17-a-resume-summary-of-its-own/spec]]) that names Mudaraj as the prototype its entry already calls it and carries no language work at all. The resume is still one page in both languages, on A4 and on Letter, published and generated, and the added length comes out of the headroom effort 13 bought rather than out of the type size.
 
 # Scope
 
@@ -24,7 +24,11 @@ The resume opens with a paragraph that names the work: what the desktop software
 
 1. **The summary names things, not categories.** Every clause in it resolves to something a reader could go and look at: a named stack, a stated behaviour, a named language or tool. A clause that would read the same on another developer's resume is not doing the work.
 2. **Mudaraj is named nowhere in it, and alluded to nowhere in it.** Not by name, not as a team of six, not as a senior project, not as a bilingual platform. The reason is that the entry itself states it is a prototype and a senior project, and a summary that leads with it claims more than the entry does. **The entry stays**, unchanged, on both documents.
+
+    **Reversed on 2026-09-11 by [[efforts/17-a-resume-summary-of-its-own/spec]], for the resume.** `summary`, the field this names, still contains no Mudaraj, but the resume no longer reads it. The resume's own paragraph names Mudaraj and says it is a prototype built for a bachelor's senior project, which is the qualifier that was available here and not taken: the objection was that the summary claimed more than the entry, and stating what the entry states answers it without the silence. The entry is still unchanged on both documents.
 3. **The language work appears on the resume.** The summary names at least one of the compiler, the interpreter, and the language in draft, because the resume's project entries carry none of them and the CV is not the document an application takes.
+
+    **Reversed on 2026-09-11 by [[efforts/17-a-resume-summary-of-its-own/spec]].** The resume reads a field of its own now and names only what its own projects section prints, so no language work appears on it. The remedy this requirement chose was the only one available while one field served both documents, and it is what made that paragraph the CV's opening as well. The language in draft also left `summary` entirely: it is Nova, its entry is `status: in-progress`, and `isShown()` keeps it out of every output, so the clause pointed at nothing a reader could reach.
 4. **The npm package keeps its clause.** Effort 13 removed `resume: true` from `cachescribe`, so this clause is the only appearance that work makes on the resume at all. Requirement 1 applies to it: what it caches and when, not that it exists.
 5. **Both languages say the same thing.** The Arabic is the same three sentences making the same claims, not a shorter or longer document, and the build reports no localisation gap.
 6. **The resume is still one page, with headroom the runner will not eat.** Both languages, both papers, published and filled, at or above the 10mm floor `scripts/render-pdf.mjs` enforces at Letter. The length is measured rather than assumed, and paid out of headroom rather than out of type size, which that script's own error message already refuses.
@@ -33,11 +37,15 @@ The resume opens with a paragraph that names the work: what the desktop software
 # Acceptance Criteria
 
 - [x] The English summary names `rentable`'s stack, states what the npm package caches and when, and names the PL/0 compiler, the Monkey interpreter, and the language in draft. The Arabic makes the same claims in the same three sentences.
+
+  **The language-in-draft clause was removed on 2026-09-11 by [[efforts/17-a-resume-summary-of-its-own/spec]], requirement 4**, in both languages. The stack, the npm package, the compiler, and the interpreter are all still named. What this criterion recorded was true when it was ticked.
 - [x] Neither language's summary contains Mudaraj's name, a team of six, a senior project, or a bilingual platform. `src/content/projects/mudaraj.yaml` is untouched by this effort and the entry still prints on the resume and on the CV.
 - [x] `pnpm render:pdf` writes `resume.en.pdf` and `resume.ar.pdf`, and the filled copy of each, at one page on A4 and one page at Letter, each reporting at least 10mm of the last page free at Letter. The number is recorded in the commit so a later reader can see what the length cost.
 - [x] `pnpm build` prints `[localized] 0 gaps`, and `pnpm check`, `pnpm check:dist`, `pnpm test`, and `pnpm test:content` all pass.
 - [x] `pnpm check:dist` reports `readme profile: README.md carries the profile as src/content/ states it`, and the no-contact-details and identifiers checks still pass over `README.md` and every published file.
 - [x] The comment above the field says what the summary is for, that it was cut and refilled on 2026-09-11, why Mudaraj is absent, and that lengthening it again means measuring again.
+
+  **Replaced on 2026-09-11 by [[efforts/17-a-resume-summary-of-its-own/spec]].** That comment now covers two fields rather than one: what each is for, which outputs read it, and that the measuring instruction belongs to the resume's field, since the CV has no page count to hold. Mudaraj's absence is no longer among the things it explains, because the resume's paragraph names it.
 
 # Constraints
 
