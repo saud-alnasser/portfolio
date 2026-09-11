@@ -68,7 +68,7 @@ needs its margin. `scripts/render-pdf.mjs` takes one further render of every
 document with the header and footer switched on and refuses a resume that shows
 any of it, using the CV, which must still show all of it, as the control.
 
-**A generated document lands under the name the published one has** —
+**A generated document lands under the name the published one has:**
 `resume.en.pdf`, `cv.ar.pdf`, and so on. Chrome names a printed PDF after the
 page's title, so the page wears that name for the length of the print and takes
 its own title back afterwards. The name is read off the download control's own
@@ -117,7 +117,7 @@ time from `src/content/profile.yaml`, with the GitHub mark knocked into the
 middle of it, and the text is gone. That is the one place either document
 trades a fact a resume parser can read for one a phone can, and the cost is
 real: an ATS reading the PDF finds no GitHub address. What still carries it is
-either `resume.json`, at `basics.profiles[].url`. Because the code is the only
+each language's `resume.json`, at `basics.profiles[].url`. Because the code is the only
 route, `qr code` in `scripts/check-dist.mjs` rasterises page one of all four
 documents and decodes it back out of the pixels, failing if it does not read or
 does not match the content source. `document hazards` refuses every other

@@ -1,5 +1,5 @@
 ---
-
+use-when: "deciding how a document prints, or why a generated PDF carries the browser's header and footer"
 ---
 
 # Hypothesis

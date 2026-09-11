@@ -184,7 +184,7 @@ details[open] > summary .fold-chevron {
 /*
  * The CV page, after the white and blue minimalist corporate template, redesigned
  * as one pair with the resume: black text on white, one column of real text, and
- * the accent carrying the hierarchy — the name's rule, a section heading and the
+ * the accent carrying the hierarchy: the name's rule, a section heading and the
  * rule under it, a link, a bullet's marker. Nothing inside the document declares
  * a background colour any more, which is why none of it needs
  * `print-color-adjust` and why the printed document no longer depends on the
@@ -237,11 +237,11 @@ details[open] > summary .fold-chevron {
  * buys a small header only in theory: the furniture is present or it is
  * absent, and this box is the switch. A resume a reader generates through the
  * download form therefore comes out carrying nothing the document did not
- * write, which is what it had been carrying until now — a title, an address, a
+ * write, which is what it had been carrying until now: a title, an address, a
  * page number, and a timestamp, none of them the document's. Measured at three
- * page boxes with the furniture switched off and on, in this effort's
- * print-furniture-and-the-page-box prototype, and scripts/render-pdf.mjs takes
- * one render with it switched on so a margin creeping back fails the step.
+ * page boxes with the furniture switched off and on, and
+ * scripts/render-pdf.mjs takes one render with it switched on so a margin
+ * creeping back fails the step.
  *
  * Only a document that fits one page can do this. Padding applies at the ends
  * of a box rather than at every fragment of it, so the CV, which runs to five

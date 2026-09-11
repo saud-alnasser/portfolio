@@ -136,3 +136,102 @@ The only occurrences of `10pt` anywhere in this effort's diff are in comments. `
 **The CI runner, which is the only machine whose answer counts here.** Everything above was measured on Windows, and `spec.md` says in its own constraints that a developer's machine will keep saying one page before the runner does, because the system font stack resolves to different faces and Saud has twice declined to bundle a print face. The floor exists precisely because of that, and English clears it by 0.6mm.
 
 `.github/workflows/integration.yml` runs `pnpm render:pdf` and `pnpm check:dist` on Linux. **The criterion clears when this branch is pushed and that workflow is green** — the same push tickets 03 and 06 wait on for Lighthouse. If the runner refuses, the remedy is another lever from the list, and the failure will say which document, which paper, and by how much.
+
+## Corrected after review, 2026-09-11
+
+Both axes ran over the whole effort branch at `b1be8ab` before anything was handed over. What they found is below, with what was done about it. Nothing here was found by a gate; every one of them was passing.
+
+### The floor was measuring the wrong thing, and the document it was written for was inside the error
+
+`freeHeight` took the lowest text run's `transform[5]` on the last page. That is the run's **baseline**, not the bottom of the line: the descender, the rest of the line box, and any margin under it all sit below it. The bias is font-dependent and it is not signed the same way in both languages, so no constant corrects it.
+
+Measured on 2026-09-11: the English resume at Letter **reported 10.6mm and had 9.8mm**, which is under the 10mm floor. The one number that exists to stop 2026-09-10 from happening again was passing the document it was written for by about a descender.
+
+It now measures ink, by drawing the last page and finding the lowest row that is not paper, at three times the PDF's own scale. Two independent measurements agree on it: the reviewer rasterised separately and got 20.5mm for the Arabic resume, which is what the check now reports to the tenth of a millimetre.
+
+**The corrected floor then refused the document**, exactly as it should have all along:
+
+```
+render-pdf: resume-has-no-headroom: en published at Letter fits on one page with 9.8mm to spare, and the floor is
+10mm; it renders here and the runner resolves the system font stack to different faces, which is how a one-page
+resume became two on 2026-09-10. Shorten the content, never the type size
+```
+
+So one more lever was pulled, and the fit is now real rather than apparent:
+
+| | A4 | Letter |
+| --- | --- | --- |
+| `resume.en.pdf`, published and filled | 27.7mm free | **15.0mm free** |
+| `resume.ar.pdf`, published and filled | 38.4mm free | **20.5mm free** |
+
+Where it was 10.6mm and 20.0mm by the old measurement and 9.8mm and 20.5mm by the true one. English went from 0.6mm over the floor to 5.0mm over it.
+
+### Nothing bounded the QR code's size, which is the one risk the spec names for it
+
+The reviewer set the box to 24 pixels — a 6.35mm code with 0.155mm modules, unreadable by any camera — and **the decode check passed, the hazard check passed, and the browser case passed**. The decode rasterises at four times the document's own resolution, so it certifies the encoding and the knockout's recoverability and says nothing whatever about legibility at print size. `spec.md` says that check "is what turns [too small a module for a phone camera] from a thing nobody notices into a failed build". It did not.
+
+It does now. `qrCode` measures the symbol from the decoder's own corner points, converts to millimetres of paper, and refuses a module under 0.4mm:
+
+```
+qr code: cv.en.pdf page 1 decodes to https://github.com/saud-alnasser, modules 0.52mm
+qr code: resume.ar.pdf page 1 decodes to https://github.com/saud-alnasser, modules 0.51mm
+```
+
+Tried at 24 pixels again with the floor in place: `qr code: the QR code on page 1 of cv.en.pdf has modules of 0.15mm, and the floor is 0.4mm`. Restored. The browser case gained the same lower bound, because an upper bound alone is what let this through.
+
+The floor is 0.4mm and the drawn code is 0.52mm. It is set under the design rather than at it so that a deliberate change to the box is a decision somebody makes rather than a build somebody fights, and it does not stand in for the phone scan: below 0.4mm no camera reads a code at all, and between 0.4 and 0.52 only a phone can say.
+
+### The title lever could still leak
+
+`document.title = named(control); window.print(); restore();` with no `try`/`finally`. A `print()` that throws — a sandboxed frame without `allow-modals`, an extension, a policy — skips the restore, and `afterprint` does not fire either, so the tab, its history entry, and anything bookmarked from it keep saying `resume.en` for the life of the page. `spec.md` names this risk by name. The restore is now in a `finally`. The test's stub cannot throw, so no case sees this; it is the kind of hole a reader finds rather than a suite.
+
+### The header's spacer did not balance the code in print
+
+The spacer was `w-20`, five rem; the code is a fixed 80-pixel attribute. The resume prints at a 10pt root, so the spacer measured 66.7px against the code's 80px and pushed the name about 1.8mm off the paper's centre — on the resume only, since the CV's print root is 16px and they agreed there. The component's own comment claimed the opposite. The spacer is pixels now, the browser case asserts the two match, and both comments say why the unit matters.
+
+### Smaller, and all of them real
+
+- **The prototype evidence file opened with empty frontmatter**, where every artifact under `.aep/` must carry a `use-when:` and all eight of this repository's other evidence files do. `validate.mjs` does not catch it.
+- **Source comments cited `.aep/` paths**, which `policies/artifacts` forbids outright: code that names the protocol acquires a dependency on a tool that may be removed. Three comments pointed at `spec.md` or at this effort's prototype; each now states the fact it was reaching for instead.
+- **Nine added lines carried em dashes**, which the reporting policy forbids in source comments, repository documentation, and commit messages alike. The brief sent to the reviewer had claimed surrounding practice permitted them; the reviewer checked and corrected that: the whole source tree had five, three of them in a generated file. Repaired one sentence at a time rather than by substitution, because the right repair differs per sentence.
+- **`mudaraj.yaml`'s comment described the opposite of its own edit**, saying the seat selection joined the browsing when the edit had separated them, and the Arabic still joined them. English was put back to match the Arabic and the comment now describes the one change that was actually made. This is the defect class this repository has twice treated as real.
+- **`resume: false` was a state the content format does not document**: `src/content/README.md`, the schema, and `shown.ts` all say absent means off, and every other off project omits the key. cachescribe omits it now.
+- **`profile.yaml`'s comment justified a cut with an entry the same effort had removed from the resume.** The summary was rewritten rather than patched: it used to restate three project entries in their own words, including mudaraj's team of six and its senior-project standing, which mudaraj's own role line says on the document. It summarises now and names no entry, and it keeps the npm package deliberately, because the resume no longer carries cachescribe and that line is the only place that work appears on it.
+- **A dropped word in `docs/development.md`**, "What still carries it is either `resume.json`", now "each language's `resume.json`".
+- **The header's wrapped block kept its old indentation**, and one rewritten comment ran past the column every comment around it keeps. Both tidied.
+- **Effort 5's spec still stated the budget as live prose** in its Goal paragraph, which none of the five notes reached, and its requirement 10 and criterion 10 still read "at most two pages" beneath a note saying one. Criterion 8 asks that requirement 10 *says* one page. The sentences now say it, which is the precedent that file set on 2026-09-10 when it rewrote the sentence and appended the note rather than leaving the two to contradict each other.
+- **The search quoted as this ticket's evidence did not run as written**: a basic `grep` with alternation and no `-E` matches the literal string and returns nothing. Re-run with `-E`, it finds the Goal line the notes had missed, which is how that was caught.
+
+## Corrected again after the second review round, 2026-09-11
+
+Two rounds ran, which is the bound. What the second found was in the guards rather than in the documents, and two of the four were places the first round's own fixes had left half-done.
+
+**Correcting the record first: the claim above that "em dashes are out of the prose the reporting policy governs" was wrong when it was written.** Three survived in `tests/document-form.spec.ts`, at least two of them added by this branch. The sweep had gone over `src/`, `scripts/` and `docs/` and never reached the test files. They are repaired now. A record that overstates what was done is worse than one that says nothing, so it is corrected here rather than quietly amended above.
+
+### The QR floor was defeated by the one edit criterion 7 promises
+
+The module count was written down as 33, which is the symbol for today's address. Criterion 7 requires the address to be changeable "with no other edit", and a longer one needs a higher version and more modules in the same box. The reviewer ran it end to end: a 66-character address produces a 49-module symbol whose true printed module is **0.371mm, under the floor**, and the check reported `0.55mm` and passed on all four documents. The formula was overstating by `actual / 33`, which was 1.48 times here.
+
+It reads the version out of the decoded symbol now and uses the standard's own `version * 4 + 17`. Re-run with the same 66-character address: `qr code: the QR code on page 1 of cv.en.pdf has modules of 0.37mm, and the floor is 0.4mm`. Restored, and the line now says what it measured: `33 modules at 0.52mm`.
+
+### The spacer's test asserted a number identical on both sides of the bug
+
+`:root:has(.cv-compact) { font-size: 10pt }` is inside `@media print`. The new assertion ran in screen media at a 16px root, where `w-20` **is** 80px, so it passed with the defect present and with it absent alike. The reviewer proved it: put `w-20` back, ran the suite, 46 passed.
+
+The assertion runs under `emulateMedia({ media: 'print' })` now, which is the only medium where it can be wrong. Proved both ways: with the fix in place, 8 passed; with `w-20` put back, `Error: the spacer on /saud-alnasser/en/resume/ matches the code it balances, on paper`. The reviewer also measured the defect it exists for, in the rendered PDF: `w-20` puts the name 1.79mm off the paper's centre on the resume and 0.92mm on the CV, against 0.02mm and 0.03mm with the fix.
+
+### One correction was attempted and reverted, which is worth more than the fix would have been
+
+The second round noted an asymmetry: every other terminal path pairs `clear()` with `restore()`, and the new `finally` restores only, so a `print()` that throws leaves the reader's own email and phone rendered in their tab. Pairing them looked obviously right.
+
+It is wrong, and **40 cases said so**. The contact line has to survive the `print()` call: the document is still being printed when `print()` returns, so emptying the slots there takes the reader's details off the very page being rendered. That is why clearing belongs to `afterprint` and to the dialog, and it is why the asymmetry is deliberate rather than an oversight. The reasoning is now written where the code is, so the next reader does not have to rediscover it by breaking the suite.
+
+### Smaller
+
+- A comment said "The npm package stays named" where the summary names nothing; it says "stays in".
+- `mudaraj.yaml`'s comment said "the list and its items are untouched", true only of the three that remain, since the fourth became the trailing clause; it says so.
+- `scripts/render-pdf.mjs` had traded the greppable `.cv-compact { padding: 10mm }` for prose in the first round's `.aep`-citation sweep. That selector was the load-bearing half: it is the string that ties the constant to the rule it has to move with. Put back.
+
+### What the second round confirmed rather than found
+
+The ink measurement was checked against an independent rasteriser at four scales and four thresholds and agreed to about 0.05mm, so neither the scale nor the ink threshold is load-bearing. It also measured the old baseline method on the same files: **0.88mm optimistic in English and 0.45mm pessimistic in Arabic**, which is the unsigned, font-dependent bias the fix was made for, now demonstrated rather than argued. The floor was proved to fire by raising it to 16mm. The furniture control, the extraction order, and the page counts were confirmed unaffected.

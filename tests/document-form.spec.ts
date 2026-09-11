@@ -72,7 +72,7 @@ const printedAs = (page: Page) => page.evaluate(() => (window as any).__printedA
 // A test asserting the title never moved cannot read it once the form is
 // closed and call that proof, for the reason watchOpen gives: a title set and
 // put back inside one task reads exactly like one that was never touched. A
-// MutationObserver has that same blindness here, and it was tried first — it
+// MutationObserver has that same blindness here, and it was tried first: it
 // delivers one batch after the task that produced it, so the move and the
 // restore arrive together and only the value that survived them is still
 // readable.
@@ -104,7 +104,7 @@ const titles = (page: Page) => page.evaluate(() => (window as any).__titles as s
 // Which is also why this counts the records rather than reading the attribute
 // when the callback runs. Records are delivered at the microtask checkpoint
 // after the task that produced them, so by then the attribute is gone again and
-// a watcher that re-read it would count nothing — the same blindness the
+// a watcher that re-read it would count nothing, which is the same blindness
 // assertion it replaces had. `oldValue === null` is the transition from absent
 // to present, and that is the thing being counted.
 async function watchOpen(page: Page, selector: string) {
@@ -366,7 +366,7 @@ for (const locale of locales) {
       // The name the generated file lands under. Chrome names a printed PDF
       // after the page's title, so the title has to be the published
       // document's name at the moment printing is asked for and the page's own
-      // again once it is over — in the tab, the history entry, and anything
+      // again once it is over: in the tab, the history entry, and anything
       // bookmarked from it.
       test('prints under the name the published document has, and takes its own title back', async ({ page }) => {
         await page.goto(marked);

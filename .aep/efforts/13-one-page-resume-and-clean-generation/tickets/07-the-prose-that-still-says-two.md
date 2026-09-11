@@ -29,7 +29,7 @@ This ticket is last because until the budget is one page the prose saying two is
 ## The search, and its output
 
 ```
-grep -rn -i "two page|two-page|at most 2|pages: 2|past two pages|no more than two pages" scripts/ src/ docs/ .aep/ AGENTS.md
+grep -rnE -i "two pages|two-page|at most 2|pages: 2|past two pages|no more than two pages" scripts/ src/ docs/ .aep/ AGENTS.md
 ```
 
 What it returns now falls into four groups, and every one of them records the budget as history.
