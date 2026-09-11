@@ -1,5 +1,6 @@
 import { getCollection, getEntry, type CollectionEntry } from 'astro:content';
-import type { Locale } from './i18n';
+import { strings, type Locale } from './i18n';
+import { levelLine } from './languages';
 import { localized, type Localized } from './localized';
 import {
   byDateAscending,
@@ -43,6 +44,7 @@ type Experience = CollectionEntry<'experience'>;
 type Education = CollectionEntry<'education'>;
 type Certificate = CollectionEntry<'certificates'>;
 type Skill = CollectionEntry<'skills'>;
+type Language = CollectionEntry<'languages'>;
 
 // A project's public link: `live` first, then `repository`, and only for a
 // public project. A described project carries no `url` key at all, because an
@@ -123,6 +125,18 @@ function mapSkill(entry: Skill, locale: Locale) {
   });
 }
 
+// `fluency` is the schema's one free string for a level, so it carries what
+// the document page prints after the language's name, score and year
+// included, built by the same function so the two cannot drift.
+function mapLanguage(entry: Language, locale: Locale) {
+  const { data } = entry;
+  const text = localized(locale, 'languages', entry.id);
+  return {
+    language: text('name', data.name),
+    fluency: levelLine(text('level', data.level), data.test, strings[locale].listSeparator),
+  };
+}
+
 // The document for one language. `site` is Astro.site, the origin the site is
 // served from; the site's own address and the document's canonical address
 // are derived from it under the base path.
@@ -130,22 +144,25 @@ export async function resumeFor(locale: Locale, site: URL) {
   const profile = await getEntry('profile', 'profile');
   if (!profile) throw new Error('resume: the profile entry is missing from src/content/profile.yaml');
 
-  const [projects, experience, education, certificates, skills] = await Promise.all([
+  const [projects, experience, education, certificates, skills, languages] = await Promise.all([
     getCollection('projects', ({ data }) => isShown(data)),
     getCollection('experience'),
     getCollection('education'),
     getCollection('certificates'),
     getCollection('skills'),
+    getCollection('languages'),
   ]);
 
   // The same orders the pages use (src/lib/order.ts): work newest first,
   // education oldest first so high school precedes university, certificates
-  // by date with undated ones last, projects and skills by authored order.
+  // by date with undated ones last, projects, skills, and languages by
+  // authored order.
   experience.sort((a, b) => byStartDescending(a.data, b.data));
   education.sort((a, b) => byStartAscending(a.data, b.data));
   certificates.sort((a, b) => byDateAscending(a.data, b.data));
   projects.sort((a, b) => byOrderThenStartDescending(a.data, b.data));
   skills.sort((a, b) => byOrderThenName(a.data, b.data));
+  languages.sort((a, b) => byOrderThenName(a.data, b.data));
 
   const { data: person } = profile;
   const text = localized(locale, 'profile', profile.id);
@@ -169,6 +186,7 @@ export async function resumeFor(locale: Locale, site: URL) {
     education: education.map((entry) => mapEducation(entry, locale)),
     certificates: certificates.map((entry) => mapCertificate(entry, locale)),
     skills: skills.map((entry) => mapSkill(entry, locale)),
+    languages: languages.map((entry) => mapLanguage(entry, locale)),
     projects: projects.map((entry) => mapProject(entry, locale)),
     meta: {
       canonical: absolute(`/${locale}/resume.json`, site),

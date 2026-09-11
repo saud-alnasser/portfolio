@@ -195,4 +195,34 @@ const skills = defineCollection({
     .strict(),
 });
 
-export const collections = { profile, projects, experience, education, certificates, skills };
+// A language Saud speaks, for the two hiring documents and the JSON Resume
+// document that follows them; no page of the site reads it, as none reads
+// the nationality. One entry per language rather than a list on the profile,
+// so a language is stored the way every other entry is and the content
+// mechanism test can prove one reaches every output it should and no other.
+const languages = defineCollection({
+  loader: glob({ pattern: '*.yaml', base: './src/content/languages' }),
+  schema: z
+    .object({
+      name: localized,
+      // One short phrase, authored: the level is a claim on a hiring document,
+      // and the vocabulary is the applicant's, since no Saudi form publishes
+      // a ladder to pick from.
+      level: localized,
+      // A proficiency test, where one was taken. `score` is text and not a
+      // number: a band can carry a half, and a score that prints must print
+      // as it was written.
+      test: z
+        .object({
+          name: z.string().min(1),
+          score: z.string().min(1),
+          date: iso8601,
+        })
+        .strict()
+        .optional(),
+      order: z.number().int().optional(),
+    })
+    .strict(),
+});
+
+export const collections = { profile, projects, experience, education, certificates, skills, languages };

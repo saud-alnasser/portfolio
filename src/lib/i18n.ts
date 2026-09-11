@@ -196,6 +196,7 @@ const en = {
     // are the site's own, above.
     experience: 'Work experience',
     skills: 'Key skills',
+    languages: 'Languages',
     certifications: 'Certifications',
     courses: 'Courses',
   },
@@ -340,6 +341,7 @@ const ar: Strings = {
     summary: 'الملخص',
     experience: 'الخبرة العملية',
     skills: 'المهارات الأساسية',
+    languages: 'اللغات',
     certifications: 'الشهادات',
     courses: 'الدورات',
   },

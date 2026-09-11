@@ -45,7 +45,11 @@ between the `<!-- profile -->` markers, is written from `summary` here by
 `pnpm readme`, under links to the site, the CV, and the resume in both
 languages, so who Saud is stays authored once; the dist check fails when the
 README is behind. The record itself — the skills, the projects, the rest —
-is on the site, and the README links to it rather than repeating it.
+is on the site, and the README links to it rather than repeating it. The
+languages Saud speaks are not here either: they are entries under
+`languages/`, read by the two hiring documents and the JSON Resume document
+alone, the way `nationality` below is a fact for those documents and not for
+the site.
 
 **There are two summaries, because there are two documents.** Each names only
 the work its own document prints as an entry, which is what one field could
@@ -182,9 +186,27 @@ One file per skill group.
 | Field | Type | Per language | Meaning |
 | --- | --- | --- | --- |
 | `name` | text | yes | the group, such as "Web development" |
-| `keywords` | list of text | no | the concrete items in the group |
+| `keywords` | list of text | no | the concrete items in the group. **A keyword names something a shown entry backs**: a language, framework, tool, or practice that a completed project, an experience entry, or a certificate on the CV names or plainly used. A word backed only by an entry that is `in-progress` or `hidden`, by a course with nothing built since, or by a bot's configuration is not a skill, and it leaves the list rather than waiting for a screener to check it and find nothing |
 | `level` | text | yes | optional. How well, such as "Working knowledge" |
 | `order` | whole number | no | optional. Lower numbers sort first |
+
+## `languages/`
+
+One file per language Saud speaks. This is a fact for the two hiring
+documents: the CV and the resume print a Languages section directly after the
+key skills, one line per entry reading "name: level", and both JSON Resume
+documents carry the same in their `languages` array. The home page, the
+skills section, and the README do not read it, as they do not read the
+nationality. Arabic and English are the two entries; the Saudi forms these
+documents are written for ask for one level per language and nothing more,
+so there is no split into speaking, reading, and writing.
+
+| Field | Type | Per language | Meaning |
+| --- | --- | --- | --- |
+| `name` | text | yes | the language, such as "English" |
+| `level` | text | yes | one short phrase, such as "Native" or "Working proficiency", authored by Saud: it is a claim on a hiring document, and no Saudi form publishes a ladder to pick from |
+| `test` | `name`, `score`, `date` | no | optional. A proficiency test taken for the language, such as STEP, IELTS, or TOEFL. `score` is text, quoted in the file, so a band with a half survives and a score prints as written; `date` is the result's date. The documents print it after the level as "STEP 85 (2022)", with the year and not the full date, because a language test result is counted for a few years and a score with no date reads as current |
+| `order` | whole number | no | optional. Lower numbers sort first; Arabic first, then English, is the order the Saudi template uses |
 
 ## Adding a project, step by step
 
