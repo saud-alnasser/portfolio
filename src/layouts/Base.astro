@@ -298,8 +298,27 @@ const nav = [
             if (generating) {
               generating = false;
               document.title = named(control);
-              window.print();
-              restore();
+              // `finally`, because a print() that throws would otherwise skip
+              // the restore and leave the tab, its history entry, and anything
+              // bookmarked from it calling themselves resume.en for the life
+              // of the page. `afterprint` does not fire in that case either,
+              // so this is the only restore standing.
+              //
+              // The restore only, and not the clear beside it, which is the
+              // one asymmetry here that is deliberate. The contact line has to
+              // survive this call: the document is still being printed when
+              // print() returns, so emptying the slots here would take the
+              // reader's details off the very page being rendered. That is why
+              // clearing is `afterprint`'s and the dialog's, and why a
+              // throwing print() leaves the line filled in the reader's own
+              // tab until the next click. Their data, their machine, nothing
+              // published. Tried on 2026-09-11: pairing them here fails 40
+              // cases that assert the line is filled after the print.
+              try {
+                window.print();
+              } finally {
+                restore();
+              }
               return;
             }
             clear();
