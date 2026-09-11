@@ -1,6 +1,5 @@
 ---
 status: accepted
-priority: high
 ---
 
 # Problem

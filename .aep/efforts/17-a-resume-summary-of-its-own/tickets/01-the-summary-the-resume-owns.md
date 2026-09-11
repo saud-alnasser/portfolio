@@ -24,11 +24,10 @@ The profile carries a required `resumeSummary` beside `summary`, authored in bot
 
 ## Constraints
 
-- **The schema change and the content land in one commit.** The field is required, so a schema that demands it and a `profile.yaml` that lacks it is a tree that does not build. Nothing in between may be committed.
-- **Two or three sentences**, as `src/content/README.md` sets for a summary of this kind.
-- **The rentable clause may be reused from `summary`.** The two documents are read separately and the same sentence is true on both; there is no requirement that they differ in wording.
 - **The comment above the fields is rewritten once, here**, to say what each field is for and which outputs read it. Ticket 02 edits the other field under the same comment, so leave it saying something true of both.
 - **`summary` is not touched by this ticket.** Its Nova clause is ticket 02's.
+
+The ordering, the sentence count, and what the wording may reuse are in [[efforts/17-a-resume-summary-of-its-own/plan]], under *Technical approach*.
 
 ## Notes
 
@@ -38,4 +37,4 @@ The `localized` helper is used unchanged, so the new field arrives covered by bo
 
 The resume should gain headroom rather than lose it: the paragraph drops four projects and adds one, against the 15.4mm at Letter effort 15 left. A number that comes back lower means something other than the summary changed, which is why it is recorded rather than merely cleared.
 
-**It gained none.** Letter came back at 15.4mm, the same figure to the tenth of a millimetre. The new paragraph is three sentences where the old one was three, and it happens to set to the same number of printed lines, so naming fewer projects bought no height. The spec's assumption that the fit would get easier was wrong in its reasoning and right in its conclusion, which is the case measuring exists to tell apart. A4 and Letter both still clear the floor, so nothing is owed here; the note is for whoever lengthens this next and reads the assumption rather than the number.
+**At Letter it gained none.** Letter came back at 15.4mm in both languages, the same figure to the tenth of a millimetre, because the old and new paragraphs set to the same number of lines at that width. A4 did gain a line, which is what shows the instrument is not simply insensitive: measured from the lowest text baseline of each rendered page, with the old paragraph injected for the comparison, the new one sets a line shorter there in both languages. That line is 15pt, about 5.3mm, which is the dominant baseline-to-baseline gap in the rendered body. Letter is the paper the floor is enforced on and the paper that does not move, so the spec's assumption that the fit would get easier was wrong where it counts. Both papers clear the floor and nothing is owed here; the note is for whoever lengthens this next and reads the assumption rather than the number.
