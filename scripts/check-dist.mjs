@@ -1135,7 +1135,9 @@ function escapeRegExp(text) {
 // alone between its tags on both documents, and neither that nor the bare
 // level does on the home page or in the README. By element rather than by
 // string for the same reason as above: "Native" could one day appear inside
-// a sentence somewhere true, and only the standalone item is the fact.
+// a sentence somewhere true, and only the standalone item is the fact. The
+// README is read whole rather than by its profile block, since a level line
+// has no other home there.
 async function languagesWhereTheyBelong() {
   const name = 'languages';
   const languages = (await visibleEntries('languages')).map((entry) => entry.data).sort(byOrderThenName);
