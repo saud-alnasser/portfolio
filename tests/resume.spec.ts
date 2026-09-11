@@ -145,11 +145,14 @@ for (const locale of locales) {
       // authored text through the same fallback as `summaryText`, and the
       // tail through the same function the page and the JSON document use,
       // so the exact wording, the score, and the year are the expectation
-      // rather than a copy of them.
+      // rather than a copy of them. An empty collection prints no section,
+      // as `sectionsExpected` already says.
       test('lists each language with its level on one line', async ({ page }) => {
         await page.goto(route);
         const t = strings[locale];
         const section = page.locator('[data-cv-section="languages"]');
+        await expect(section).toHaveCount(languages.length > 0 ? 1 : 0);
+        if (languages.length === 0) return;
         await expect(section.locator('h2')).toHaveText(t.cv.languages);
         await expect(section.locator('> ul > li')).toHaveText(
           languages.map(
