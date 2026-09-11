@@ -1064,7 +1064,9 @@ async function noContactDetails() {
   // accident; the phone rule matches by shape, and a shape run over compressed
   // binary matches noise. Measured rather than assumed on 2026-09-10: over the
   // 29 non-text files this tree publishes, the shape rules hit once, inside
-  // NotoNaskhArabic-Bold.ttf, which is a font and not a student number.
+  // the bold Arabic font file, which is a font and not a student number. It
+  // was NotoNaskhArabic-Bold.ttf when that was measured on 2026-09-10 and is
+  // the woff2 of the same face now.
   //
   // So the shape half of this check does not reach binary files, and nothing
   // else covers them either: `identifiers` above reads the same text kinds and

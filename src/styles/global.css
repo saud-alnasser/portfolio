@@ -20,9 +20,13 @@
  * line" and then 16 pixels, and chose it on 2026-09-11 once the real figure
  * was measured.
  *
- * Both are woff2 and subset to Latin, which is 31KB for the pair against the
- * 310KB the two Arabic files take. `unicode-range` keeps each face to its own
- * blocks, so a page with no Arabic text never requests the Arabic files.
+ * All four files are woff2 and subset to the script they carry: 31KB for the
+ * Latin pair and 105KB for the Arabic. The Arabic pair was two unsubset TTFs
+ * of 155KB each until 2026-09-11, when adding the Latin face put the three
+ * Arabic pages under Lighthouse's performance floor and subsetting them took
+ * far more weight off those pages than the Latin face had added.
+ * `unicode-range` keeps each face to its own blocks, so a page with no Arabic
+ * text never requests the Arabic files.
  */
 @font-face {
   font-family: "Source Sans 3";
@@ -45,7 +49,7 @@
   font-style: normal;
   font-weight: 400;
   font-display: swap;
-  src: url("/fonts/NotoNaskhArabic-Regular.ttf") format("truetype");
+  src: url("/fonts/NotoNaskhArabic-Regular.woff2") format("woff2");
   unicode-range: U+0600-06FF, U+0750-077F, U+08A0-08FF, U+FB50-FDFF, U+FE70-FEFF;
 }
 
@@ -54,7 +58,7 @@
   font-style: normal;
   font-weight: 700;
   font-display: swap;
-  src: url("/fonts/NotoNaskhArabic-Bold.ttf") format("truetype");
+  src: url("/fonts/NotoNaskhArabic-Bold.woff2") format("woff2");
   unicode-range: U+0600-06FF, U+0750-077F, U+08A0-08FF, U+FB50-FDFF, U+FE70-FEFF;
 }
 
@@ -117,13 +121,11 @@
   --radius-md: var(--radius);
   --radius-lg: calc(var(--radius) + 2px);
 
-  /* One family: the system stack, which needs no request and shapes Arabic
-     with whatever the platform ships. */
-  /* The bundled face first, so every machine lays the text out identically and
-     the resume's page count is a fact about the document. The system stack
-     stays behind it for the one case the bundle cannot cover: a face that
-     fails to load leaves a readable page rather than a blank one, and the
-     render step refuses a PDF taken in that state. */
+  /* The bundled face first, so every machine lays the text out identically
+     and the resume's page count is a fact about the document rather than about
+     the renderer. The system stack stays behind it for the one case a bundle
+     cannot cover: a face that fails to load leaves a readable page rather than
+     a blank one, and the render step refuses a PDF taken in that state. */
   --font-sans:
     "Source Sans 3", system-ui, -apple-system, "Segoe UI", Roboto, "Noto Sans", "Noto Sans Arabic", sans-serif;
 
