@@ -186,7 +186,7 @@ One file per skill group.
 | Field | Type | Per language | Meaning |
 | --- | --- | --- | --- |
 | `name` | text | yes | the group, such as "Web development" |
-| `keywords` | list of text | no | the concrete items in the group |
+| `keywords` | list of text | no | the concrete items in the group. **A keyword names something a shown entry backs**: a language, framework, tool, or practice that a completed project, an experience entry, or a certificate on the CV names or plainly used. A word backed only by an entry that is `in-progress` or `hidden`, by a course with nothing built since, or by a bot's configuration is not a skill, and it leaves the list rather than waiting for a screener to check it and find nothing |
 | `level` | text | yes | optional. How well, such as "Working knowledge" |
 | `order` | whole number | no | optional. Lower numbers sort first |
 
