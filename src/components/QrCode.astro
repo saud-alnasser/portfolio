@@ -78,16 +78,24 @@ const ink = '#1c2128';
 // The box, in CSS pixels, which are 1/96 inch when this prints: 80 is 21.2mm,
 // and the name block it sits beside measures 21.2mm on the resume and 23.3mm
 // on the CV. Sized to the block rather than to a round number of millimetres,
-// because a code taller than that block is height taken out of a document
-// that has 98px still to find, and spec.md records that the scan and the fit
-// pull against each other. Measured, not assumed: the article is the same
-// height with this code in it as without.
+// because a code taller than that block is height the resume does not have:
+// the scan wants a bigger code and the one-page fit wants a smaller one, and
+// the two are spending the same millimetres. Measured, not assumed: the
+// article is the same height with this code in it as without, and a browser
+// case asserts both bounds, so a code that grows past the block or shrinks
+// below what a camera reads fails rather than doing it quietly.
+//
+// The spacer that balances this on the leading edge of the header is the same
+// number, in src/components/CvDocument.astro. It is written in pixels there
+// too rather than in rem: the resume prints at a 10pt root, so a rem spacer
+// would be two thirds of this and the name would sit off the paper's centre
+// on the resume alone.
 //
 // What that buys the scanner is 0.52mm a module, over 41 modules: 33 of data
 // at error correction level H, and the 4 of quiet zone each side that the
 // standard asks for. The ticket's own estimate was 0.6mm, which counted the
 // data and forgot the quiet zone. 0.52mm is small, and no measurement here
-// settles whether a phone reads it off paper — only a phone does, which is
+// settles whether a phone reads it off paper. Only a phone does, which is
 // why that is an acceptance criterion rather than a note.
 const box = 80;
 

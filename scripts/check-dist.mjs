@@ -423,6 +423,32 @@ async function documentPurpose() {
 // Rendered at 4 times the PDF's own scale. At the size the code prints, a
 // module is about 2 pixels at scale 1, which is under what any decoder reads;
 // 4 puts it near 8 and costs a second per document.
+const QR_SCALE = 4;
+
+// How many modules a symbol of a given version is square, which is the
+// standard's own formula. Read from the decoded symbol rather than written
+// down, because the address is the content source's to change: a longer one
+// needs a higher version and more modules in the same box, so a constant here
+// would measure a module wider than the code actually has.
+//
+// Measured on 2026-09-11, with 33 hardcoded: an address of 66 characters
+// takes a 49-module symbol, whose true printed module is 0.371mm, and the
+// check reported 0.55mm and passed. That is precisely the edit criterion 7
+// promises can be made "with no other edit", so a floor that only holds for
+// today's address is a floor that fails on the one change it has to survive.
+const modulesOf = (version) => version * 4 + 17;
+
+// The smallest module this will let ship, in millimetres on paper.
+//
+// The code is drawn at 0.52mm a module, which is already small, and no check
+// can say whether a phone reads that off a home printer: only a phone can, and
+// that is an acceptance criterion of its own. What this floor does is narrower
+// and worth having anyway. Below about 0.4mm no consumer camera reads a code
+// at arm's length whatever the printer does, so a code that small has lost the
+// GitHub address outright rather than merely made it awkward. It is set under
+// the drawn size rather than at it, so a deliberate change to the box is a
+// decision somebody makes rather than a build somebody has to fight.
+const QR_MODULE_MM = 0.4;
 async function qrCode() {
   const name = 'qr code';
   const profile = parseYaml(await readFile(path.join(context.content, 'profile.yaml'), 'utf8')).profile;
@@ -449,7 +475,7 @@ async function qrCode() {
       try {
         const pdf = await task.promise;
         const page = await pdf.getPage(1);
-        const viewport = page.getViewport({ scale: 4 });
+        const viewport = page.getViewport({ scale: QR_SCALE });
         const canvas = createCanvas(Math.round(viewport.width), Math.round(viewport.height));
         await page.render({ canvas, viewport }).promise;
         const pixels = canvas.getContext('2d').getImageData(0, 0, canvas.width, canvas.height);
@@ -470,7 +496,34 @@ async function qrCode() {
           `the QR code on page 1 of ${path.basename(file)} decodes to "${decoded.data}", and src/content/profile.yaml says "${coded.url}"`,
         );
       }
-      lines.push(`qr code: ${path.basename(file)} page 1 decodes to ${decoded.data}`);
+
+      // How big it actually is on paper, which the decode above says nothing
+      // about. The page is rasterised well above print resolution, so a code
+      // far too small for any camera decodes here perfectly: measured on
+      // 2026-09-11, a 6.35mm box with 0.155mm modules passed the decode, the
+      // hazard check, and the browser case, all three. A check that cannot
+      // fail on the one risk the spec names for this feature is not checking
+      // it.
+      //
+      // `location` bounds the symbol by its finder patterns, so it spans the
+      // modules of data and not the quiet zone around them.
+      const corners = decoded.location;
+      const side = Math.hypot(
+        corners.topRightCorner.x - corners.topLeftCorner.x,
+        corners.topRightCorner.y - corners.topLeftCorner.y,
+      );
+      const across = modulesOf(decoded.version);
+      const module = ((side / QR_SCALE / 72) * 25.4) / across;
+      if (module < QR_MODULE_MM) {
+        throw new CheckFailure(
+          name,
+          `the QR code on page 1 of ${path.basename(file)} has modules of ${module.toFixed(2)}mm, and the floor is ${QR_MODULE_MM}mm; ` +
+            'it is the only route to the GitHub address on paper, and a code no camera can read has lost it whatever it decodes to here',
+        );
+      }
+      lines.push(
+        `qr code: ${path.basename(file)} page 1 decodes to ${decoded.data}, ${across} modules at ${module.toFixed(2)}mm`,
+      );
     }
   }
   return lines;

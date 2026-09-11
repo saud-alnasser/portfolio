@@ -140,7 +140,7 @@ const link = 'text-primary underline underline-offset-4 hover:decoration-2';
 // A section heading: the accent over a hairline rule that runs the width of
 // the column. It replaced a full-width tinted band, which was the template's
 // one background colour and the only thing on either document that needed
-// `print-color-adjust: exact` — a rule is a border rather than a background,
+// `print-color-adjust: exact`. A rule is a border rather than a background,
 // so it prints whatever the reader's dialog is set to and the document stops
 // depending on that setting at all (tests/theme.spec.ts says so).
 //
@@ -172,58 +172,58 @@ const muted = 'text-sm text-muted-foreground';
       Arabic mirrors the whole row with no second rule.
 
       The row is flex rather than positioned: a fixed or absolute element
-      carrying content inside the document is refused outright, both by
-      spec.md and by tests/resume.spec.ts. */}
+      carrying content inside the document is what a resume parser most often
+      scrambles, so tests/resume.spec.ts refuses one outright. */}
   <header class="cv-entry flex items-center gap-x-6 border-b-2 border-primary pb-5">
-    <div aria-hidden="true" class="w-20 shrink-0"></div>
+    <div aria-hidden="true" class="w-[80px] shrink-0"></div>
     <div class="min-w-0 flex-1 text-center">
-    <h1 class="text-3xl font-semibold uppercase tracking-[0.025em]">{name}</h1>
-    <p class="mt-1 text-muted-foreground">{label}</p>
-    {/* One line, in the flow of the document. The bars separate the items for
-        a reader and are hidden from a screen reader, which has the list.
-        Every item carries its bar at the trailing edge and the last one's is
-        hidden in global.css, because the first two items are empty until a
-        reader fills them and a leading bar would be stranded the rest of the
-        time. An optional item added at the end would break that; the front is
-        where they belong.
+      <h1 class="text-3xl font-semibold uppercase tracking-[0.025em]">{name}</h1>
+      <p class="mt-1 text-muted-foreground">{label}</p>
+      {/* One line, in the flow of the document. The bars separate the items for
+          a reader and are hidden from a screen reader, which has the list.
+          Every item carries its bar at the trailing edge and the last one's is
+          hidden in global.css, because the first two items are empty until a
+          reader fills them and a leading bar would be stranded the rest of the
+          time. An optional item added at the end would break that; the front is
+          where they belong.
 
-        The two slots are what the download form writes into. The published
-        document renders them hidden and empty, which is the whole of how this
-        site publishes no contact detail; docs/development.md says why. */}
-    <ul
-      aria-label={t.home.contact}
-      data-cv-contact
-      class="cv-contact mt-3 flex flex-wrap items-center justify-center gap-x-2 gap-y-1 text-sm"
-    >
-      <li data-contact-slot="email" hidden class="flex items-center gap-x-2">
-        <span></span>
-        <span aria-hidden="true" class="text-muted-foreground">|</span>
-      </li>
-      <li data-contact-slot="phone" hidden class="flex items-center gap-x-2">
-        <span></span>
-        <span aria-hidden="true" class="text-muted-foreground">|</span>
-      </li>
-      <li class="flex items-center gap-x-2">
-        <span>{nationality}</span>
-        <span aria-hidden="true" class="text-muted-foreground">|</span>
-      </li>
-      <li class="flex items-center gap-x-2">
-        <span>{location}</span>
-        <span aria-hidden="true" class="text-muted-foreground">|</span>
-      </li>
-      {
-        written.map((p) => (
-          <li class="flex items-center gap-x-2">
-            <a href={p.url} class={link}>
-              {p.url}
-            </a>
-            <span aria-hidden="true" class="text-muted-foreground">
-              |
-            </span>
-          </li>
-        ))
-      }
-    </ul>
+          The two slots are what the download form writes into. The published
+          document renders them hidden and empty, which is the whole of how this
+          site publishes no contact detail; docs/development.md says why. */}
+      <ul
+        aria-label={t.home.contact}
+        data-cv-contact
+        class="cv-contact mt-3 flex flex-wrap items-center justify-center gap-x-2 gap-y-1 text-sm"
+      >
+        <li data-contact-slot="email" hidden class="flex items-center gap-x-2">
+          <span></span>
+          <span aria-hidden="true" class="text-muted-foreground">|</span>
+        </li>
+        <li data-contact-slot="phone" hidden class="flex items-center gap-x-2">
+          <span></span>
+          <span aria-hidden="true" class="text-muted-foreground">|</span>
+        </li>
+        <li class="flex items-center gap-x-2">
+          <span>{nationality}</span>
+          <span aria-hidden="true" class="text-muted-foreground">|</span>
+        </li>
+        <li class="flex items-center gap-x-2">
+          <span>{location}</span>
+          <span aria-hidden="true" class="text-muted-foreground">|</span>
+        </li>
+        {
+          written.map((p) => (
+            <li class="flex items-center gap-x-2">
+              <a href={p.url} class={link}>
+                {p.url}
+              </a>
+              <span aria-hidden="true" class="text-muted-foreground">
+                |
+              </span>
+            </li>
+          ))
+        }
+      </ul>
     </div>
     {coded && <QrCode url={coded.url} label={`${coded.network}: ${coded.url}`} />}
   </header>

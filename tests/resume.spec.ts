@@ -208,6 +208,13 @@ for (const locale of locales) {
         // The header block the code sits beside, which is what pays for it:
         // the code is drawn no taller than the name and the label, so the
         // document is the same height with it as without.
+        //
+        // Bounded below as well as above, and the lower bound is the one that
+        // matters. An upper bound alone passes a code of any size at all down
+        // to a few pixels, which decodes perfectly from a page rasterised
+        // above print resolution and is unreadable by any camera; the dist
+        // check measures the printed module for that reason, and this is its
+        // half on the page, where the name block it is sized against lives.
         const [text, drawn] = await Promise.all([
           page.locator('article.cv > header > div').nth(1).boundingBox(),
           code.boundingBox(),
@@ -215,6 +222,27 @@ for (const locale of locales) {
         expect(drawn!.height, `the code on ${route} is no taller than the name block`).toBeLessThanOrEqual(
           text!.height,
         );
+        expect(drawn!.height, `the code on ${route} is drawn at the size it is printed at`).toBe(80);
+        expect(drawn!.width, `the code on ${route} is square`).toBe(drawn!.height);
+
+        // The spacer that balances it, measured **in print media**, which is
+        // the only medium where this can be wrong. The compact root size is
+        // declared inside `@media print`, so on screen a rem spacer and a
+        // pixel code are both 80 and agree; in print the root is 10pt, a rem
+        // spacer becomes two thirds of the code, and the name sits off the
+        // paper's centre on the resume alone. A screen-media assertion here
+        // passes identically on both sides of that, which is no assertion at
+        // all.
+        await page.emulateMedia({ media: 'print' });
+        const [spacer, printed] = await Promise.all([
+          page.locator('article.cv > header > div').first().boundingBox(),
+          code.boundingBox(),
+        ]);
+        expect(spacer!.width, `the spacer on ${route} matches the code it balances, on paper`).toBeCloseTo(
+          printed!.width,
+          1,
+        );
+        await page.emulateMedia({ media: 'screen' });
 
         const contact = await page.locator('[data-cv-contact]').innerText();
         expect(contact, `the contact line on ${route} writes no GitHub address out`).not.toContain('github.com');
