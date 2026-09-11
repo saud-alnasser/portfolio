@@ -109,10 +109,6 @@ async function jsonResume() {
   for (const [section, collection] of Object.entries(sections)) {
     expected[section] = await visibleEntries(collection);
   }
-  // The one text field of `basics` this check reads from the content source.
-  // The document's summary is the profile's `summary`, never the resume
-  // document's own `resumeSummary`, which src/components/CvDocument.astro
-  // prints on the short resume page and nothing else reads.
   const profile = parseYaml(await readFile(path.join(context.content, 'profile.yaml'), 'utf8')).profile;
   // A project's `name:` is authored once, so it is the same in every
   // language's document.
@@ -165,14 +161,16 @@ async function jsonResume() {
     if (resume.basics?.url !== context.siteRoot) {
       throw new CheckFailure(name, `${locale}: basics.url is ${JSON.stringify(resume.basics?.url)}, expected the site's root ${context.siteRoot}`);
     }
-    // Through `pick`, not off the `ar` key: a profile field's Arabic is
-    // optional and src/lib/resume.ts renders the English where it is absent,
-    // so reading the file directly would fail the Arabic document over a gap
-    // the contract allows. The call records the same gap key the `gaps` check
-    // below records for this field, so the report is the same either way.
-    const summary = pick(profile.summary, locale, { collection: 'profile', id: 'profile', field: 'summary' });
+    // Falling back the way src/lib/resume.ts falls back rather than reading
+    // the `ar` key: a profile field's Arabic is optional, and the document
+    // carries the English where it is absent, so reading the file directly
+    // would fail the Arabic document over a gap the contract allows. Written
+    // out rather than through `pick`, which records into the store the `gaps`
+    // check below reports from: a check that recorded a gap would put a line
+    // in that report which `pnpm build` does not print.
+    const summary = profile.summary[locale] ?? profile.summary.en;
     if (resume.basics?.summary !== summary) {
-      throw new CheckFailure(name, `${locale}: basics.summary is ${JSON.stringify(resume.basics?.summary)}, expected the authored summary ${JSON.stringify(summary)}`);
+      throw new CheckFailure(name, `${locale}: basics.summary is ${JSON.stringify(resume.basics?.summary)}, expected src/content/profile.yaml's ${JSON.stringify(summary)}`);
     }
     const canonical = `${context.siteRoot}${locale}/resume.json`;
     if (resume.meta?.canonical !== canonical) {
