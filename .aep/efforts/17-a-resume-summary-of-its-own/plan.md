@@ -4,7 +4,7 @@ use-when: "building a ticket in this effort and the approach is not obvious from
 
 # Architecture
 
-The root cause is a modelling one. `summary` was specified as a property of the person, and it is read by four outputs of which one is a document with a page budget. Effort 15 tried to write one text that served the CV and the resume at once and produced one that served neither, which is what a single field forces once the two documents stop carrying the same entries.
+The root cause is a modelling one. `summary` was specified as a property of the person, and one of the four callers that read it is a document with a page budget. Effort 15 tried to write one text that served the CV and the resume at once and produced one that served neither, which is what a single field forces once the two documents stop carrying the same entries.
 
 **The fix keeps the summary a property of the person and adds a second one, rather than re-keying the first by document.** `summary` keeps its name, its schema shape, and every consumer it has. A required `resumeSummary` sits beside it and is read by exactly one caller.
 
